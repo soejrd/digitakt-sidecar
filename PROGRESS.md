@@ -88,6 +88,14 @@ Date/time and owner; task IDs; artifacts/commit; commands and actual results; me
 - Recommended the existing emulator sample-loader flow instead of introducing a new transfer/MCP stack. H01 remains independent; USB→ColdFire handoff remains unresolved.
 - Validation: checked new local reference links and reviewed the documentation-only diff. No emulator or hardware test was performed in this triage session.
 
+## 2026-10-26 — R03 stop record (codex-r03, work halted at human request)
+
+- **Task:** R03 remains **IN_PROGRESS**; acceptance is not met. Work was stopped before loading/triggering a stock sample or attempting another injection. No firmware was flashed and no hardware audio was sent.
+- **Recorded findings:** added a [stop-point record](docs/R03-emulator-insertion.md#stop-point-record-2026-10-26t1959z) to the R03 step document. It separates the host Unicorn failure (`hw.cachelinesize` denied, fallback `mrs CTR_EL0` SIGILL at `uc_mem_map`), the temporary 1.53 boot workaround, and the guest-audio result (no active source; zero-audio probes at `0x80001A18`, `0x40077FBA`, `0x40077FCE`).
+- **Boundary:** the exact post-source/pre-filter hook is unresolved. The 1.53 source block `0x80001A18 + 128*track`, `fw_set_param` at `0x400771e8`, filter ids 30-43, amp ids 44-51 and AMP VOL slot 15 are source facts; no filter/amp sweep or second-track regression was run. OS 1.54 remains the target, but its emulator fidelity is unproven and no 1.53 execution result is presented as 1.54 evidence.
+- **Artifacts:** [R03 report](docs/R03-emulator-insertion.md); existing logs in `evidence/r03/`. No tool or dependency patch was added. The temporary `/tmp` runtime and firmware assets are untracked and not a reproducible deliverable.
+- **Checks/commit:** documentation-only change reviewed with `git diff --check`; local commit recorded in the handoff. Board footer now points to the stop record.
+
 ## 2026-10-26 — project-wide reference index
 
 - Added docs/REFERENCES.md mapping all supplied references to project-wide transport, controls, automation, persistence and sample-transfer work. Review status is explicit; listed resources are not automatically dependencies.
