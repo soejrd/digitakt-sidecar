@@ -54,3 +54,21 @@ Date/time and owner; task IDs; artifacts/commit; commands and actual results; me
 - **Limits:** no Circle tree was available for a full Pi kernel cross-build; no USB stream or hardware test was performed. The Circle factory change is verified as a clean patch against a padded synthetic factory, not a compiled kernel. H01 must prove packet sizes/channel placement/format/rate/latency and a zero-gap run.
 - **Board:** I01 DONE; H01 READY (its I01 dependency is complete and the hardware is visible); D01/I02 remain blocked by the unresolved R01 USB→ColdFire handoff and R03.
 - **Next action:** H01 build/stream test (or R03 independently). Do not claim MAIN-to-track routing from I01; this task only establishes the directional USB transport layout and tests.
+
+## 2026-10-26 — R03 emulator insertion attempt (codex-r03)
+
+- **R03 claimed** at `2026-10-26T19:39:03Z`. No acceptance result claimed: the task is **BLOCKED** on the emulator runtime.
+- **Established:** the 1.53 track-source insertion surface is `0x80001A18 + 128*track`, before the stock filter/amp path, and the 1.53 stock MAIN image (sha256 `4b47a9507758ca5669ca02ab2c0374d2c04c98aece445408295cc1dcb265c5df`, 2,475,584 bytes) references it at the expected render sites. The pinned emulator supports 1.53 as its tested release; 1.54 is documented as boot-only/not further tested.
+- **Prepared:** a clean stock 1.53 firmware folder in `/tmp/r03-fw` (not tracked), `scripts/r03_bootstrap.sh`, and a documented experiment: write known nonzero PCM into track 1's 32-sample source block, capture audio with neutral filter/amp, sweep cutoff and amp controls, and regress a stock track.
+- **Actual blocker:** `bootstrap.first_run()` completed extract/card, then the cold-boot `ladder` exited **status 132 (SIGILL)** with no snapshot. `PYTHONPATH=deps/digiemu python -m emu.unicorn_compat` also exits **132**. The emulator docs require the patched Unicorn; all three local digiemu venvs contain the stock 2.1.4 wheel. `install-patched-unicorn.sh` needs Unicorn source commit `8028ec436f2d9376525352dd38ed9ed6b9f6be10`; no local source checkout was found and `github.com`/`pypi.org` DNS resolution failed.
+- **Evidence:** [R03 report](docs/R03-emulator-insertion.md), [bootstrap attempt log](evidence/r03/bootstrap-attempt-2026-10-26.log), [compatibility log](evidence/r03/unicorn-compat-2026-10-26.log).
+- **Board:** R03 BLOCKED with release condition: install a compatible patched Unicorn 2.1.4 m68k runtime, then run `scripts/r03_bootstrap.sh` and the documented probe. D01 remains BLOCKED (R03 incomplete and the R01 USB→ColdFire handoff unresolved). H01 and R04–R06 are independently available.
+- **Next action:** install/build the patched Unicorn, re-run the 1.53 bootstrap, then execute the insertion/filter/amp probe. Do not treat the static address evidence as a successful emulator test.
+
+- **Additional check:** the alternative `libunicorn.2.dylib` under
+  `digitakt modding/digiemu/.venv` (sha256
+  `a0db6bebc7506245be341971a4b7a67d012aa37ee3e46ebc39679b88137e503f`) also
+  crashes. Its macOS crash report places SIGILL in
+  `init_cache_info -> machine_initialize -> uc_init_engine -> uc_mem_map`,
+  before any guest instruction. This reinforces that the blocker is the
+  runtime build, not the insertion point.

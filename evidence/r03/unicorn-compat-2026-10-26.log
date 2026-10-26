@@ -1,0 +1,12 @@
+compat exit 132
+Additional check (2026-10-26): the libunicorn in
+/Users/s.klatser/coding projects/digitakt modding/digiemu/.venv is a different
+build (806512 bytes, sha256 a0db6bebc7506245be341971a4b7a67d012aa37ee3e46ebc39679b88137e503f),
+but it also aborts with SIGILL (status 132) at uc_mem_map:
+  unicorn/unicorn_py3/unicorn.py:831 in mem_map
+The other two venvs have a 16,232,448-byte library
+(sha256 7207c8e3d7a63118fb0bca73e01816797fd51b1d8a39a4cbc7abfd562ee59c85) with
+the same mem_map SIGILL. A bare Uc(UC_ARCH_M68K, UC_MODE_BIG_ENDIAN).mem_map(0, 0x1000)
+reproduces it, so this is a runtime/ABI failure before any guest instruction.
+The 806 KB library's strings name a local digitakt2-unicorn build tree; it is
+still not usable by this emulator on this host.
