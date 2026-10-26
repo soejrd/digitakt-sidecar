@@ -1,11 +1,119 @@
 # R03 — pre-filter track insertion in the emulator
 
-Status: **IN_PROGRESS — emulator runtime solved; insertion not yet verified.**
+Status: **IN_PROGRESS — runtime rerunnable; stock sample load blocked before
+nonzero PCM.** Insertion still not attempted.
 Owner: `codex-r03 @ 2026-10-26T19:39:03Z`. Target: insert known PCM into one
 Digitakt track before its filter/amp, show that filter/amp changes affect the
 output, and show stock tracks still work.
 
 No firmware was flashed and no hardware audio was sent.
+
+## 2026-10-26 continuation: runtime, sample fixture and stock-load result
+
+This section supersedes the runtime-only stop point below. It records what was
+actually run after the reference triage, including a negative result: stock
+audio was **not** reached, so no injection, filter/amp sweep or second-track
+regression was started.
+
+### Runtime: rerunnable here, not rebuilt from tracked sources
+
+- The restrictive sandbox is still in force. `sysctl -n hw.cachelinesize`
+  returns `Operation not permitted`, and an unsandboxed escalation request was
+  refused by the approval policy before execution. No claim is made that the
+  emulator ran outside the sandbox.
+- The local patched Unicorn fallback in a private runtime directory is
+  rerunnable on this host. `emu.unicorn_compat` passes all five semantic checks
+  (`compatible: true`). The active library is
+  `libunicorn.2.dylib`, 819,904 bytes, SHA-256
+  `c4c0b258030be6ae03cb1700762188af5d75d7583945f47678df8d3b80bd8ecc`.
+  It exports the digikit symbols and names a tag-2.1.4 build tree, but that
+  source tree is gone. This is therefore an exact, hash-recorded **runtime
+  artifact**, not a from-scratch reproducible build. Rebuilding still requires
+  the pinned installer and network access, or an accessible local Unicorn
+  2.1.4 clone.
+
+### Fixture: known WAV placed through the emulator's own loader
+
+- Private fixture root: `<private-runtime>/r03-run-20261026/fw` (untracked; contains
+  no tracked firmware or card data).
+- Stock 1.53 input: `Digitakt_OS1.53.syx`, SHA-256
+  `9bdd44bb6102fb25c143cfab97bc92b7a89c463f795d3112dce89771e29bcc92`;
+  extracted MAIN OS SHA-256
+  `4b47a9507758ca5669ca02ab2c0374d2c04c98aece445408295cc1dcb265c5df`.
+- Known WAV: 48 kHz, mono, 16-bit, 48,000 frames, SHA-256
+  `653f942dc514d30783b5037bb6cdf7439b7f28d1e9a9087f48b4da3e021d045a`.
+- `emu.samples.plan` accepted it as `sine`; `emu.samples.write` created
+  `/incoming/sine` (inode 4). A duplicate root entry (inode 5) was later added
+  only to work around the browser navigation problem. The on-card sample is
+  96,080 bytes: 64-byte header + 96,000 bytes of big-endian mono PCM + 16-byte
+  trailer, rate 48,000, hash `0x7167c7e1`. The inode hash, hash-table word and
+  recomputed content hash all agree, and the parent directory is valid.
+- A cold rebuild after each card change succeeded. The last rebuild reported:
+  extract up to date; card valid; ladder parked at ~160M instructions with 10
+  tasks; intro reached `USER INTERFACE IS LIVE`; settle accepted the already
+  initialised +Drive; `gui.snap` written. This proves the firmware mounted the
+  updated card, not that it loaded a sample into the project.
+
+### Stock playback attempt: live audio, zero PCM
+
+`tools/livecheck.py` ran through the GUI's live 48 kHz model with the sample
+selection/trigger sequence. The audio path itself was live:
+
+```
+[gui] audio: LIVE at 48000 Hz (emulated CPU 64M instructions/s)
+1.2 s: audio 1.16 s  real 100%  buffered 220 ms  dropouts 1
+5.2 s: audio 5.17 s  real 100%  buffered 230 ms  dropouts 1
+recording 5.17 s, peak 0
+```
+
+So the emulator rendered 5.17 s of audio, but the captured PCM peak was zero.
+This is a negative stock-audio result, not evidence about an injection point.
+
+### Where the stock sample load fails
+
+The stock UI does reach the load flow: the side-menu prompt showed
+`LOAD 1 SAMPLE? CONFIRM Y/N`, and after `SELECT ALL` it showed
+`LOAD 2 SAMPLES?`. The result was still `SAMPLE MEMORY FULL`, which upstream
+documents as the zero-count done message, not literal memory exhaustion.
+
+Hooking the firmware's loader and reference builder located the failure:
+
+- `FUN_400d1680` returns `0xFFFFFFFF`.
+- `FUN_400ec6d2` is entered with stack argument 0 pointing at a reference
+  buffer whose first word is `FFFFFFFF` (`ff ff ff ff 00 00 00 00 ...`).
+- This happens both with a single marked row and with `SELECT ALL`, although
+  the UI reports 1 or 2 samples selected.
+
+Thus the UI selection state and the reference passed to the loader disagree.
+The on-card inode and hash are valid, so the immediate blocker is the
+UI-to-reference bridge or the browser row state, not the sample encoding,
+directory index or hash table. The exact browser key mapping was not resolved:
+inside the browser, raw code 12 entered `Factory` from the root in one
+observation, while code 15 moved the cursor; on `incoming`, code 12 behaved as
+a checkbox/mark action. Those observations are inconsistent enough that they
+are not offered as a general key map.
+
+### Version boundary
+
+All execution above is **OS 1.53**. OS 1.54 is still the target, but only its
+static addresses are established (R01); no 1.54 emulator fidelity claim is
+made here. In particular, the sample-load failure is a 1.53 emulator/session
+finding and must not be presented as a 1.54 execution result.
+
+### Exact next step
+
+Do not inject yet. First resolve the stock-load failure by either:
+
+1. using a pre-loaded sample image/snapshot with a proven project slot 1, or
+2. tracing the firmware worker that builds the file reference from the
+   browser selection and fixing the selection/reference handoff in the
+   emulator (or documenting the correct stock key sequence).
+
+Only after `emu.Session.pcm` or the live-audio recording has nonzero peak/RMS
+should the post-source/pre-filter trace restart. Evidence summary:
+[stock sample attempt](../evidence/r03/stock-sample-attempt-2026-10-26.log).
+
+No tracked tool or emulator source was modified in this attempt.
 
 ## Stop-point record (2026-10-26T19:59Z)
 

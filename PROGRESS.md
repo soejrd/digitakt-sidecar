@@ -101,3 +101,45 @@ Date/time and owner; task IDs; artifacts/commit; commands and actual results; me
 - Added docs/REFERENCES.md mapping all supplied references to project-wide transport, controls, automation, persistence and sample-transfer work. Review status is explicit; listed resources are not automatically dependencies.
 - Linked the index from README.md and AGENTS.md so future task owners discover it when relevant. R03-specific continuation remains in REFERENCE-TRIAGE.md.
 - Validation: local reference links resolve; documentation diff checked. No implementation or hardware changes.
+
+## 2026-10-26 — R03 stock-sample attempt and stop record (codex-r03)
+
+- **Task:** R03 remains **IN_PROGRESS**. Work stopped at the human's request
+  after the stock-sample attempt. No injection, filter/amp sweep or
+  second-track regression was started. No firmware was flashed and no hardware
+  audio was sent.
+- **Runtime:** the host still denies `sysctl -n hw.cachelinesize` (`Operation
+  not permitted`) and an unsandboxed escalation request was refused before
+  execution. The local patched Unicorn runtime is nevertheless rerunnable and
+  passed all five `emu.unicorn_compat` checks (`compatible: true`). Active
+  library: 819,904 bytes, SHA-256
+  `c4c0b258030be6ae03cb1700762188af5d75d7583945f47678df8d3b80bd8ecc`.
+  Its original build tree is gone, so this is a hash-recorded runtime artifact,
+  not a from-scratch rebuild.
+- **Fixture:** created a private 1.53 device root, loaded a known 48 kHz mono
+  WAV through `emu.samples.plan/write` as `/incoming/sine` (inode 4; 96,080
+  bytes; hash `0x7167c7e1`), and cold-rebuilt successfully after the card
+  change. The sample's inode hash, on-card hash-table word and recomputed
+  content hash agree; parent and directory indexes are valid.
+- **Negative stock-audio result:** `tools/livecheck.py` showed the audio model
+  live at 48 kHz and rendered 5.17 s at ~100% of real time, but the recording's
+  **peak was 0**. No nonzero stock PCM was captured, so the injection gate was
+  not opened.
+- **Loader diagnosis:** the stock browser reaches `LOAD 1 SAMPLE?` and, after
+  `SELECT ALL`, `LOAD 2 SAMPLES?`; the result is `SAMPLE MEMORY FULL`. Hooks
+  at OS 1.53 `FUN_400d1680`, `FUN_400d1c90` and `FUN_400ec6d2` show the
+  reference builder returns `0xFFFFFFFF`, and the loader receives a reference
+  buffer beginning `ff ff ff ff ...`, even though the UI reports selected
+  samples. This isolates the immediate blocker to the browser-selection to
+  file-reference handoff (or unresolved browser key behavior), not the WAV
+  encoding, directory index or hash table.
+- **Version boundary:** all execution evidence is OS 1.53. OS 1.54 remains the
+  target with static addresses only from R01; no 1.54 emulator fidelity or
+  execution claim is made.
+- **Artifacts:** [R03 report](docs/R03-emulator-insertion.md#2026-10-26-continuation-runtime-sample-fixture-and-stock-load-result),
+  [stock-sample evidence](evidence/r03/stock-sample-attempt-2026-10-26.log).
+  Updated the task board and its handoff footer. No tracked emulator/tool source
+  was modified.
+- **Next action:** resolve the stock browser/reference handoff or use a
+  pre-loaded project/snapshot, then prove nonzero stock PCM before tracing and
+  injecting at the post-source/pre-filter point.
