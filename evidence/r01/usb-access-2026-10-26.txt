@@ -1,0 +1,54 @@
+Digitakt mk1 USB access — read-only attempt, 2026-10-26
+Hardware: user reported the Digitakt connected via USB; macOS IORegistry showed it.
+No audio was streamed, no interface was claimed, no configuration or alt setting was changed.
+
+Command:
+  cc -O2 -Wall -framework IOKit -framework CoreFoundation tools/dt_usb_inspect.c -o /tmp/dt_usb_inspect
+  /tmp/dt_usb_inspect
+
+Observed (sanitized; no serial number):
+  USB Product Name: Elektron Digitakt
+  USB Vendor Name: Elektron Music Machines
+  idVendor: 6453 (0x1935)
+  idProduct: 2860 (0x0B2C)
+  bcdUSB: 512 (0x0200)
+  bcdDevice: 1
+  bDeviceClass: 239 (0xEF, miscellaneous)
+  bDeviceSubClass: 2
+  bDeviceProtocol: 1
+  bNumConfigurations: 1
+  kUSBCurrentConfiguration: 1
+  Device Speed: 2 (full speed)
+  USBSpeed: 3
+  bMaxPacketSize0: 64
+
+  interface 0: class 255, subclass 0, protocol 0, endpoints 0, alt 0
+  interface 1: class 255, subclass 0, protocol 0, endpoints 0, alt 0
+  interface 2: class 255, subclass 0, protocol 0, endpoints 0, alt 0
+  interface 3: class 255, subclass 0, protocol 0, endpoints 2, alt 0
+  interface 4: class 1,  subclass 1, protocol 0, endpoints 0, alt 0
+  interface 5: class 1,  subclass 3, protocol 0, endpoints 2, alt 0
+
+Descriptor attempt:
+  IOCreatePlugInInterfaceForService(kIOUSBDeviceUserClientTypeID) -> 0xe00002be
+  (kIOReturnExclusiveAccess). The Elektron Overbridge DriverKit service owns the
+  device, so no raw configuration descriptor or endpoint sizes/intervals were read.
+
+Interpretation:
+  - The 0x1935:0x0B2C Overbridge identity and six interfaces are observed on this
+    unit, but full-speed vs high-speed is not consistent between the two IORegistry
+    fields above; do not use either as a measured stream capacity.
+  - Interface 3's two endpoints and interface 5's two endpoints cannot be decoded
+    without the configuration descriptor. Endpoint addresses, types, wMaxPacketSize,
+    bInterval and channel counts remain unknown (R02).
+  - Interface 4 is AudioControl-like (class 1, subclass 1) and interface 5 is
+    MIDIStreaming-like (class 1, subclass 3), but that is inferred from class codes,
+    not from an audio descriptor or a stream.
+  - No claim is made that this matches the Rytm's interface indices, endpoints or
+    368/88-byte block sizes.
+
+Release condition for R02:
+  Either close the Overbridge host/dext so a read-only descriptor request can obtain
+  exclusive access, or capture the descriptor from a second host/OS that leaves the
+  device available. This requires the human to choose/close the Overbridge client; the
+  tool does not reconfigure or claim the device.

@@ -1,0 +1,142 @@
+{
+  "container_sha256": "f78ba80fa7b1da5fb0e1ff61ad61e9e71aafe79f4364fc49679f3651353e3cf6",
+  "main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
+  "main_length": 2479680,
+  "anchors": {
+    "main_load": 1073742848,
+    "ssi1_receive_dma_dest": 2147487744,
+    "audio_dma_tcd_receive": 4228142720,
+    "audio_dma_tcd_transmit": 4228142784,
+    "audio_transmit_buffer": 1269428352,
+    "audio_transmit_half": 1269428608,
+    "render_vector_191": 1074230304,
+    "per_track_source_buffers": 2147490328,
+    "source_stride": 128,
+    "routing_int_to_main_string": 1075599274,
+    "routing_usb_to_main_string": 1075599286,
+    "routing_pre_post_string": 1075599303
+  },
+  "strings": {
+    "INT TO MAIN": {
+      "address": "0x401C57AA",
+      "present": true
+    },
+    "USB TO MAIN [dB]": {
+      "address": "0x401C57B6",
+      "present": true
+    },
+    "PRE/POST FADER": {
+      "address": "0x401C57C7",
+      "present": true
+    },
+    "PRE-FX (Rytm wording; absence is meaningful)": {
+      "present": false
+    },
+    "POST-FX (Rytm wording; absence is meaningful)": {
+      "present": false
+    },
+    "SAMPLER ONLY (Rytm wording; absence is meaningful)": {
+      "present": false
+    }
+  },
+  "embedded_pointer_hits": {
+    "routing_int_to_main_string": [
+      "0x40042A28"
+    ],
+    "routing_usb_to_main_string": [
+      "0x40042A50"
+    ],
+    "routing_pre_post_string": [
+      "0x40042A78"
+    ],
+    "render_vector_191": [
+      "0x40076EAC",
+      "0x400773E8"
+    ],
+    "ssi1_receive_dma_dest": [
+      "0x40001052",
+      "0x40068EC7",
+      "0x4006A822",
+      "0x4006A934",
+      "0x4007744A",
+      "0x4007813C",
+      "0x400CC1AE",
+      "0x400CC324",
+      "0x400E5625",
+      "0x40123087",
+      "0x40123263",
+      "0x401EC831",
+      "0x4020C870",
+      "0x4020C874",
+      "0x4020C878",
+      "0x4020C87C",
+      "0x4020C880",
+      "0x4020C8EC",
+      "0x4020C8F0",
+      "0x4020C8F4",
+      "0x4020C8F8",
+      "0x4020C8FC",
+      "0x4020C968",
+      "0x4020C96C",
+      "0x4020C970",
+      "0x4020C974",
+      "0x4020C978",
+      "0x4020C9E4",
+      "0x4020C9E8",
+      "0x4020C9EC",
+      "0x4020C9F0",
+      "0x4020C9F4",
+      "0x4020CA60",
+      "0x4020CA64",
+      "0x4020CA68",
+      "0x4020CA6C",
+      "0x4020CA70",
+      "0x4020CADC",
+      "0x4020CAE0",
+      "0x4020CAE4",
+      "0x4020CAE8",
+      "0x4020CAEC",
+      "0x4020CB58",
+      "0x4020CB5C",
+      "0x4020CB60",
+      "0x4020CB64",
+      "0x4020CB68",
+      "0x4020CBD4",
+      "0x4020CBD8",
+      "0x4020CBDC",
+      "0x4020CBE0",
+      "0x4020CBE4",
+      "0x4020CC50",
+      "0x4020CC54",
+      "0x4020CC58",
+      "0x4020CC5C",
+      "0x4020CC60",
+      "0x4020CCCC",
+      "0x4020CCD0",
+      "0x4020CCD4",
+      "0x4020CCD8",
+      "0x4020CCDC",
+      "0x4020CD48",
+      "0x4020CD4C"
+    ],
+    "per_track_source_buffers": [
+      "0x40071F68",
+      "0x40071F88",
+      "0x40071FCE",
+      "0x40071FE6",
+      "0x40072064",
+      "0x40072080",
+      "0x40072108",
+      "0x40072268",
+      "0x4007228C",
+      "0x4007616C",
+      "0x40077FC4",
+      "0x4007801A",
+      "0x4007806C",
+      "0x40078084",
+      "0x400780BC",
+      "0x400780F8",
+      "0x400782BA"
+    ]
+  }
+}
