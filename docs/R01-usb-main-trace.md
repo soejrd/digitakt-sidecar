@@ -1,6 +1,6 @@
 # R01 — Digitakt mk1 OS 1.54 USB MAIN receive path
 
-Follow-up evidence: [R02](R02-usb-descriptors.md) captured the physical USB descriptors; [R03](R03-REPRODUCTION.md) proved the destination insertion point on the 1.53 emulator. The controller handoff below remains unresolved.
+Follow-up evidence: [R02](R02-usb-descriptors.md) captured the physical USB descriptors; [R03](R03-REPRODUCTION.md) proved the destination insertion point on the 1.53 emulator. **R07 supersedes this report’s USB ownership/handoff assumptions:** MAIN contains a native USB receiver with separate stereo staging buffers. See [R07](R07-usb-coldfire-handoff.md) for traced addresses, OS 1.54 execution evidence and the remaining hardware qualification. The section-8-only architecture below is historical, not an established device topology.
 
 Status: **research complete with a documented unresolved boundary; no hardware
 flash and no audio streamed.** Owner: `codex-r01 @ 2026-10-26T18:29:14Z`.

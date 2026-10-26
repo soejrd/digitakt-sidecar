@@ -1,0 +1,60 @@
+{
+  "firmware": "Digitakt mk1 OS 1.54",
+  "main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
+  "pass": true,
+  "hardware_test": false,
+  "full_boot": false,
+  "receive": [
+    {
+      "packets": 0,
+      "calls": 1,
+      "pcm_exact": true,
+      "bounds_intact": true,
+      "packet_cursor": 0,
+      "requeues": 0
+    },
+    {
+      "packets": 2,
+      "calls": 1,
+      "pcm_exact": true,
+      "bounds_intact": true,
+      "packet_cursor": 0,
+      "requeues": 2
+    },
+    {
+      "packets": 5,
+      "calls": 1,
+      "pcm_exact": true,
+      "bounds_intact": true,
+      "packet_cursor": 4,
+      "requeues": 4
+    },
+    {
+      "packets": 10,
+      "calls": 2,
+      "pcm_exact": true,
+      "bounds_intact": true,
+      "packet_cursor": 1,
+      "requeues": 9
+    }
+  ],
+  "mix": {
+    "dry_first_pair": [
+      -65536,
+      32768
+    ],
+    "cleared_peak": 0,
+    "internal_first_pair_after_clear": [
+      -131072,
+      65536
+    ],
+    "internal_preserved": true,
+    "copied_track_source_preserved": true
+  },
+  "limits": [
+    "USB controller/DMA completions and libc are test doubles.",
+    "Already synchronized descriptor queues; startup/reconnect not exercised.",
+    "No live USB, hardware path selection, timing or full track pipeline test.",
+    "Gain setup uses controlled state; UI dB mapping not qualified."
+  ]
+}

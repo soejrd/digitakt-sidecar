@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Depends on | Owner | Acceptance |
 | --- | --- | --- | --- | --- |
-| R07 | Resolve USB→ColdFire PCM handoff | R01, R02 | — | Identify actual buffer ownership, producer/consumer synchronization and dry MAIN suppression on OS 1.54, or document an evidenced no-go. R03 proves only the destination. |
+| D01 | Audio-return architecture decision | R01, R02, R03, R07 | — | Explicit conditional go/no-go using native USB copy/clear route, hook ordering, MAIN suppression, clocks and timing budget; distinguish emulator proof from hardware qualification. |
 | H01 | Prove stock USB streaming | I01 | — | Build/run host; silence then quiet tone; verify format/rate/channel placement, measure latency/jitter and run ten minutes with zero gaps/underruns. |
 | R04 | Audit control-event ordering | — | — | Locate final lock/LFO values, trigger/retrigger, track identity and lock lifetime; record source/trace evidence and propose ordered semantic events. |
 | R05 | Benchmark TRX-B2 + resampling | — | — | Preserve 44.1 kHz reference; test continuous conversion, block boundaries, retriggers, duration/pitch and CPU. No hardware performance claim. |
@@ -15,7 +15,6 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Status | Release condition / dependencies | Acceptance |
 | --- | --- | --- | --- | --- |
-| D01 | Audio-return architecture decision | BLOCKED | R01, R02, R03, R07; handoff remains unresolved | Explicit go/no-go with routing, MAIN suppression, controller changes, clocks and timing budget. |
 | I02 | One-track receive routing | BLOCKED | D01 must conclude GO | Emulator-verified bounded PCM copy, no duplicate MAIN, underrun handling and stock-track regression; prepare a human hardware trial. |
 | H02 | Real track pipeline | BLOCKED | H01, I02; verified firmware candidate/recovery and human trial | External tone responds to track filter/amp/sends; timing measured; ten-minute zero-gap/underrun run. |
 | I03 | SRC + control link | BLOCKED | R04, D01 GO | Eight SRC controls; ordered trigger/lock values; congestion and reconnect tests; no dedicated MIDI sequencer track required. |
@@ -28,9 +27,10 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Result | Evidence |
 | --- | --- | --- |
-| R01 | OS 1.54 static trace; controller handoff still unknown | [Report](docs/R01-usb-main-trace.md), [facts](evidence/r01/os154-static-facts.json) |
+| R01 | OS 1.54 source/render trace; USB ownership assumptions superseded by R07 | [Report](docs/R01-usb-main-trace.md), [facts](evidence/r01/os154-static-facts.json) |
 | R02 | Physical endpoint capture and read-only inspector | [Report](docs/R02-usb-descriptors.md), [raw](evidence/r02-usb-descriptors-2026-10-26.txt), [decoded](evidence/r02-endpoints-2026-10-26.json) |
 | I01 | Separate USB directional layouts; host tests pass | [Report](docs/I01-directional-usb-layout.md), [patch](patches/sidecar-firmware/0001-directional-overbridge-layout.patch), `scripts/test_i01.sh` |
+| R07 | OS 1.54 native USB receive/boot path and dry suppression; focused execution passes | [Report](docs/R07-usb-coldfire-handoff.md), [anchors](evidence/r07/handoff-facts.json), [probe results](evidence/r07/receive-154.json) |
 | R03 | Nine emulator assertions pass on OS 1.53 | [Reproduction](docs/R03-REPRODUCTION.md), [results](evidence/r03/insertion-153.json), [probe](tools/r03_probe.py) |
 
-R06's inspector work is consolidated into R02. OS 1.54 execution, live streaming and physical USB-to-track routing remain unproven.
+R06's inspector work is consolidated into R02. Full OS 1.54 boot/track integration, live streaming and physical USB-to-track routing remain unproven.
