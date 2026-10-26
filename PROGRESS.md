@@ -143,3 +143,13 @@ Date/time and owner; task IDs; artifacts/commit; commands and actual results; me
 - **Next action:** resolve the stock browser/reference handoff or use a
   pre-loaded project/snapshot, then prove nonzero stock PCM before tracing and
   injecting at the post-source/pre-filter point.
+
+## 2026-10-26 — R03 completed with a fresh reproduction (codex-r03-fix)
+
+- Human explicitly requested takeover and blocker repair. Reproduced silent stock audio (peak 0, failing nonzero assertion), then obtained ordinary sample playback by matching all firmware/card/snapshot paths, loading the sample into the project and assigning its slot to the tracks. The earlier invalid-reference failure did not reproduce; its exact original cause remains unproven.
+- Rebuilt official pinned Unicorn 2.1.4 source plus all six verified emulator patches into an isolated private runtime, outside the restrictive sandbox. Five compatibility checks pass. No temporary binary cache-probe patch is required; no existing Python/native library was overwritten. Provenance is evidence/r03/runtime-build.txt.
+- Added tools/r03_probe.py: prepares a fresh private 1.53 fixture with synthetic 440 Hz sample, cold rebuild, project load and two track assignments; then checks actual PCM at the machine-pages pre-overdrive hook. Paced encoder events avoid the ineffective large unpaced sweep seen during diagnosis. No dependency source changes.
+- Full fresh-fixture check passed all nine assertions: silent negative control, audible stock source, hook execution, 3 kHz replacement signal, filter attenuation (>70 dB RMS), amp mute, zero-source replacement, audible second stock track and byte-identical second-track PCM with injection enabled/disabled. Numeric evidence: evidence/r03/insertion-153.json. No guest halts.
+- R03 marked DONE, explicitly for OS 1.53 emulator execution. OS 1.54 and real USB→ColdFire audio remain unproven; no hardware audio or firmware was sent. Added R07 to make the remaining handoff research an explicit actionable task; D01 depends on it.
+- Passing reproduction and commands: docs/R03-REPRODUCTION.md. Historical R03 failures retained and marked superseded.
+- Final verification: fresh `r03_probe.py prepare` and complete `check` succeeded with the newly built runtime; all nine integration assertions passed. Both tool CLIs, Python syntax, report/reference links, provenance redaction and `git diff --check` passed. The isolated builder convenience wrapper was syntax/CLI checked; the underlying identical copy-and-installer procedure was the actual build used for the run.

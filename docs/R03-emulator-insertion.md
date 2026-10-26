@@ -1,8 +1,12 @@
 # R03 — pre-filter track insertion in the emulator
 
-Status: **IN_PROGRESS — runtime rerunnable; stock sample load blocked before
-nonzero PCM.** Insertion still not attempted.
-Owner: `codex-r03 @ 2026-10-26T19:39:03Z`. Target: insert known PCM into one
+Status: **DONE — stock playback, pre-filter insertion, filter/amp response and
+second-track regression passed on OS 1.53.** See [passing reproduction](R03-REPRODUCTION.md)
+and [numeric evidence](../evidence/r03/insertion-153.json).
+
+The sections below are historical attempts, superseded by the passing reproduction.
+OS 1.54 and physical USB-to-track routing remain unproven.
+Owner: `codex-r03-fix @ 2026-10-26T21:53:13Z` (human-authorized takeover). Target: insert known PCM into one
 Digitakt track before its filter/amp, show that filter/amp changes affect the
 output, and show stock tracks still work.
 

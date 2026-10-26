@@ -1,0 +1,158 @@
+{
+  "firmware": "Digitakt mk1 OS 1.53",
+  "hardware_test": false,
+  "compatibility": {
+    "compatible": true,
+    "cases": {
+      "zero_z_taken": {
+        "input": 0,
+        "sr": 4,
+        "branch_value": 222,
+        "expected_sr": 4,
+        "expected_branch_value": 222,
+        "pass": true
+      },
+      "nonzero_z_clear": {
+        "input": 1,
+        "sr": 0,
+        "branch_value": 111,
+        "expected_sr": 0,
+        "expected_branch_value": 111,
+        "pass": true
+      },
+      "count_boundary_cmp_z": {
+        "pc": 4098,
+        "sr": 4,
+        "pass": true
+      },
+      "emac_mac_with_load": {
+        "acc0": 15,
+        "loaded": 42,
+        "pass": true
+      },
+      "emac_modes": {
+        "results": [
+          [
+            1041530880,
+            1041530880
+          ],
+          [
+            3758096384,
+            3758096384
+          ],
+          [
+            536870912,
+            536870912
+          ],
+          [
+            4294966296,
+            4294966296
+          ]
+        ],
+        "pass": true
+      }
+    }
+  },
+  "results": {
+    "unassigned": {
+      "frames": 45664,
+      "peak": 0,
+      "rms": 0.0,
+      "amplitude_440_hz": 0.0,
+      "amplitude_3000_hz": 0.0,
+      "pcm_sha256": "1c1e4edb519ed164333e06b2d64a75df6fa56b0a5be452aae278da5a7f675344",
+      "name": "unassigned",
+      "injection_blocks": 0,
+      "halted": null
+    },
+    "stock": {
+      "frames": 45632,
+      "peak": 1508,
+      "rms": 697.9446290878781,
+      "amplitude_440_hz": 934.4668377573812,
+      "amplitude_3000_hz": 0.03975692773698276,
+      "pcm_sha256": "c0f0193e5ed5b1aa3805708ebf080c60e5e4a009e908bad2b1a26f320f3ef4fe",
+      "name": "stock",
+      "injection_blocks": 0,
+      "halted": null
+    },
+    "injected_open": {
+      "frames": 45664,
+      "peak": 1993,
+      "rms": 931.5680253610509,
+      "amplitude_440_hz": 0.1976832112133401,
+      "amplitude_3000_hz": 1246.5739573420033,
+      "pcm_sha256": "f9a0e02f6032376b06f7b4358df66e8234b82996b5bb218a233e67e9aaa2c247",
+      "name": "injected_open",
+      "injection_blocks": 3409,
+      "halted": null
+    },
+    "injected_closed": {
+      "frames": 45664,
+      "peak": 1,
+      "rms": 0.25716774442696155,
+      "amplitude_440_hz": 0.0010787750218646263,
+      "amplitude_3000_hz": 0.0003832489786655189,
+      "pcm_sha256": "f48044fc29e4cb3b36ce02fe37c88ae1fd3101cee5e050a094e4fab0f9b5ce92",
+      "name": "injected_closed",
+      "injection_blocks": 3409,
+      "halted": null
+    },
+    "injected_amp_zero": {
+      "frames": 45632,
+      "peak": 0,
+      "rms": 0.0,
+      "amplitude_440_hz": 0.0,
+      "amplitude_3000_hz": 0.0,
+      "pcm_sha256": "74f0c9d74ac29ce5a6165e2eb0dbd3b5044363fa514dcc061b48100d3ec05c84",
+      "name": "injected_amp_zero",
+      "injection_blocks": 4821,
+      "halted": null
+    },
+    "injected_zero": {
+      "frames": 45632,
+      "peak": 0,
+      "rms": 0.0,
+      "amplitude_440_hz": 0.0,
+      "amplitude_3000_hz": 0.0,
+      "pcm_sha256": "74f0c9d74ac29ce5a6165e2eb0dbd3b5044363fa514dcc061b48100d3ec05c84",
+      "name": "injected_zero",
+      "injection_blocks": 1997,
+      "halted": null
+    },
+    "second_stock": {
+      "frames": 45632,
+      "peak": 1415,
+      "rms": 713.8528748769656,
+      "amplitude_440_hz": 770.6953630399277,
+      "amplitude_3000_hz": 0.08324361976786727,
+      "pcm_sha256": "ab004e9dc19a5ec956037b4f4ebb90646e674f8fdb5986c53bd9a15b5fd36c18",
+      "name": "second_stock",
+      "injection_blocks": 0,
+      "halted": null
+    },
+    "second_with_injection": {
+      "frames": 45632,
+      "peak": 1415,
+      "rms": 713.8528748769656,
+      "amplitude_440_hz": 770.6953630399277,
+      "amplitude_3000_hz": 0.08324361976786727,
+      "pcm_sha256": "ab004e9dc19a5ec956037b4f4ebb90646e674f8fdb5986c53bd9a15b5fd36c18",
+      "name": "second_with_injection",
+      "injection_blocks": 1997,
+      "halted": null
+    }
+  },
+  "assertions": {
+    "negative_control_silent": true,
+    "stock_audible": true,
+    "hook_executed": true,
+    "injected_tone_present": true,
+    "filter_attenuates": true,
+    "amp_mutes": true,
+    "zero_replaces_source": true,
+    "second_track_audible": true,
+    "second_track_unchanged": true
+  },
+  "pass": true
+}

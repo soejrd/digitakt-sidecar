@@ -1,0 +1,15 @@
+Built from the pinned upstream installer on 2026-10-26.
+Compiler: Apple clang version 17.0.0 (clang-1700.6.3.2)
+Original interpreter and library unchanged; new library isolated under private/.
+Build and compatibility checks ran outside the restrictive execution sandbox.
+
+unicorn commit=8028ec436f2d9376525352dd38ed9ed6b9f6be10
+patch=unicorn-2.1.4-m68k-hook-ccr-sync.patch sha256=56de71acf2adbd5ca2f448095478e65e49fd79d378aeb5b5e4217d2c90f52f4e
+patch=unicorn-2.1.4-m68k-emac-mac-load.patch sha256=ac128dd6836997de55e0d2ad70d7a2978639168090f552c5634da50fddc70bfe
+patch=unicorn-2.1.4-m68k-emac-modes.patch sha256=5fc44429ea913c5256c34a6e9c93ab90f727f120b4f12922a8f35a952fd1dace
+patch=unicorn-2.1.4-m68k-fast-mem.patch sha256=7f79332f318352cbd8055386dbf5149efc801d0663ae2450e33f9f39fed53374
+patch=unicorn-2.1.4-m68k-digikit-accel.patch sha256=7048704a068cb074b93b751df4b1a73fd8972c1c0cc27e30774c4c2771ec2b5c
+patch=unicorn-2.1.4-m68k-digikit-speed.patch sha256=9560613223502656e82adc1ecc36d5d8486995bed13ea8ddad168f8c4558a799
+library=<project>/private/r03-runtime/unicorn/lib/libunicorn.2.dylib
+library_sha256=7a419fed7c18f0a40a2bee00c49b9581a347ec7ed92c7cfa6068fad0b9f65e85
+{"cases": {"count_boundary_cmp_z": {"pass": true, "pc": 4098, "sr": 4}, "emac_mac_with_load": {"acc0": 15, "loaded": 42, "pass": true}, "emac_modes": {"pass": true, "results": [[1041530880, 1041530880], [3758096384, 3758096384], [536870912, 536870912], [4294966296, 4294966296]]}, "nonzero_z_clear": {"branch_value": 111, "expected_branch_value": 111, "expected_sr": 0, "input": 1, "pass": true, "sr": 0}, "zero_z_taken": {"branch_value": 222, "expected_branch_value": 222, "expected_sr": 4, "input": 0, "pass": true, "sr": 4}}, "compatible": true}
