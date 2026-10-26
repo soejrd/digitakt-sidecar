@@ -37,3 +37,20 @@ Date/time and owner; task IDs; artifacts/commit; commands and actual results; me
 - Physical alt-3 audio endpoint capacities: 368-byte IN (Digitakt→host), 88-byte OUT (host→Digitakt), interrupt endpoints, bInterval 1. These fit source-described 12/2 framing; sample format/rate and actual streaming remain unmeasured.
 - Evidence: docs/R02-usb-descriptors.md, evidence/r02-usb-descriptors-2026-10-26.txt and evidence/r02-endpoints-2026-10-26.json. Descriptor length/bounds and alt-3 sizes validated.
 - I01 is READY for directional host layout work; R03 and the USB→ColdFire handoff still gate integrated routing. No firmware or hardware configuration changed.
+
+## 2026-10-26 — I01 directional USB layouts (codex-i01)
+
+- **I01 claimed** at `2026-10-26T18:46:33Z` and completed against R02's physical Digitakt fixture.
+- **Directional layout:** R02 proves alt 3 is 368 B / 12 channels device→host and 88 B / 2 channels host→device. The Rytm's 368/368 remains a separate, preserved layout.
+- **Host codec:** `ob_block.h` now exposes `in_bytes`/`out_bytes`, derives each from its endpoint's `wMaxPacketSize`, and refuses non-block endpoints independently. `find_layout` no longer assumes equal channel counts.
+- **Pi/Circle transport:** endpoint scan accepts any whole-block interrupt endpoint, stores the actual IN/OUT channels and bytes, allocates separate URB lengths (buffers remain sized for the 368-byte maximum), serializes only the advertised OUT channels, and parses IN blocks with `m_nInChannels`. Zero-fills missing channels for fixed 12-channel engine consumers. The existing Circle factory patch now routes both `ven1935-b48` and `ven1935-b2c`; PID matching is not treated as sufficient, since the function driver still validates alt 3 and endpoints.
+- **UAC2 gadget:** `FromRytmBlock` accepts the incoming channel count (default 12), preserving Rytm behavior.
+- **Artifacts:** [I01 report](docs/I01-directional-usb-layout.md), [replay patch](patches/sidecar-firmware/0001-directional-overbridge-layout.patch), [patch instructions](patches/sidecar-firmware/README.md), `scripts/test_i01.sh`, `tests/test_usb_layout_policy.cpp`, `tests/test_digitakt_layout.cpp`.
+- **Checks (actual):**
+  - `./scripts/test_i01.sh` -> upstream `ob_block: all checks passed`; `USB layout policy: PASS (Digitakt 12/368 IN, 2/88 OUT; Rytm 12/12)`; `Digitakt layout: IN 12 ch / 368 B, OUT 2 ch / 88 B`; `I01 checks pass`.
+  - Clean checkout at the pinned sidecar revision + `git apply` of the saved patch -> `ob_block: all checks passed`; patch applies with `--check`.
+  - `make -C deps/sidecar-firmware/pi/engine/tests` -> `ALL PI PORTABLE TESTS PASS`.
+  - Full upstream `tools/run_portable_tests.sh` fails only its localhost mock-web tests in the sandbox (`mock_web answers`); the C/C++ portions and the new I01 tests pass. An escalated localhost retry was rejected by policy, so this is recorded as an environment limitation.
+- **Limits:** no Circle tree was available for a full Pi kernel cross-build; no USB stream or hardware test was performed. The Circle factory change is verified as a clean patch against a padded synthetic factory, not a compiled kernel. H01 must prove packet sizes/channel placement/format/rate/latency and a zero-gap run.
+- **Board:** I01 DONE; H01 READY (its I01 dependency is complete and the hardware is visible); D01/I02 remain blocked by the unresolved R01 USB→ColdFire handoff and R03.
+- **Next action:** H01 build/stream test (or R03 independently). Do not claim MAIN-to-track routing from I01; this task only establishes the directional USB transport layout and tests.
