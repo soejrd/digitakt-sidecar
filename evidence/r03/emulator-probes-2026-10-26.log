@@ -1,0 +1,29 @@
+R03 emulator probes — 2026-10-26
+
+Runtime used (temporary, not tracked):
+  copied libunicorn from an alternative local digiemu venv, with the
+  fallback `mrs CTR_EL0` replaced by a fixed 128-byte cache-line value;
+  ad-hoc signed. emu.unicorn_compat passes all five checks.
+
+Clean stock 1.53 session:
+  firmware sha256 9bdd44bb6102fb25c143cfab97bc92b7a89c463f795d3112dce89771e29bcc92
+  gui.snap produced by emu.bootstrap.first_run()
+  Session audio enabled, 48 kHz, 24-bit SSI path.
+
+Observations:
+1. `0x80001A18` (track 0's 32-sample block) is written by stock code at
+   `0x40076204` / `0x40076208` (zero fill), and processed around
+   `0x4007257C` / `0x400725FE`.
+2. A direct poke of a 32-sample sine into `0x80001A18` produced zero audio.
+3. Injecting at `0x40077FBA` produced no hits in this stock session.
+4. Injecting at `0x40077FCE` (after a later source-related write) produced
+   zero audio.
+5. A narrow execution trace in `0x40076000..0x40078500` over 20 ms saw only
+   `0x40077420` and `0x40076C80` 30 times each; `0x40077FCE` was not entered.
+6. The saved stock session had no active sample/source on track 1, so the
+   injection attempts did not reach an audible track path. The next step is
+   to load a sample on track 1 and trigger it before injecting.
+
+This is evidence about the emulator's stock UI/render state, not a successful
+pre-filter insertion. No filter/amp sweep was completed. No hardware or
+firmware image was modified.

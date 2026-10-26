@@ -1,151 +1,115 @@
 # R03 — pre-filter track insertion in the emulator
 
-Status: **BLOCKED on the emulator runtime; no audio execution result claimed.**
-Owner: `codex-r03 @ 2026-10-26T19:39:03Z`. Target milestone: insert known PCM
-into one Digitakt track before its filter/amp, show that filter/amp changes
-affect the output, and show stock tracks still work.
+Status: **IN_PROGRESS — emulator runtime solved; insertion not yet verified.**
+Owner: `codex-r03 @ 2026-10-26T19:39:03Z`. Target: insert known PCM into one
+Digitakt track before its filter/amp, show that filter/amp changes affect the
+output, and show stock tracks still work.
+
+No firmware was flashed and no hardware audio was sent.
 
 ## What is established
 
-### The insertion surface
+### Insertion surface
 
-The Digitakt mk1 audio engine runs on the ColdFire and writes each track's
-32-sample source block at:
+The Digitakt mk1 render writes each track's 32-sample source block at:
 
 ```
 0x80001A18 + 128 * track
 ```
 
-This is the machine/source insertion point used by the stock track pipeline
-before filter/amp and the mixer [source: `deps/elekloader/elekloader/sdk/include/digitakt-mk1/core3.h`,
+The stock pipeline then runs that block through the track's filter, amp and
+mixer [source: `deps/elekloader/elekloader/sdk/include/digitakt-mk1/core3.h`,
 `ev_render_voices`; source: `deps/elekloader/examples/sine-machine/sine.c`].
-The corresponding per-track source buffer and render path are also present in
-the 1.54 image (R01), with render vector `0x40077420` and the SSI1 receive
-ring at `0x80001000` [1.54 code; `docs/R01-usb-main-trace.md`].
+The same source buffer exists in the 1.54 image (R01), whose render vector is
+`0x40077420` and whose SSI1 receive ring starts at `0x80001000`.
 
-For OS 1.53, the extracted stock MAIN OS used for this task has sha256
+The stock 1.53 MAIN OS used here has sha256
 `4b47a9507758ca5669ca02ab2c0374d2c04c98aece445408295cc1dcb265c5df`
-and is 2,475,584 bytes. Its references to `0x80001A18` are at
+and is 2,475,584 bytes. Its direct references to `0x80001A18` include
 `0x40071F68`, `0x40071F88`, `0x40071FCE`, `0x40072064`, `0x40072268`,
-`0x4007616C`, `0x40077FC4`, `0x4007801A`, `0x4007806C` and
-`0x400782BA`; the render/transmit buffer `0x4BA8F080` and its half
-`0x4BA8F180` are present as well. These are static code/data references, not
-a successful injection [source inspection].
-
-`emu/symbols.py` resolves the production 1.53 addresses rather than the
-hardcoded fallback constants in `emu/bootstrap.py`; use the profile rather
-than copying a stale address.
+`0x4007616C`, `0x40077FC4`, `0x4007801A`, `0x4007806C` and `0x400782BA`.
+Its render/transmit buffers are `0x4BA8F080` and `0x4BA8F180`.
+These are static references, not a demonstrated injection.
 
 ### Emulator version scope
 
-The pinned digiemu source (`f57c2f237e84b8ff91bc3adb2a2931bccf9928e9`) says:
+The pinned digiemu source (`f57c2f237e84b8ff91bc3adb2a2931bccf9928e9`) names
+Digitakt mk1 OS **1.53** as the tested release. OS 1.54 “sets up and boots
+once you confirm, but has not been tested further” [source:
+`deps/digiemu/docs/releases/v0.4.1.md`, `deps/digiemu/README.md`].
+R03 therefore uses 1.53 for execution evidence; 1.54 remains a static-address
+result unless its emulator support is demonstrated.
 
-- Digitakt mk1 OS **1.53** is the tested release.
-- OS 1.54 “sets up and boots once you confirm, but has not been tested
-  further” [source: `deps/digiemu/docs/releases/v0.4.1.md`,
-  `deps/digiemu/README.md`; source: `deps/digiemu/devices/digitakt.toml`].
+## Runtime finding: not a firmware-version problem
 
-Therefore R03’s valid emulator evidence is **1.53**, with 1.54 support
-explicitly missing/limited. A 1.54 static address result is not proof that
-the emulator runs 1.54 faithfully.
+Both 1.53 and 1.54 would be acceptable. The original failure happened before
+any firmware was loaded:
 
-## Attempted run and exact blocker
+- `bootstrap.first_run()` completed extract/card, then the cold-boot `ladder`
+  exited **status 132 (SIGILL)** with no snapshot.
+- `python -m emu.unicorn_compat` also exited **132**.
+- The macOS crash report placed the trap at
+  `init_cache_info -> machine_initialize -> uc_init_engine -> uc_mem_map`.
 
-I created a clean stock 1.53 firmware folder in `/tmp/r03-fw` (not tracked),
-using the pinned digiemu bootstrap:
+Root cause: this execution environment denies
+`sysctlbyname("hw.cachelinesize")` with `EPERM`. Unicorn then falls back to
+`mrs CTR_EL0`, which traps with SIGILL on this host. A bare
+`Uc(UC_ARCH_M68K, UC_MODE_BIG_ENDIAN).mem_map(0, 0x1000)` reproduced it with
+both available libraries.
 
-```
-python - <<PY
-from emu import bootstrap
-p = bootstrap.FirmwarePaths(root='/tmp/r03-fw', syx_name='Digitakt_OS1.53.syx',
-                            devices_dir='.../deps/digiemu/devices')
-os.environ.update(p.env())
-bootstrap.first_run(p, progress=print)
-PY
-```
+### Host-only workaround that worked
 
-Observed result:
+A temporary copy of the alternative local `libunicorn` was made under `/tmp`
+and its fallback `mrs CTR_EL0` was replaced with a fixed 128-byte cache-line
+value. The copy was ad-hoc signed. With `PYTHONPATH` pointing at that copy:
 
-```
-extract done in 1 s
-card done in 0 s
-ladder start ladder ...
-process exit status 132 (SIGILL)
-```
+- all five `emu.unicorn_compat` checks passed;
+- a clean stock 1.53 boot completed: 10 tasks, live UI, first boot settled at
+  750M instructions, accepted, and `gui.snap` written.
 
-No `boot.snap`, `gui.snap` or audio was produced. The pinned emulator’s own
-runtime check also exits `132`:
+This workaround is **not tracked** and is not a substitute for the upstream
+installer. Prefer running the emulator outside this sandbox, where
+`hw.cachelinesize` works, or building the pinned patched Unicorn with
+`deps/digiemu/tools/install-patched-unicorn.sh`.
 
-```
-PYTHONPATH=deps/digiemu python -m emu.unicorn_compat
--> exit 132
-```
-
-This is not a track/filter finding. The emulator documentation is explicit:
-“The emulator does not run without the patched Unicorn.” The six patches are
-in `deps/digiemu/patches/`; `tools/install-patched-unicorn.sh` requires the
-Unicorn 2.1.4 source at commit `8028ec436f2d9376525352dd38ed9ed6b9f6be10`
-and `cmake`. No local Unicorn source checkout was found, and the network
-clone failed DNS resolution in this environment. All three existing digiemu
-virtual environments report the same `132` result, so the stock wheel cannot
-be used for R03.
-
-Exact logs: [bootstrap attempt](../evidence/r03/bootstrap-attempt-2026-10-26.log),
-[compatibility check](../evidence/r03/unicorn-compat-2026-10-26.log), and the
+Logs: [bootstrap attempt](../evidence/r03/bootstrap-attempt-2026-10-26.log),
+[compatibility check](../evidence/r03/unicorn-compat-2026-10-26.log),
 [minimal `mem_map` failure](../evidence/r03/unicorn-map-failure-2026-10-26.log).
-The `digitakt modding` digiemu venv contains a different 806 KB local-build
-library, but it fails at the same `uc_mem_map` call before guest execution; it
-is not a usable patched runtime on this host.
 
-## The experiment that is ready to run
+## What the probes showed
 
-Once a compatible patched Unicorn is installed:
+Using the clean stock 1.53 `gui.snap` and the temporary runtime:
 
-1. Build a clean stock 1.53 session with `scripts/r03_bootstrap.sh`
-   (`DT1_SYX=... DIGIEMU_PYTHON=...`). Use the produced `gui.snap`.
-2. Start `emu.Session(gui.snap, syx=..., audio=True)` with the 1.53 stock
-   paths and a fresh `plusdrive.img`.
-3. Select track 1 and a silent/stock source, then write known nonzero PCM
-   (for example a quiet 1 kHz sine, 32 samples per render block) directly to
-   `0x80001A18 + 128*0`.
-4. Capture `session.pcm` with a neutral filter and amp. Confirm the injected
-   tone appears, not just a constant offset.
-5. Move the track's filter cutoff and amp level/sustain through the stock
-   control path (preferably key/encoder events, or the documented parameter
-   API), and compare:
-   - cutoff change alters the spectrum/level of the injected tone;
-   - amp level change alters its amplitude/envelope;
-   - a second stock track still renders normally;
-   - the injected samples enter the track buffer *before* filter/amp, rather
-     than being added after them.
-6. Record whether the same procedure runs unchanged on 1.54; if not, state
-   the missing 1.54 emulator support rather than substituting 1.53 silently.
+- Track 0's block is zero-filled by stock code at `0x40076204`/`0x40076208`
+  and processed around `0x4007257C`/`0x400725FE`.
+- A direct poke of a 32-sample sine into `0x80001A18` produced **zero audio**.
+- A hook at `0x40077FBA` produced **no hits** in this stock session.
+- A hook at `0x40077FCE` produced **no audio**.
+- A narrow execution trace over `0x40076000..0x40078500` saw only
+  `0x40077420` and `0x40076C80`, 30 times each; `0x40077FCE` was not entered.
 
-Acceptance requires **non-silent known PCM + measurable filter/amp effect +
-stock-track regression pass**. A successful boot alone is not acceptance.
+The saved stock session had no active sample or source on track 1. The
+injections were therefore reaching a silent/empty track path, not a
+demonstrated pre-filter insertion. See
+[emulator probe log](../evidence/r03/emulator-probes-2026-10-26.log).
 
-## Remaining unknowns
+## Remaining R03 work (exact next test)
 
-- The exact control API/addresses for changing filter/amp from a headless
-  session on 1.53. Use the emulator's keyboard/encoder input or a symbol
-  profile; do not guess RAM addresses from the Rytm.
-- Whether writes to `0x80001A18` are overwritten by the stock source stage
-  before filter/amp; the test must verify output, not just a memory write.
-- Whether 1.54’s changed addresses and render layout run faithfully in this
-  emulator beyond its documented boot support.
-- Whether the injected 32 samples are interpreted as 24-bit/32-bit or require
-  scaling; compare against the stock track format, not Rytm assumptions.
+Acceptance is **not** met. The next session should:
 
-## Decision
+1. Load a sample onto track 1 through the stock UI (or a pre-populated card)
+   and trigger it; first prove the stock track is audible.
+2. Verify nonzero stock audio through `session.pcm`. If it is silent, stop and
+   diagnose sample loading before changing insertion addresses.
+3. Inject the known Q31 sine after the stock source write but before the
+   filter/amp stage. Use the observed write/processing sites to select the
+   actual hook point, not `0x40077FBA` blindly.
+4. Change filter cutoff and amp level through the stock UI or
+   `fw_set_param(value, track, slot)` and show measurable output changes.
+5. Repeat with a second stock track playing and confirm no regression.
+6. State explicitly whether 1.54 runs faithfully; do not substitute a 1.53
+   result for a 1.54 claim.
 
-**R03 remains BLOCKED.** The specific input needed is a working patched
-Unicorn 2.1.4 m68k build for this host (or a prebuilt digiemu runtime that
-includes it). The human/environment can supply it with
-`deps/digiemu/tools/install-patched-unicorn.sh` once the Unicorn source is
-available locally or the network permits the pinned clone. This environment
-had neither: all local venvs use the stock wheel, no Unicorn source checkout
-was found, and both `github.com` and `pypi.org` name resolution failed. After
-that, `scripts/r03_bootstrap.sh` and the experiment above are ready.
-
-This negative result does **not** invalidate the per-track insertion point or
-the R01/R02 findings; it means the required execution evidence is absent.
+No filter/amp sweep was completed, so R03 remains an open test. The insertion
+surface is established, and the runtime obstacle is now reproducible and
+bypassable outside this sandbox.

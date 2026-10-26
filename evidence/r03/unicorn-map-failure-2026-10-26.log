@@ -1,7 +1,7 @@
 Unicorn m68k mem_map failure — 2026-10-26
 
 Environment: macOS 26.2 arm64, Python 3.12.14
-Candidate venv: /Users/s.klatser/coding projects/digitakt modding/digiemu/.venv
+Candidate venv: an alternative local digiemu venv
 libunicorn.2.dylib: 806512 bytes, sha256
   a0db6bebc7506245be341971a4b7a67d012aa37ee3e46ebc39679b88137e503f
 

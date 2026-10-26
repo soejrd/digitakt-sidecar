@@ -72,3 +72,11 @@ Date/time and owner; task IDs; artifacts/commit; commands and actual results; me
   `init_cache_info -> machine_initialize -> uc_init_engine -> uc_mem_map`,
   before any guest instruction. This reinforces that the blocker is the
   runtime build, not the insertion point.
+
+## 2026-10-26 — R03 runtime diagnosis and probe findings (codex-r03)
+
+- **Correction to the earlier R03 entry:** the blocker was not simply “stock Unicorn vs patched Unicorn.” This environment denies `sysctlbyname("hw.cachelinesize")`; Unicorn falls back to `mrs CTR_EL0`, which traps with SIGILL at `init_cache_info -> machine_initialize -> uc_init_engine -> uc_mem_map`. Both 1.53 and 1.54 are acceptable; the failure occurs before firmware load.
+- **Host-only workaround:** a temporary `/tmp` copy of an alternative local `libunicorn` with the fallback cache probe replaced by a fixed 128-byte line size passed all five `emu.unicorn_compat` checks. A clean stock 1.53 bootstrap then produced `gui.snap` (live UI, settled at 750M, first boot accepted). The workaround is not tracked; outside this sandbox, the sysctl path should work, or use the pinned patched-Unicorn installer.
+- **Probe results:** track 0's block is zero-filled at `0x40076204/08` and processed near `0x4007257C/FE`; direct poke to `0x80001A18` produced zero audio; hooks at `0x40077FBA` and `0x40077FCE` produced no audio (the former had no hits). The stock session had no active sample/source on track 1, so the test did not reach an audible track path.
+- **Status:** R03 remains IN_PROGRESS. No nonzero inject/filter/amp acceptance evidence exists; R03’s exact next step is to load and trigger a stock sample, then inject after the source write and sweep filter/amp. 1.54 emulator fidelity remains unproven.
+- **Evidence:** [R03 report](docs/R03-emulator-insertion.md), [compatibility log](evidence/r03/unicorn-compat-2026-10-26.log), [probe log](evidence/r03/emulator-probes-2026-10-26.log). Personal paths were removed from the tracked logs.
