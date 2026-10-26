@@ -1,0 +1,98 @@
+{
+  "configuration_bytes": 263,
+  "endpoints": [
+    {
+      "interface": 1,
+      "alternate": 1,
+      "endpoint": "0x83",
+      "direction": "device-to-host",
+      "type": "interrupt",
+      "wMaxPacketSize": 32,
+      "bInterval": 1
+    },
+    {
+      "interface": 1,
+      "alternate": 2,
+      "endpoint": "0x83",
+      "direction": "device-to-host",
+      "type": "interrupt",
+      "wMaxPacketSize": 88,
+      "bInterval": 1
+    },
+    {
+      "interface": 1,
+      "alternate": 3,
+      "endpoint": "0x83",
+      "direction": "device-to-host",
+      "type": "interrupt",
+      "wMaxPacketSize": 368,
+      "bInterval": 1
+    },
+    {
+      "interface": 2,
+      "alternate": 1,
+      "endpoint": "0x03",
+      "direction": "host-to-device",
+      "type": "interrupt",
+      "wMaxPacketSize": 32,
+      "bInterval": 1
+    },
+    {
+      "interface": 2,
+      "alternate": 2,
+      "endpoint": "0x03",
+      "direction": "host-to-device",
+      "type": "interrupt",
+      "wMaxPacketSize": 88,
+      "bInterval": 1
+    },
+    {
+      "interface": 2,
+      "alternate": 3,
+      "endpoint": "0x03",
+      "direction": "host-to-device",
+      "type": "interrupt",
+      "wMaxPacketSize": 88,
+      "bInterval": 1
+    },
+    {
+      "interface": 3,
+      "alternate": 0,
+      "endpoint": "0x02",
+      "direction": "host-to-device",
+      "type": "bulk",
+      "wMaxPacketSize": 512,
+      "bInterval": 0
+    },
+    {
+      "interface": 3,
+      "alternate": 0,
+      "endpoint": "0x82",
+      "direction": "device-to-host",
+      "type": "interrupt",
+      "wMaxPacketSize": 64,
+      "bInterval": 1
+    },
+    {
+      "interface": 5,
+      "alternate": 0,
+      "endpoint": "0x01",
+      "direction": "host-to-device",
+      "type": "bulk",
+      "wMaxPacketSize": 512,
+      "bInterval": 0
+    },
+    {
+      "interface": 5,
+      "alternate": 0,
+      "endpoint": "0x81",
+      "direction": "device-to-host",
+      "type": "bulk",
+      "wMaxPacketSize": 512,
+      "bInterval": 0
+    }
+  ],
+  "sample_format": "not encoded by these vendor-specific endpoint descriptors",
+  "rate": "not measured",
+  "model_os": "Digitakt mk1 OS 1.54, human-reported"
+}

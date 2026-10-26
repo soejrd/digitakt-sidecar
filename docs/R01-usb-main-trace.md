@@ -1,5 +1,7 @@
 # R01 — Digitakt mk1 OS 1.54 USB MAIN receive path
 
+Correction after R02: `0xE00002BE` is NoResources, not exclusive access. The same read-only inspector succeeded outside the execution sandbox with the Overbridge driver unchanged. See [R02 capture and correction](R02-usb-descriptors.md); the historical access diagnosis below is superseded.
+
 Status: **research complete with a documented unresolved boundary; no hardware
 flash and no audio streamed.** Owner: `codex-r01 @ 2026-10-26T18:29:14Z`.
 Target: Digitakt mk1, OS 1.54. Firmware evidence below is from the local

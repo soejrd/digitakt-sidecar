@@ -29,3 +29,11 @@ Date/time and owner; task IDs; artifacts/commit; commands and actual results; me
 - **Checks:** `python3 tools/dt154_trace.py --help`; trace assertions on the 1.54 hashes and string presence passed; `cc -O2 -Wall -framework IOKit -framework CoreFoundation tools/dt_usb_inspect.c` built; repeat inspector run observed the device and the same exclusive-access failure. Report-relative links exist.
 - **Board:** R01 DONE; R02 remains BLOCKED with the new exact release condition (close/disable Overbridge host/dext, or capture from a second host); D01 remains BLOCKED pending R01/R02/R03.
 - **Next action:** R02 descriptor capture when the human can free the device from the Overbridge dext, then a focused section-8/shared-window trace or hardware A/B for the stock `USB TO MAIN`/`INT TO MAIN` behavior. R03 can proceed independently on per-track insertion in the emulator.
+
+## 2026-10-26 — R02 descriptor capture and access-diagnosis correction
+
+- R02 DONE: compiled the existing read-only inspector and ran it outside the execution sandbox. Full 263-byte configuration capture succeeded without changing the Overbridge driver, claiming interfaces or streaming audio.
+- Corrected inherited error interpretation: Apple SDK defines 0xE00002BE as kIOReturnNoResources, while kIOReturnExclusiveAccess is 0xE00002C5. Driver ownership was not proven as the cause. Earlier entries and raw logs remain historical observations; this entry supersedes their diagnosis.
+- Physical alt-3 audio endpoint capacities: 368-byte IN (Digitakt→host), 88-byte OUT (host→Digitakt), interrupt endpoints, bInterval 1. These fit source-described 12/2 framing; sample format/rate and actual streaming remain unmeasured.
+- Evidence: docs/R02-usb-descriptors.md, evidence/r02-usb-descriptors-2026-10-26.txt and evidence/r02-endpoints-2026-10-26.json. Descriptor length/bounds and alt-3 sizes validated.
+- I01 is READY for directional host layout work; R03 and the USB→ColdFire handoff still gate integrated routing. No firmware or hardware configuration changed.
