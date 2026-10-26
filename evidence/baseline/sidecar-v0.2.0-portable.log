@@ -1,0 +1,163 @@
+c++ -std=c++17 -O2 -g -Wall -Wextra -I.. -I../../../core -Ishim -fsanitize=address,undefined -fno-sanitize-recover=all -o build/test_emu_proto test_emu_proto.cpp ../output.cpp ../midi_in.cpp ../emu_proto.cpp
+c++ -std=c++17 -O2 -g -Wall -Wextra -I.. -I../../../core -Ishim -fsanitize=address,undefined -fno-sanitize-recover=all -DFSWEB_HOST -I../../../teensy/libraries/RytmPlugins/src -o build/test_fsweb test_fsweb.cpp ../fsweb.cpp ../../../teensy/libraries/RytmPlugins/src/rmp_loader.cpp
+c++ -std=c++17 -O2 -g -Wall -Wextra -I.. -I../../../core -Ishim -fsanitize=address,undefined -fno-sanitize-recover=all -o build/test_guard test_guard.cpp ../output.cpp ../midi_in.cpp ../emu_proto.cpp
+c++ -std=c++17 -O2 -g -Wall -Wextra -I.. -I../../../core -Ishim -fsanitize=address,undefined -fno-sanitize-recover=all -o build/test_midi_filter test_midi_filter.cpp ../output.cpp ../midi_in.cpp ../emu_proto.cpp
+c++ -std=c++17 -O2 -g -Wall -Wextra -I.. -I../../../core -Ishim -fsanitize=address,undefined -fno-sanitize-recover=all -o build/test_midi_in test_midi_in.cpp ../output.cpp ../midi_in.cpp ../emu_proto.cpp
+c++ -std=c++17 -O2 -g -Wall -Wextra -I.. -I../../../core -Ishim -fsanitize=address,undefined -fno-sanitize-recover=all -o build/test_output test_output.cpp ../output.cpp ../midi_in.cpp ../emu_proto.cpp
+c++ -std=c++17 -O2 -g -Wall -Wextra -I.. -I../../../core -Ishim -fsanitize=address,undefined -fno-sanitize-recover=all -o build/test_power_state test_power_state.cpp ../power_state.cpp
+c++ -std=c++17 -O2 -g -Wall -Wextra -I.. -I../../../core -Ishim -fsanitize=address,undefined -fno-sanitize-recover=all -DREC_HOST -o build/test_rec_play test_rec_play.cpp ../rec_play.cpp
+c++ -I../../../core/host -std=c++17 -O2 -g -Wall -Wextra -I.. -I../../../core -Ishim -fsanitize=address,undefined -fno-sanitize-recover=all -DREC_HOST -o build/test_recorder test_recorder.cpp ../recorder.cpp ../../../core/rec/rec_names.cpp
+c++ -std=c++17 -O2 -g -Wall -Wextra -I.. -I../../../core -Ishim -fsanitize=address,undefined -fno-sanitize-recover=all -o build/test_records test_records.cpp ../output.cpp ../midi_in.cpp ../emu_proto.cpp
+c++ -std=c++17 -O2 -g -Wall -Wextra -I.. -I../../../core -Ishim -fsanitize=address,undefined -fno-sanitize-recover=all -o build/test_sendfx_pi test_sendfx_pi.cpp ../sendfx_pi.cpp ../../../core/fx/send_fx.cpp
+c++ -std=c++17 -O2 -g -Wall -Wextra -I.. -I../../../core -Ishim -fsanitize=address,undefined -fno-sanitize-recover=all -o build/test_spsc test_spsc.cpp ../output.cpp ../midi_in.cpp ../emu_proto.cpp
+c++ -std=c++17 -O2 -g -Wall -Wextra -I.. -I../../../core -Ishim -fsanitize=address,undefined -fno-sanitize-recover=all -o build/test_usbmidi_pack test_usbmidi_pack.cpp ../output.cpp ../midi_in.cpp ../emu_proto.cpp
+c++ -std=c++17 -O2 -g -Wall -Wextra -I.. -I../../../core -Ishim -fsanitize=address,undefined -fno-sanitize-recover=all -o build/test_wifi_conf test_wifi_conf.cpp ../wifi_conf.cpp
+test_emu_proto: PASS
+20 MB upload: 427 chunks of 48 KB, 0.97 s on the Mac, longest chunk 6044 us, 5120 yields (4 KB pieces)
+SKIP the package checks: no ../../../plugins/sine_test/sine_test.a64.rmp (make -C plugins/sine_test a64)
+test_fsweb: OK
+test_guard: PASS
+test_midi_filter: PASS
+test_midi_in: PASS
+test_output: PASS
+power_state: OK
+test_rec_play: PASS
+  log: rec: t_001 started: 6 files, 24-bit, channels 0,1,3,12,13,21, 1125 KB/s, ring 32768 slots (4778 ms)
+  log: rec: t_001 stopped: 210000 frames (4.3 s), 4921 KB in 30 writes, card 4834847 KB/s, worst write 0 ms, ring max 0%, dropped 0 blocks, OUT side short 0
+test_recorder: a take of 6 files, 210000 frames each, aligned: PASS
+  log: rec: take_001 started: 3 files, 16-bit, channels 1,2,4, 281 KB/s, ring 8192 slots (1194 ms)
+  log: rec: take_001: the card is behind: 380 blocks dropped (2660 frames written as silence)
+  log: rec: take_001 stopped: 73997 frames (1.5 s), 433 KB in 3 writes, card 3613134 KB/s, worst write 0 ms, ring max 100%, dropped 380 blocks, OUT side short 0
+test_recorder: 16-bit, overrun: 380 blocks dropped, 2660 frames of silence, files still in time: PASS
+  log: rec: t_002 started: 1 files, 24-bit, channels 3, 140 KB/s, ring 131072 slots (19114 ms), armed by PLAY
+  log: rec: t_002 stopped: 7000 frames (0.1 s), 20 KB in 1 writes, card 2929687 KB/s, worst write 0 ms, ring max 0%, dropped 0 blocks, OUT side short 0
+  log: rec: t_003 started: 1 files, 24-bit, channels 3, 140 KB/s, ring 131072 slots (19114 ms), armed by PLAY
+  log: rec: t_003 stopped: 70 frames (0.0 s), 0 KB in 1 writes, card 0 KB/s, worst write 0 ms, ring max 0%, dropped 0 blocks, OUT side short 0
+  log: rec: /Recordings/t_003/03_BD.wav: sizes fixed (711 bytes: a take cut short)
+test_recorder: PASS
+test_records: PASS
+sendfx: fx1 COMB (2) p 0 0 0 0 0 send 127 0 0 0 0 0 0 0 0 0 0 0; fx2 OFF (0) p 0 0 0 0 0 send 0 0 0 0 0 0 0 0 0 0 0 0; out forced main (0/1); 0x20 msgs 0
+sendfx: 15750 frames, core 2 load 0.000 percent, 17636 ns a 12-frame block, underruns 1, drops in 0 out 0, peak 174/1000, faults 0
+sendfx: fx1 COMB (2) p 0 0 0 0 0 send 127 0 0 0 0 0 0 0 0 0 0 0; fx2 OFF (0) p 0 0 0 0 0 send 0 0 0 0 0 0 0 0 0 0 0 0; out per slot (P1: 0..63 fx 2/3, 64..127 main 0/1); 0x20 msgs 0
+sendfx: 14280 frames, core 2 load 0.012 percent, 31123 ns a 12-frame block, underruns 0, drops in 0 out 0, peak 174/1000, faults 0
+test_sendfx_pi: PASS
+test_spsc: PASS
+test_usbmidi_pack: ok
+test_wifi_conf: ok
+ALL PI PORTABLE TESTS PASS
+ok
+meta_test: PASS
+ok
+pool_test: PASS
+sizes: names 1781 B (one), index 388 B (a slot), rmp_pv 104 B (a voice), rmp_knobs 48 B
+ok
+presets_test: PASS
+ok
+proto_test: PASS
+resolve_test: all passed
+resolve_test: PASS
+ob_block: all checks passed
+ob_block_test: PASS
+ok
+test_rmp_api: PASS
+✔ the confirmed state is what shows (0.773083ms)
+✔ wanted but not confirmed, and an old Rytm (0.1055ms)
+✔ the includes and the tab (1.044958ms)
+✔ the inlined code runs: a card per LFO from /status's JSON, a click sends one console line (2.259625ms)
+✔ at most 2 requests at once, the rest in order (109.781083ms)
+✔ a 503 is tried again (3 times), a failure frees its slot (3006.354416ms)
+✖ the page gzip-compressed and /status power against the mock (5128.397208ms)
+✔ a click is pending, /status confirms it, an old state does not (0.838375ms)
+✔ no confirmation in 2 s: put back with a message; a refused command too (0.146375ms)
+✔ drone: off, on with a voice, all (0.392083ms)
+✖ mock_web: commands change /status (machines per voice, fifo limit), MOCK_IGNORE leaves one unchanged (5160.900167ms)
+✔ where a slot's machine came from (1.0085ms)
+✔ export and parse round trip; a slot map file parses too; junk refused (1.47375ms)
+✖ import against the mock: put lines change /um, missing reported by name (5159.828542ms)
+✔ the page's input check (1.203083ms)
+✖ the /wifi/* flow against the mock (5161.113167ms)
+fxin.test: ok
+✔ web/fxin.test.mjs (995.419958ms)
+lfo.test: PASS
+✔ web/lfo.test.mjs (68.640917ms)
+rec.test: PASS
+✔ web/rec.test.mjs (57.030375ms)
+seg.test.mjs ok
+✔ web/seg.test.mjs (1557.986875ms)
+stream.test: ok
+✔ web/stream.test.mjs (55.189708ms)
+webui.test: ok
+✔ web/webui.test.mjs (3109.754542ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 18
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8339.305917
+
+✖ failing tests:
+
+test at pi/engine/tests/page_net.test.mjs:51:1
+✖ the page gzip-compressed and /status power against the mock (5128.397208ms)
+  TypeError: fetch failed
+      at node:internal/deps/undici/undici:15845:13
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async TestContext.<anonymous> (file://<home>/coding%20projects/DT-sidecar/sidecar-firmware/pi/engine/tests/page_net.test.mjs:57:13)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    [cause]: Error: connect EPERM 127.0.0.1:19978 - Local (0.0.0.0:0)
+        at internalConnect (node:net:1110:16)
+        at defaultTriggerAsyncIdScope (node:internal/async_hooks:472:18)
+        at node:net:1356:9
+        at process.processTicksAndRejections (node:internal/process/task_queues:84:11) {
+      errno: -1,
+      code: 'EPERM',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 19978
+    }
+  }
+
+test at pi/engine/tests/page_seg.test.mjs:53:1
+✖ mock_web: commands change /status (machines per voice, fifo limit), MOCK_IGNORE leaves one unchanged (5160.900167ms)
+  AssertionError [ERR_ASSERTION]: mock_web answers
+      at TestContext.<anonymous> (file://<home>/coding%20projects/DT-sidecar/sidecar-firmware/pi/engine/tests/page_seg.test.mjs:60:10)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at pi/engine/tests/page_slots.test.mjs:45:1
+✖ import against the mock: put lines change /um, missing reported by name (5159.828542ms)
+  AssertionError [ERR_ASSERTION]: mock_web answers
+      at TestContext.<anonymous> (file://<home>/coding%20projects/DT-sidecar/sidecar-firmware/pi/engine/tests/page_slots.test.mjs:54:10)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at pi/engine/tests/page_wifi.test.mjs:33:1
+✖ the /wifi/* flow against the mock (5161.113167ms)
+  AssertionError [ERR_ASSERTION]: mock_web answers
+      at TestContext.<anonymous> (file://<home>/coding%20projects/DT-sidecar/sidecar-firmware/pi/engine/tests/page_wifi.test.mjs:43:10)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

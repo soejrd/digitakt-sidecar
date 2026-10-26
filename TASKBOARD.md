@@ -1,0 +1,29 @@
+# Task board
+
+Authoritative status and ownership. Priority runs from top to bottom among eligible tasks.
+
+States: READY (can start), IN_PROGRESS (claimed), BLOCKED (external input or unresolved prerequisite; specify release), DONE (acceptance met with evidence), DEFERRED (deliberately outside current milestone).
+
+Claim format: `agent-name @ YYYY-MM-DDTHH:MM:SSZ`. A coordinator resolves concurrent claims, assigns tasks across separate clones and integrates board updates. Dependency-blocked work becomes READY only after its listed prerequisites pass. A negative feasibility result can complete a research task; it cannot complete a dependent implementation task.
+
+| ID | Task | Status | Owner | Depends on | Blocker / release condition | Acceptance / evidence |
+| --- | --- | --- | --- | --- | --- | --- |
+| S00 | Create standalone handoff repo | DONE | setup agent | — | — | Plan, prompt, board, baseline, source pins and bootstrap available; docs/link and bootstrap checks recorded in PROGRESS |
+| R01 | Trace Digitakt 1.54 MAIN USB receive path | READY | — | — | — | Source/symbol report identifies data owner, buffers, format, producer/consumer and MAIN mix, or documents the specific unresolved boundary; emulator/controller limits explicit |
+| R02 | Capture physical USB descriptors | BLOCKED | — | — | Human connects visible Digitakt in Overbridge mode; if sandbox hides it, retry a justified read-only capture with required access | Sanitized raw configuration descriptors plus decoded interfaces/endpoints, direction, packet size, intervals, speed and model/OS; preserve unknowns not encoded in descriptors |
+| R03 | Reproduce pre-filter insertion in emulator | READY | — | — | — | Known nonzero PCM injected into one track; filter/amp changes affect output, stock tracks still work; document whether OS 1.54 runs faithfully or identify missing emulator support |
+| R04 | Audit control-event hook ordering | READY | — | — | — | Identify final p-lock/LFO parameter values, trigger/retrigger, track identity and lock lifetime; timing trace or clearly marked source evidence; propose versioned semantic events |
+| R05 | Benchmark TRX-B2 + resampling on desktop | READY | — | — | — | Native 44.1 kHz reference preserved, continuous 48 kHz adapter if needed; block-boundary, retrigger, duration/pitch and CPU evidence; no hardware performance claim |
+| R06 | Prepare read-only descriptor capture tool | READY | — | — | — | Tool enumerates/dumps descriptors without changing streaming settings or claiming audio interfaces; no-device behavior tested; output usable by R02 |
+| D01 | Decide one-voice audio-return architecture | BLOCKED | — | R01, R02, R03 | Receive path + descriptors + insertion evidence, or explicit negative research result for a documented no-go | Written go/no-go decision: proposed MAIN-to-track route, dry MAIN suppression, required firmware/controller changes, clocks and timing budget; no-go explicitly blocks implementation |
+| I01 | Implement separate USB IN/OUT host layouts | BLOCKED | — | R02 | Verified descriptor fixture and source-format evidence | Rytm tests retained; Digitakt fixture tests; separate sizes; invalid layouts refused; patches replayable; no blind ID-only port |
+| H01 | Prove stock USB streaming on Mac/Pi | BLOCKED | — | I01 | Hardware visible, tools available | Silence then quiet tone; bidirectional stats; measured rate/latency and ten minutes zero gaps/underruns; MAIN only is a transport diagnostic |
+| I02 | Implement one-track receive-buffer routing | BLOCKED | — | D01 | D01 must conclude GO with a credible main-CPU route | Minimal emulator-verified mod; bounded buffer copy, no duplicate dry MAIN, underrun handling and stock-track regression evidence; candidate prepared for human hardware trial |
+| H02 | Prove tone through real track pipeline | BLOCKED | — | H01, I02 | Validated firmware candidate/recovery procedure plus human hardware trial | Real filter/amp/send response; one-track external tone; measured latency/jitter and ten-minute gap/underrun report |
+| I03 | Add integrated SRC + semantic control link | BLOCKED | — | R04, D01 | GO architecture and validated hook design | Eight SRC controls; trigger + lock values ordered; congestion/reconnect tested; internal SysEx allowed without dedicated MIDI sequencer tracks |
+| I04 | Integrate external TRX-B2 voice | BLOCKED | — | R05, H02, I03 | Proven control and audio paths | One Digitakt audio track plays Pi TRX-B2 using SRC/locks/LFOs through local filter/amp/sends; note/velocity policy and timing evidence explicit |
+| V01 | Persistence + dense-pattern verification | BLOCKED | — | I04 | Integrated voice works | Save/load, copy/paste, undo, mute, sound locks, restart/reconnect and dense modulation tests; regressions documented |
+| X01 | Expand to two/eight voices | DEFERRED | — | V01 | Transport capacity decision; two source-described return channels do not support eight conventional independent streams | Capacity proposal and measured worst-case margin before implementation |
+| X02 | Port proven architecture to Teensy | DEFERRED | — | V01 | Pi implementation and transport requirements known | Measured USB, resampling and DSP capacity; explicit supported voice count |
+
+Next recommended assignment: **R01**. R03–R06 can progress independently. R02 needs hardware visibility, but R06 does not.

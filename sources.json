@@ -1,0 +1,9 @@
+{
+  "repositories": [
+    {"name": "sidecar-firmware", "url": "https://github.com/trigcondition/sidecar-firmware.git", "revision": "6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457", "release": "v0.2.0"},
+    {"name": "sidecar-mods", "url": "https://github.com/trigcondition/sidecar-mods.git", "revision": "c5a80c7fbf12caadfe1ab17b7db202a0f0674490"},
+    {"name": "mdkit", "url": "https://github.com/soejrd/mdkit.git", "revision": "96157fe4fbda17bf4cae3168f52437d8232e6570"},
+    {"name": "digiemu", "url": "https://github.com/irpina/digiemu.git", "revision": "f57c2f237e84b8ff91bc3adb2a2931bccf9928e9"},
+    {"name": "elekloader", "url": "https://github.com/irpina/elekloader.git", "revision": "c150ac583a4b7e6d64680d5592f4a40f409193f7"}
+  ]
+}

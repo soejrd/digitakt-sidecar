@@ -1,0 +1,13 @@
+deps/
+private/
+build/
+__pycache__/
+.DS_Store
+*.syx
+*.bin
+*.img
+*.raw
+*.dump
+*.elf
+.env
+.env.*
