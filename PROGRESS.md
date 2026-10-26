@@ -87,3 +87,9 @@ Date/time and owner; task IDs; artifacts/commit; commands and actual results; me
 - Corrected the stale TASKBOARD footer: the R03 report already describes a runtime workaround and successful boot; the immediate experiment needs an assigned, triggered sample and nonzero stock PCM before another injection attempt. Temporary runtime workaround remains a reproducibility limitation. R03 ownership and acceptance criteria are unchanged.
 - Recommended the existing emulator sample-loader flow instead of introducing a new transfer/MCP stack. H01 remains independent; USB→ColdFire handoff remains unresolved.
 - Validation: checked new local reference links and reviewed the documentation-only diff. No emulator or hardware test was performed in this triage session.
+
+## 2026-10-26 — project-wide reference index
+
+- Added docs/REFERENCES.md mapping all supplied references to project-wide transport, controls, automation, persistence and sample-transfer work. Review status is explicit; listed resources are not automatically dependencies.
+- Linked the index from README.md and AGENTS.md so future task owners discover it when relevant. R03-specific continuation remains in REFERENCE-TRIAGE.md.
+- Validation: local reference links resolve; documentation diff checked. No implementation or hardware changes.

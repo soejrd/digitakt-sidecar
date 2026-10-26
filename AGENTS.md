@@ -2,6 +2,8 @@
 
 At session start read `TASKBOARD.md`, the latest entry in `PROGRESS.md`, and the relevant phase in `PLAN.md`. Read `docs/BASELINE.md` before interpreting inherited findings. Read a dependency's own AGENTS/contribution instructions before modifying it.
 
+For control mapping, host automation, USB transport, project persistence or sample transfers, consult `docs/REFERENCES.md` for relevant sources and their review status.
+
 ## Task workflow
 
 1. Select a READY task whose dependencies are DONE, or an independent research task explicitly listed as ready. Claim it in TASKBOARD with a unique owner and UTC timestamp before edits. Work on one coherent task per session unless completing it unblocks a small direct follow-up.

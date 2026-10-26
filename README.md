@@ -11,6 +11,8 @@ Target: **Digitakt mk1, OS 1.54; Raspberry Pi 4B**. A Teensy 4.1 is available fo
 3. Read [PLAN.md](PLAN.md) for architecture and acceptance gates; [PROGRESS.md](PROGRESS.md) records completed sessions.
 4. Give an external agent [AGENT-PROMPT.md](AGENT-PROMPT.md).
 
+Consult [project references](docs/REFERENCES.md) when working on controls, automation, USB transport, persistence or transfers. It maps the retained resources to project tasks and identifies what has actually been reviewed.
+
 ## Set up sources
 
 Python 3 and Git are sufficient to obtain pinned dependencies:
