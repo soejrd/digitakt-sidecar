@@ -80,3 +80,10 @@ Date/time and owner; task IDs; artifacts/commit; commands and actual results; me
 - **Probe results:** track 0's block is zero-filled at `0x40076204/08` and processed near `0x4007257C/FE`; direct poke to `0x80001A18` produced zero audio; hooks at `0x40077FBA` and `0x40077FCE` produced no audio (the former had no hits). The stock session had no active sample/source on track 1, so the test did not reach an audible track path.
 - **Status:** R03 remains IN_PROGRESS. No nonzero inject/filter/amp acceptance evidence exists; R03’s exact next step is to load and trigger a stock sample, then inject after the source write and sweep filter/amp. 1.54 emulator fidelity remains unproven.
 - **Evidence:** [R03 report](docs/R03-emulator-insertion.md), [compatibility log](evidence/r03/unicorn-compat-2026-10-26.log), [probe log](evidence/r03/emulator-probes-2026-10-26.log). Personal paths were removed from the tracked logs.
+
+## 2026-10-26 — reference triage and R03 handoff clarification
+
+- Reviewed newly supplied Digitakt/Digitone MCP README, Elektroid README and current elk-herd landing page. Saved applicability and scope in docs/REFERENCE-TRIAGE.md; no new dependencies installed. These references support MIDI automation/transfers rather than proving pre-filter audio injection.
+- Corrected the stale TASKBOARD footer: the R03 report already describes a runtime workaround and successful boot; the immediate experiment needs an assigned, triggered sample and nonzero stock PCM before another injection attempt. Temporary runtime workaround remains a reproducibility limitation. R03 ownership and acceptance criteria are unchanged.
+- Recommended the existing emulator sample-loader flow instead of introducing a new transfer/MCP stack. H01 remains independent; USB→ColdFire handoff remains unresolved.
+- Validation: checked new local reference links and reviewed the documentation-only diff. No emulator or hardware test was performed in this triage session.
