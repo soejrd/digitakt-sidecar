@@ -1,6 +1,6 @@
 # R01 — Digitakt mk1 OS 1.54 USB MAIN receive path
 
-Correction after R02: `0xE00002BE` is NoResources, not exclusive access. The same read-only inspector succeeded outside the execution sandbox with the Overbridge driver unchanged. See [R02 capture and correction](R02-usb-descriptors.md); the historical access diagnosis below is superseded.
+Follow-up evidence: [R02](R02-usb-descriptors.md) captured the physical USB descriptors; [R03](R03-REPRODUCTION.md) proved the destination insertion point on the 1.53 emulator. The controller handoff below remains unresolved.
 
 Status: **research complete with a documented unresolved boundary; no hardware
 flash and no audio streamed.** Owner: `codex-r01 @ 2026-10-26T18:29:14Z`.
@@ -184,8 +184,6 @@ original stock instrument tracks still sound with `INT TO MAIN` untouched.
 
 | Unknown | Why it matters | How to resolve |
 |---|---|---|
-| Raw configuration descriptor: alt settings, endpoint addresses/types, `wMaxPacketSize`, `bInterval`, speed | Determines the actual Digitakt return capacity and sample layout; the Rytm's 368/88 and 12/2 channels must not be reused | R02: close the Overbridge host/dext for exclusive read-only access, or capture on a second host. **This session:** device visible as `1935:0B2C`, six interfaces, but descriptor access denied `0xE00002BE` (exclusive access) [hardware access] |
-| Whether the USB stream is full-speed or high-speed | Affects packet/block timing and maximum channels | Decode the raw descriptor; the two IORegistry speed fields disagreed in this session, so neither is used |
 | USB PCM owner and handoff buffer in section 8 | The central R01 gap: where received samples are before MAIN | Map the shared controller window and trace producer/consumer; needs a debugger/snapshot or a section-8 disassembly with symbols. Emulator currently lacks DSPI0/controller models |
 | USB sample format/conversion on Digitakt | int32 vs int24 vs int16, endianness, scaling, clipping | Capture a known digital tone and compare bit patterns against a host reference; do not infer from Rytm |
 | Whether `USB TO MAIN` attenuates the same copy that a track redirection would otherwise duplicate | Determines whether stock suppression is sufficient | Hardware A/B with a unique tone, minimum vs maximum setting, measure MAIN and USB OUT |
@@ -210,13 +208,7 @@ quiet tone while recording the Digitakt's USB MAIN.
 3. Put one stock sample on track 1 and trigger it. Toggle `INT TO MAIN` and
    confirm it mutes/attenuates the stock track while the host return behaves
    independently. Do not leave either source at a level that can feed back.
-4. If the descriptor capture becomes available (R02), repeat with a
-   non-MAIN return pair if one exists, to see whether it is routed to a track
-   or only to MAIN. If no such channel exists, this confirms the two-channel
-   MAIN return ceiling.
-5. Only after the stock A/B should someone build a test mod that copies a
-   known PCM buffer into track 1's source buffer and verifies filter/amp
-   response in the emulator (R03). Do not flash a firmware candidate in R01.
+4. Use R02’s captured 88-byte host→device endpoint. An extra return pair has not been established. R03 already proves emulator insertion on 1.53; R07 must identify the actual received PCM before adapting it to the 1.54 hardware path.
 
 Success for the stock experiment: a documented level table for `USB TO MAIN`,
 a clear statement of what `INT TO MAIN` mutes, and either a confirmed
@@ -227,8 +219,7 @@ ColdFire control.
 
 - [1.54 static facts](../evidence/r01/os154-static-facts.json): container/MAIN
   hashes, anchors, string presence and absolute-pointer hits.
-- [USB access record](../evidence/r01/usb-access-2026-10-26.txt): observed
-  device/interface facts and the descriptor access failure; sanitized.
+- [Physical USB capture](R02-usb-descriptors.md): decoded endpoints and raw evidence.
 - `tools/dt154_trace.py --help`: reproducible static checks; it never copies
   firmware into the repository.
 - `tools/dt_usb_inspect.c`: read-only IORegistry + descriptor attempt; builds

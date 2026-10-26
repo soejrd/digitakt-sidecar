@@ -69,7 +69,7 @@ limitation, not an I01 failure.
 ```sh
 ./scripts/test_i01.sh
 git -C deps/sidecar-firmware apply --check \
-  ../patches/sidecar-firmware/0001-directional-overbridge-layout.patch
+  ../../patches/sidecar-firmware/0001-directional-overbridge-layout.patch
 ```
 
 The dependency patch is tracked in

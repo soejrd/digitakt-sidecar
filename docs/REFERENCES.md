@@ -8,7 +8,7 @@ These references are retained for the whole project. Consult them when the match
 | --- | --- | --- |
 | [Sidecar firmware](https://github.com/trigcondition/sidecar-firmware) | I01/H01: host USB streaming, buffering, external synthesis and Pi implementation | Pinned locally in sources.json; baseline and directional-layout evidence recorded |
 | [Sidecar Rytm mods](https://github.com/trigcondition/sidecar-mods) | R01/R04/I02/I03: reference architecture for semantic events, remote pages and per-voice returns | Pinned reference; Rytm behavior does not establish Digitakt behavior |
-| [Creator's Digitakt guide](DIGITAKT-GUIDE.md) | Host setup and stock-firmware transport experiments | Captured upstream snapshot; explicitly excludes our deeper firmware integration |
+| [Creator's Digitakt guide](https://github.com/trigcondition/sidecar-expander/blob/main/src/content/docs/developers/digitakt.md) | Host setup and stock-firmware transport experiments | Reviewed upstream guide; explicitly excludes our deeper firmware integration |
 | [Overwitch](https://github.com/dagargo/overwitch) | USB framing, channel direction and device-layout research | Device table reviewed; R02 physically captured endpoint capacities; live stream semantics still need validation |
 
 ## Controls, automation and user interface
@@ -39,4 +39,4 @@ Project/sound transfer knowledge may support persistence testing, but does not p
 
 The pinned `mdkit`, `digiemu` and `elekloader` repositories in sources.json remain the primary local starting points for TRX-B2 behavior, emulator execution and Digitakt machine hooks. See the task-specific reports for verified symbols, runtime limitations and test results.
 
-Before adopting external code, verify its revision, licence and compatibility with the destination repository. Record the dependency and replayable changes under the existing AGENTS workflow. For the immediate R03 experiment, see [reference triage](REFERENCE-TRIAGE.md).
+Before adopting external code, verify its revision, licence and compatibility with the destination repository. Record the dependency and replayable changes under the existing AGENTS workflow.

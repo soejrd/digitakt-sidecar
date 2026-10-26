@@ -1,30 +1,36 @@
 # Task board
 
-Authoritative status and ownership. Priority runs from top to bottom among eligible tasks.
+Status/ownership live here. Claim READY work with an owner and UTC timestamp; coordinate claims across separate clones. BLOCKED work needs its stated dependency or release condition. DONE requires linked evidence, not a plausible implementation.
 
-States: READY (can start), IN_PROGRESS (claimed), BLOCKED (external input or unresolved prerequisite; specify release), DONE (acceptance met with evidence), DEFERRED (deliberately outside current milestone).
+## Ready
 
-Claim format: `agent-name @ YYYY-MM-DDTHH:MM:SSZ`. A coordinator resolves concurrent claims, assigns tasks across separate clones and integrates board updates. Dependency-blocked work becomes READY only after its listed prerequisites pass. A negative feasibility result can complete a research task; it cannot complete a dependent implementation task.
+| ID | Work | Depends on | Owner | Acceptance |
+| --- | --- | --- | --- | --- |
+| R07 | Resolve USB→ColdFire PCM handoff | R01, R02 | — | Identify actual buffer ownership, producer/consumer synchronization and dry MAIN suppression on OS 1.54, or document an evidenced no-go. R03 proves only the destination. |
+| H01 | Prove stock USB streaming | I01 | — | Build/run host; silence then quiet tone; verify format/rate/channel placement, measure latency/jitter and run ten minutes with zero gaps/underruns. |
+| R04 | Audit control-event ordering | — | — | Locate final lock/LFO values, trigger/retrigger, track identity and lock lifetime; record source/trace evidence and propose ordered semantic events. |
+| R05 | Benchmark TRX-B2 + resampling | — | — | Preserve 44.1 kHz reference; test continuous conversion, block boundaries, retriggers, duration/pitch and CPU. No hardware performance claim. |
 
-| ID | Task | Status | Owner | Depends on | Blocker / release condition | Acceptance / evidence |
-| --- | --- | --- | --- | --- | --- | --- |
-| S00 | Create standalone handoff repo | DONE | setup agent | — | — | Plan, prompt, board, baseline, source pins and bootstrap available; docs/link and bootstrap checks recorded in PROGRESS |
-| R01 | Trace Digitakt 1.54 MAIN USB receive path | DONE | codex-r01 @ 2026-10-26T18:29:14Z | — | — | [Report](docs/R01-usb-main-trace.md) traces 1.54 ColdFire audio buffers/render and section-8 USB owner; documents unresolved USB→ColdFire handoff, stock USB-to-MAIN controls, candidate routing/suppression experiment and hardware unknowns; [static facts](evidence/r01/os154-static-facts.json) and [USB access record](evidence/r01/usb-access-2026-10-26.txt) |
-| R02 | Capture physical USB descriptors | DONE | codex-r02 | — | — | [Report](docs/R02-usb-descriptors.md), [raw capture](evidence/r02-usb-descriptors-2026-10-26.txt), [decoded endpoints](evidence/r02-endpoints-2026-10-26.json). Unsandboxed read-only capture succeeded; alt 3 is 368 bytes IN / 88 OUT. Earlier error was NoResources, not exclusive access; driver unchanged. |
-| R03 | Reproduce pre-filter insertion in emulator | DONE | codex-r03-fix @ 2026-10-26T21:53:13Z | — | — | [Passing reproduction](docs/R03-REPRODUCTION.md), [numeric evidence](evidence/r03/insertion-153.json), [probe](tools/r03_probe.py). Fresh card/snapshots and rebuilt pinned runtime; all nine assertions pass on OS 1.53: stock audio, injected 3 kHz, filter attenuation, amp mute, zero replacement, second stock track byte-identical. OS 1.54/hardware remain unproven. |
-| R04 | Audit control-event hook ordering | READY | — | — | — | Identify final p-lock/LFO parameter values, trigger/retrigger, track identity and lock lifetime; timing trace or clearly marked source evidence; propose versioned semantic events |
-| R05 | Benchmark TRX-B2 + resampling on desktop | READY | — | — | — | Native 44.1 kHz reference preserved, continuous 48 kHz adapter if needed; block-boundary, retrigger, duration/pitch and CPU evidence; no hardware performance claim |
-| R06 | Prepare read-only descriptor capture tool | READY | — | — | — | Tool enumerates/dumps descriptors without changing streaming settings or claiming audio interfaces; no-device behavior tested; output usable by R02 |
-| R07 | Resolve actual USB→ColdFire PCM handoff | READY | — | R01, R02 | — | Follow the unresolved R01 boundary: identify receive-buffer ownership, producer/consumer synchronization and dry MAIN suppression on OS 1.54, or establish a concrete no-go. R03 only proves the destination insertion point. Save reproducible source/trace or hardware evidence; no firmware flashing by an agent. |
-| D01 | Decide one-voice audio-return architecture | BLOCKED | — | R01, R02, R03, R07 | R03 insertion is proven; R07 must resolve the USB→ColdFire handoff or produce a substantiated no-go | Written go/no-go decision: proposed MAIN-to-track route, dry MAIN suppression, required firmware/controller changes, clocks and timing budget; no-go explicitly blocks implementation |
-| I01 | Implement separate USB IN/OUT host layouts | DONE | codex-i01 @ 2026-10-26T18:46:33Z | R02 | — | [Report](docs/I01-directional-usb-layout.md); [replay patch](patches/sidecar-firmware/0001-directional-overbridge-layout.patch); `scripts/test_i01.sh` passes upstream block test, R02 raw-fixture policy test and decoded-endpoint regression. Rytm 12/12 preserved; Digitakt 12/368 IN, 2/88 OUT; invalid/non-block layouts refused. Circle kernel build and live stream remain H01. |
-| H01 | Prove stock USB streaming on Mac/Pi | READY | — | I01 | — | Silence then quiet tone; bidirectional stats; measured rate/latency and ten minutes zero gaps/underruns; MAIN only is a transport diagnostic |
-| I02 | Implement one-track receive-buffer routing | BLOCKED | — | D01 | D01 must conclude GO with a credible main-CPU route | Minimal emulator-verified mod; bounded buffer copy, no duplicate dry MAIN, underrun handling and stock-track regression evidence; candidate prepared for human hardware trial |
-| H02 | Prove tone through real track pipeline | BLOCKED | — | H01, I02 | Validated firmware candidate/recovery procedure plus human hardware trial | Real filter/amp/send response; one-track external tone; measured latency/jitter and ten-minute gap/underrun report |
-| I03 | Add integrated SRC + semantic control link | BLOCKED | — | R04, D01 | GO architecture and validated hook design | Eight SRC controls; trigger + lock values ordered; congestion/reconnect tested; internal SysEx allowed without dedicated MIDI sequencer tracks |
-| I04 | Integrate external TRX-B2 voice | BLOCKED | — | R05, H02, I03 | Proven control and audio paths | One Digitakt audio track plays Pi TRX-B2 using SRC/locks/LFOs through local filter/amp/sends; note/velocity policy and timing evidence explicit |
-| V01 | Persistence + dense-pattern verification | BLOCKED | — | I04 | Integrated voice works | Save/load, copy/paste, undo, mute, sound locks, restart/reconnect and dense modulation tests; regressions documented |
-| X01 | Expand to two/eight voices | DEFERRED | — | V01 | Transport capacity decision; two source-described return channels do not support eight conventional independent streams | Capacity proposal and measured worst-case margin before implementation |
-| X02 | Port proven architecture to Teensy | DEFERRED | — | V01 | Pi implementation and transport requirements known | Measured USB, resampling and DSP capacity; explicit supported voice count |
+## Waiting
 
-Next recommended assignment: **R07**, resolving the actual USB→ColdFire PCM handoff now that R03 proves the destination insertion point. **H01** can establish physical stock USB streaming independently; R04/R05 also remain available. R03 is complete on OS 1.53 emulator execution, not an OS 1.54/hardware qualification.
+| ID | Work | Status | Release condition / dependencies | Acceptance |
+| --- | --- | --- | --- | --- |
+| D01 | Audio-return architecture decision | BLOCKED | R01, R02, R03, R07; handoff remains unresolved | Explicit go/no-go with routing, MAIN suppression, controller changes, clocks and timing budget. |
+| I02 | One-track receive routing | BLOCKED | D01 must conclude GO | Emulator-verified bounded PCM copy, no duplicate MAIN, underrun handling and stock-track regression; prepare a human hardware trial. |
+| H02 | Real track pipeline | BLOCKED | H01, I02; verified firmware candidate/recovery and human trial | External tone responds to track filter/amp/sends; timing measured; ten-minute zero-gap/underrun run. |
+| I03 | SRC + control link | BLOCKED | R04, D01 GO | Eight SRC controls; ordered trigger/lock values; congestion and reconnect tests; no dedicated MIDI sequencer track required. |
+| I04 | External TRX-B2 voice | BLOCKED | R05, H02, I03 | One audio track controls Pi synthesis through SRC/locks/LFOs and local processing; explicit note/velocity policy and timing evidence. |
+| V01 | Persistence and stress | BLOCKED | I04 | Save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and dense modulation regressions. |
+| X01 | More voices | DEFERRED | V01 + transport capacity decision | Establish independent-channel capacity and measured worst-case margin before scaling. |
+| X02 | Teensy port | DEFERRED | V01 + proven architecture | Measure USB, conversion and DSP capacity; state supported voice count. |
+
+## Completed
+
+| ID | Result | Evidence |
+| --- | --- | --- |
+| R01 | OS 1.54 static trace; controller handoff still unknown | [Report](docs/R01-usb-main-trace.md), [facts](evidence/r01/os154-static-facts.json) |
+| R02 | Physical endpoint capture and read-only inspector | [Report](docs/R02-usb-descriptors.md), [raw](evidence/r02-usb-descriptors-2026-10-26.txt), [decoded](evidence/r02-endpoints-2026-10-26.json) |
+| I01 | Separate USB directional layouts; host tests pass | [Report](docs/I01-directional-usb-layout.md), [patch](patches/sidecar-firmware/0001-directional-overbridge-layout.patch), `scripts/test_i01.sh` |
+| R03 | Nine emulator assertions pass on OS 1.53 | [Reproduction](docs/R03-REPRODUCTION.md), [results](evidence/r03/insertion-153.json), [probe](tools/r03_probe.py) |
+
+R06's inspector work is consolidated into R02. OS 1.54 execution, live streaming and physical USB-to-track routing remain unproven.

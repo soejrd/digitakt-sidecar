@@ -24,9 +24,9 @@ Replay from a clean checkout at the pinned revision:
 
 ```sh
 git -C deps/sidecar-firmware apply --check \
-  ../patches/sidecar-firmware/0001-directional-overbridge-layout.patch
+  ../../patches/sidecar-firmware/0001-directional-overbridge-layout.patch
 git -C deps/sidecar-firmware apply \
-  ../patches/sidecar-firmware/0001-directional-overbridge-layout.patch
+  ../../patches/sidecar-firmware/0001-directional-overbridge-layout.patch
 ```
 
 Checks: `./scripts/test_i01.sh` (no hardware, Circle, or network). For the

@@ -1,32 +1,20 @@
 # Digitakt integrated sidecar
 
-Research and prototype: run TRX-B2 on a Raspberry Pi 4B, selected and controlled from a Digitakt mk1 audio track, with returned audio passing through that track's filter, amp and effects sends.
+Run TRX-B2 externally on a Pi 4B, controlled from a Digitakt mk1 OS 1.54 audio track, with audio returned through that track's processing. Full hardware integration remains unproven.
 
-Target: **Digitakt mk1, OS 1.54; Raspberry Pi 4B**. A Teensy 4.1 is available for later evaluation. First milestone: one external voice on one existing audio track. Feasibility remains unproven.
+- [Task board](TASKBOARD.md): work, ownership and blockers. **R07 is next.**
+- [Progress](PROGRESS.md): established results and remaining uncertainty.
+- [Plan](PLAN.md): goal, architecture and acceptance gates.
+- [Agent instructions](AGENTS.md) and [copyable prompt](AGENT-PROMPT.md).
+- [References](docs/REFERENCES.md): sources organized by project use.
 
-## Start here
-
-1. Read [AGENTS.md](AGENTS.md).
-2. Use [TASKBOARD.md](TASKBOARD.md) to choose work; it is authoritative for status, ownership, dependencies and blockers.
-3. Read [PLAN.md](PLAN.md) for architecture and acceptance gates; [PROGRESS.md](PROGRESS.md) records completed sessions.
-4. Give an external agent [AGENT-PROMPT.md](AGENT-PROMPT.md).
-
-Consult [project references](docs/REFERENCES.md) when working on controls, automation, USB transport, persistence or transfers. It maps the retained resources to project tasks and identifies what has actually been reviewed.
-
-## Set up sources
-
-Python 3 and Git are sufficient to obtain pinned dependencies:
+## Setup and checks
 
 ```sh
 python3 scripts/bootstrap.py
+# Or reuse existing clones: --source-root /path/to/clones
 ```
 
-To reuse existing local clones, pass their common directory (missing clones fall back to their public remote):
+sources.json pins dependency revisions. Clones in deps/ are ignored; replay [the I01 patch](patches/sidecar-firmware/README.md) before running `./scripts/test_i01.sh`.
 
-```sh
-python3 scripts/bootstrap.py --source-root /path/to/existing/clones
-```
-
-Clones go in ignored `deps/`. Existing clones are checked for the pinned revision and never reset. This does not fetch engine build dependencies or install toolchains. Read each dependency's instructions before changing or building it. Baseline test: `bash deps/sidecar-firmware/tools/run_portable_tests.sh`.
-
-This is a standalone local Git repository. The previous exploration folder is retained as historical context; this repo is the current handoff. Dependencies and private firmware are not committed here. Source pins are in [sources.json](sources.json); prior findings are in [docs/BASELINE.md](docs/BASELINE.md).
+The [R03 reproduction guide](docs/R03-REPRODUCTION.md) covers the isolated Unicorn build, private fixture preparation and nine emulator assertions. Generated cards/snapshots may be removed and rebuilt with the tracked tools. Keep firmware and personal projects private.
