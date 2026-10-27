@@ -10,11 +10,14 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 ## Waiting
 
+No waiting task is released yet. R05 removed one dependency from I04; H02
+still needs the separately agreed human I02A trial, and I03 still needs R04.
+
 | ID | Work | Status | Release condition / dependencies | Acceptance |
 | --- | --- | --- | --- | --- |
-| H02 | Real track pipeline | BLOCKED | Agreed human trial of I02 candidate/recovery (H01 passed); silence until USB1 render activation | External tone responds to track filter/amp/sends; timing measured; ten-minute zero-gap/underrun run. |
-| I03 | SRC + control link | BLOCKED | R04 (D01 conditional GO recorded) | Eight SRC controls; ordered trigger/lock values; silence-until-active handshake, congestion and reconnect tests; no dedicated MIDI sequencer track required. |
-| I04 | External TRX-B2 voice | BLOCKED | R05, H02, I03 | One audio track controls Pi synthesis through SRC/locks/LFOs and local processing; explicit note/velocity policy and timing evidence. |
+| H02 | Real track pipeline | BLOCKED | Agreed human trial of I02A candidate/recovery (H01 passed); silence until USB1 render activation | External tone responds to track filter/amp/sends; timing measured; ten-minute zero-gap/underrun run. |
+| I03 | SRC + control link | BLOCKED | R04 complete (R04 is READY; D01 conditional GO recorded) | Eight SRC controls; ordered trigger/lock values; silence-until-active handshake, congestion and reconnect tests; no dedicated MIDI sequencer track required. |
+| I04 | External TRX-B2 voice | BLOCKED | H02 and I03 (R05 passed: engine/resampling benchmark only) | One audio track controls Pi synthesis through SRC/locks/LFOs and local processing; explicit note/velocity policy and timing evidence. |
 | V01 | Persistence and stress | BLOCKED | I04 | Save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and dense modulation regressions. |
 | X01 | More voices | DEFERRED | V01 + transport capacity decision | Establish independent-channel capacity and measured worst-case margin before scaling. |
 | X02 | Teensy port | DEFERRED | V01 + proven architecture | Measure USB, conversion and DSP capacity; state supported voice count. |
