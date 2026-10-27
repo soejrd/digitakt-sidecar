@@ -1,6 +1,6 @@
 # H02 — Real track pipeline
 
-Status: **IN PROGRESS — route guard diagnosed; tested fixes awaiting install**
+Status: **IN PROGRESS — route guard diagnosed; corrected Circle kernel installed; H02F/boot trial pending**
 (2026-10-27). H02D firmware boots on hardware and USB1 appears on audio
 track 1 with engine SRC parameters. No test tone has played. Use the one
 existing Sidecar/Circle SD card; computer UI access is prohibited by the user.
@@ -20,7 +20,7 @@ and earlier emulator fixtures forced that wrong mode. [Fix evidence](../evidence
 records the production render regression failing before and passing after
 the correction, with modes 0–5 and 7 rejected.
 
-Install the tested pair; neither new artifact is installed yet:
+The tested pair is prepared; Circle is installed and H02F installation is unconfirmed:
 
 - `private/h02/trial/Digitakt-H02F-mode6.syx`: mode-6 route guard plus the
   diagnostic SRC page. [Compiled page](../evidence/h02/mode6-diagnostic-page.json)
@@ -36,8 +36,12 @@ Artifact/source hashes are in the fix evidence. The human performs firmware
 installation using the [verified recovery procedure](I02-one-track-routing.md#human-hardware-trial-and-recovery-gate).
 Stock recovery: `private/h02/trial/Digitakt-OS1.54-stock-recovery.syx`, SHA-256
 `f78ba80fa7b1da5fb0e1ff61ad61e9e71aafe79f4364fc49679f3651353e3cf6`.
-Back up the mounted card's current kernel before replacement; preserve
-configuration/credentials and verify read-back before ejecting.
+The [clock-kernel deployment](../evidence/h02/sd-clock-deployment.json) is
+read-back verified and safely ejected. Previous H02 kernel backups are card
+`kernel8-rpi4.before-clock.img` and local `private/h02/sd-backup-clock/`;
+original H01 backups remain. All other existing files, including settings
+and credentials, are unchanged. Boot and human H02F install confirmation
+remain pending.
 
 ## Reproduction and current card recovery
 

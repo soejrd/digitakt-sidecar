@@ -1,7 +1,7 @@
 {
   "task": "H02",
   "pass": true,
-  "scope": "software correction tested in host/compiled emulator and Pi cross-build; physical update pending",
+  "scope": "Software correction verified; Circle kernel installed/read-back verified, boot pending; human H02F firmware install unconfirmed",
   "cause": "mode-2 guard rejected physical native Overbridge mode 6; prior emulator fixtures forced mode 2",
   "mode_evidence": "evidence/h02/usb-mode-154.json",
   "regression": {
@@ -25,7 +25,8 @@
   "circle_kernel": {
     "sha256": "a46476a30ee94c0c32dfe05983626869c198e6522fa0a065e338b0b227228a82",
     "bytes": 2456232,
-    "deployed": false
+    "deployed": true,
+    "deployment_evidence": "evidence/h02/sd-clock-deployment.json"
   },
   "source_sha256": {
     "mods/usb-track/usb_track.c": "dcfaffcaf0fb8af5b32478d43792365b9f11eb83fec9bec60a4ff6e67a4b9578",

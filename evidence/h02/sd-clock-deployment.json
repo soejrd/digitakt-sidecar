@@ -14,7 +14,9 @@
     "installed_kernel_readback_matches": true,
     "manifest_readback_verified": true,
     "all_other_existing_files_unchanged": true,
-    "boot_config_and_credentials_preserved": true
+    "boot_config_and_credentials_preserved": true,
+    "wifi_firmware_offline_verified": true,
+    "card_safely_ejected": true
   },
   "pass": true,
   "boot_verified": false,

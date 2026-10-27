@@ -10,7 +10,7 @@ H02 hardware trial is active; no other unblocked implementation tasks.
 
 | ID | Work | Status | Release condition / dependencies | Acceptance |
 | --- | --- | --- | --- | --- |
-| H02 | Real track pipeline | IN PROGRESS — Codex, 2026-10-27 21:04 UTC | Circle transport and physical I03P boot/USB1 UI pass; H02D identifies bad mode-2 guard; H02F mode-6 fix and monotonic Circle clock tested; human firmware/SD updates and physical trial pending | External tone responds to track filter/amp/sends; timing measured; ten-minute zero-gap/underrun run. [Preflight](docs/H02-real-track-pipeline.md). |
+| H02 | Real track pipeline | IN PROGRESS — Codex, 2026-10-27 21:04 UTC | Circle transport and physical I03P boot/USB1 UI pass; H02D identifies bad mode-2 guard; H02F mode-6 fix tested; corrected Circle kernel installed/verified; firmware install confirmation, boot and physical trial pending | External tone responds to track filter/amp/sends; timing measured; ten-minute zero-gap/underrun run. [Preflight](docs/H02-real-track-pipeline.md). |
 | I04 | External TRX-B2 voice | BLOCKED | H02 (I03 and R05 passed; engine/resampling remains host-benchmark evidence) | One audio track controls Pi synthesis through SRC/locks/LFOs and local processing; explicit note/velocity policy and timing evidence. |
 | V01 | Persistence and stress | BLOCKED | I04 | Save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and dense modulation regressions. |
 | X01 | More voices | DEFERRED | V01 + transport capacity decision | Establish independent-channel capacity and measured worst-case margin before scaling. |
