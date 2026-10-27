@@ -1,0 +1,22 @@
+{
+  "task": "H02",
+  "date_utc": "2026-10-27T21:31:13.902955+00:00",
+  "scope": "Sidecar monotonic session-clock kernel installed; physical boot pending; no Digitakt firmware modified by this deployment",
+  "old_kernel_sha256": "1514f996a9c63e0d82bad5091cc3075c3dac52827273d701ae21494c89d07721",
+  "new_kernel_sha256": "a46476a30ee94c0c32dfe05983626869c198e6522fa0a065e338b0b227228a82",
+  "new_kernel_bytes": 2456232,
+  "backup_kernel": "kernel8-rpi4.before-clock.img",
+  "backup_manifest": "SHA256SUMS.before-clock",
+  "assertions": {
+    "source_matches_tested_build": true,
+    "old_kernel_matches_initial_H02": true,
+    "local_and_card_backup_verified": true,
+    "installed_kernel_readback_matches": true,
+    "manifest_readback_verified": true,
+    "all_other_existing_files_unchanged": true,
+    "boot_config_and_credentials_preserved": true
+  },
+  "pass": true,
+  "boot_verified": false,
+  "rollback": "With Pi off and card mounted, replace kernel8-rpi4.img with kernel8-rpi4.before-clock.img and restore SHA256SUMS.before-clock as SHA256SUMS."
+}
