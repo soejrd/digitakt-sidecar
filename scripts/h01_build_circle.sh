@@ -56,5 +56,6 @@ hdmi_cvt=800 480 60 6 0 0 0
 disable_overscan=1
 EOF
 printf 'out=main notes=off gadget=0 wifi=0 ip=%s netmask=255.255.255.0 web=1 sdport=0 selftest=0 bench=0 um=0\n' "${H01_PI_IP:?set H01_PI_IP to an unused LAN address for Circle}" > "$out/cmdline.txt"
-(cd "$out" && shasum -a 256 LICENCE.broadcom armstub8-rpi4.bin bcm2711-rpi-4-b.dtb cmdline.txt config.txt fixup4.dat kernel8-rpi4.img start4.elf > SHA256SUMS)
+python3 scripts/prepare_pi_wifi.py --card-root "$out"
+(cd "$out" && shasum -a 256 LICENCE.broadcom armstub8-rpi4.bin bcm2711-rpi-4-b.dtb cmdline.txt config.txt fixup4.dat kernel8-rpi4.img start4.elf firmware/brcmfmac43455-sdio.bin firmware/brcmfmac43455-sdio.clm_blob firmware/brcmfmac43455-sdio.txt firmware/LICENCE.firmware-nonfree > SHA256SUMS)
 echo "Prepared $out; review before copying to a separately authorized FAT32/MBR card."

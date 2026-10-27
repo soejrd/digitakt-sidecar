@@ -86,6 +86,23 @@ kernel now builds; the existing I01 host regression suite passes. Upstream setup
 also required a temporary source alias without spaces and fetching pinned hostap
 before the first engine-tree copy; the helper records those workarounds.
 
+## Wi-Fi SD dependencies
+
+The Circle kernel also needs the Pi 4 WLAN files under `/firmware/` on the
+SD card. Merely enabling `wifi=1` and saving credentials does not start the
+chip when those files are absent. This omission was found after the first
+Wi-Fi-only boot attempt; all three files were missing from the H01 SD package.
+The returned card was repaired without changing its kernel or credentials.
+Association/DHCP still needs a new physical boot; the wired H01 stream proof
+does not qualify Wi-Fi operation.
+
+`scripts/h01_build_circle.sh` now includes those dependencies and their licence.
+For an existing mounted card, run `python3 scripts/prepare_pi_wifi.py
+--card-root /Volumes/SIDECAR`; append `--check` for an offline check. The helper
+pins the exact RPi-Distro revision used by Circle's WLAN Makefile, verifies
+sizes and Git blob IDs, and refuses to overwrite differing files. Downloads
+remain on the SD/package, outside Git. It never reads network credentials.
+
 ## Reproduce
 
 Keep captures, generated firmware and build logs in ignored `private/h01/`.
