@@ -1,0 +1,63 @@
+{
+  "task": "I03 render-side SRC queue",
+  "date_utc": "2026-10-27",
+  "base_revision": "b7b98cbcd81d9fd3a0f77e5f9b8f0586348a9879",
+  "scope": "Host and cross-compiled evidence for a bounded render queue; no hardware, USB transport, lock/LFO timing, or audio claim.",
+  "sources_sha256": {
+    "mods/usb-track/src_queue.c": "2de5d0209e05151065d6f9a4af09967b904b95c6b13e9ab7427eb90f5d7a79ab",
+    "mods/usb-track/src_queue.h": "577dbad5a473c637234ce3874b57669e3005b654a353c78ddc64481303e007cf",
+    "mods/usb-track/usb_track.c": "7178567b3ab94e15e4d1cae0883cc4706e4241f63b026bd48da83c4f5e90108f",
+    "mods/usb-track/mod.json": "2912d0054a117da51cd87f1200bab55b234d7fa08aabf727b28a624c4c8ff78d",
+    "tests/src_queue.c": "10a78384eed86f50f614dea9144b360a5e7533397d36103de18ac8335c72e236",
+    "tests/usb_track_queue_host.c": "6f6255133e8f4019c26f8a09c387a9c14446bd88dbea9c1c6b3c12a8282ca1c8",
+    "tests/usb_track_queue_io.h": "576703346786e70f4cffae7e6e74cbb384026a72ce6af0b97b0d8dec154c833a",
+    "scripts/test_i03_queue.sh": "50fa5b0069b8c4369f857f96c1280a31d00a72b4f3d3aa167d51aecc7d9a287b",
+    "tools/i02_probe.py": "8874fe84a413dda404e06f6c810703a3f71d070ddf030c85ff742815b7afc4c0"
+  },
+  "queue": {
+    "capacity_records": 256,
+    "record_bytes": 36,
+    "array_stride_bytes": 36,
+    "block_period_ms_at_1500hz": 0.6667,
+    "nominal_history_ms": 170.7,
+    "fields_per_record": ["session", "block", "sequence", "note_16_16", "eight_final_params_8_8", "velocity_8_8", "machine", "start_flag"]
+  },
+  "commands": [
+    "bash scripts/test_i03_queue.sh",
+    "PYTHONPATH=$PWD/deps/elekloader ELEKLOADER_CROSS=m68k-elf- python3 -m elekloader.sdk.build mods/usb-track --stock private/i02-fixture/Digitakt_OS1.54.syx --out /tmp/i03-evidence-build"
+  ],
+  "passed": {
+    "dense_modulation_and_repeated_starts": true,
+    "adjacent_starts_retained_in_order": true,
+    "simulated_transport_congestion_preserves_order": true,
+    "queue_overflow_latches_failure_and_silence": true,
+    "machine_change_invalidates_without_fatal_mute": true,
+    "compiled_render_hook_session_start_machine_overflow": true,
+    "consumer_sequence_validation": true,
+    "asan_ubsan": true,
+    "sanitizer_scope": "Host queue/hook only; libatomic absent on ColdFire.",
+    "coldfire_cross_object": {
+      "undefined_symbols": [],
+      "allocator_or_wait_imports": [],
+      "calls_inside_ut_session_capture": [],
+      "producer_text_bytes": 1250,
+      "render_object_text_bytes": 1703,
+      "render_object_bss_bytes": 9256
+    },
+    "elekloader_build": {
+      "result": "BUILT usb-track-0.2.elemod",
+      "run_bytes": 2867,
+      "bss_bytes": 9256,
+      "sites": 0,
+      "relocations": 77,
+      "imports": ["cm_src_value", "cm_ui_v32", "fw_render_machine", "fw_voice_note", "fw_voice_start", "fw_voice_vel"]
+    }
+  },
+  "not_proven": [
+    "Native Digitakt USB-MIDI serialization/DMA/ownership and disconnect behavior.",
+    "Compiled OS 1.54 emulator execution in this sandbox: i02_probe candidate fails before guest code with SIGILL/rc=132 at Unicorn ladder start; this is not a pass.",
+    "Dynamic lock/LFO ordering and distinct retrigger semantics.",
+    "Physical congestion, reconnect, throughput, and integrated audio timing.",
+    "The USB return path is not gated on ACTIVATE by this queue alone; the handshake adapter owns that gate."
+  ]
+}

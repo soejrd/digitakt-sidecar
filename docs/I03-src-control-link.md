@@ -26,6 +26,44 @@ OS 1.54. Nothing flashed; no hardware audio or Pi changes.
   encodings, ordered state, simulated loss/congestion, stale reconnect data,
   duplicate blocks, clock wrap and timeout. ASan/UBSan pass. These are local
   protocol tests, not physical USB congestion/reconnect measurements.
+- `mods/usb-track/src_queue.{h,c}` now captures one full render record per
+  audio block at the `ev_render_voices` hook: final `cm_src_value` A-H values,
+  note, velocity, `fw_voice_start` and machine identity. Its 256-record ring
+  is about 171 ms at 1,500 blocks/s. The render side uses fixed storage,
+  bounded work and no allocation, waits, locks or calls into the transport.
+  The fake transport drains FIFO records from a UI/tick context only.
+- Queue failure semantics are fail-closed: a full ring, sequence fault or
+  consumer ordering mismatch latches silence until a fresh nonzero session is
+  explicitly opened. A machine change invalidates/retires the control session
+  without latching a render fault. The hook zeroes the current block and both
+  stale USB halves on a fatal queue condition. Consecutive start bits are
+  retained in separate ordered records.
+
+## Render queue evidence
+
+`scripts/test_i03_queue.sh` runs the queue tests under ASan/UBSan and compiles
+the actual render hook with only its four hardware globals redirected to host
+arrays. It also cross-compiles both units with the pinned ColdFire compiler.
+Current result: dense modulation, adjacent repeated starts, fake-transport
+congestion/retry ordering, the exact 256-record overflow boundary, machine
+change, reset guard and fail-closed silence all pass. The ColdFire queue and
+hook objects have no undefined symbols and no allocator, wait or stdio
+imports; `ut_session_capture` contains no outbound call. The elekloader build
+reports `usb-track 0.2: .run 2867, .fast 0, .bss 9256 bytes; 0 sites`.
+[Evidence](../evidence/i03/src-queue.json).
+
+`tools/i02_probe.py` now includes the queue sources in a candidate's
+`source_hashes`, so an existing candidate cannot silently accept changed
+queue code. A fresh candidate build/link still succeeds, but a complete
+compiled-device emulator run is **blocked in this execution sandbox**: the
+Unicorn ladder terminates with `rc=132` (SIGILL) before guest code runs. No
+emulator result is claimed here. The host hook test is not a substitute for
+lock/LFO timing, USB DMA, native transport or hardware audio.
+
+The USB return path is not yet gated on `ACTIVATE`; that belongs to the
+session/ACK adapter. The queue wrappers (`usb_track_control_open`,
+`_close`, `_fail`, `_peek`, `_pop`, `_drain`) are the intended neutral seam,
+and the shared `control/link.*` ownership remains with the handshake worker.
 
 ## Native transport finding
 
@@ -43,10 +81,12 @@ Remaining acceptance work, in order:
    serialization, DMA payload lifetime/completion, disconnect failure paths,
    and safe receive callback chaining. Isolate reusable hooks in a core-shaped
    adapter, following elekloader's contribution instructions.
-2. Capture render snapshots after locks/LFOs using `cm_src_value`, note,
+2. ~~Capture render snapshots after locks/LFOs using `cm_src_value`, note,
    velocity and `fw_voice_start`; preserve every restart through a bounded
-   queue. At 1,500 full snapshots/s the USB-MIDI payload would be about
-   126 kB/s (84 USB-MIDI bytes/frame), so test dense modulation and drain rate.
+   queue.~~ Render capture, ordering and fail-closed queue behavior are
+   implemented and host/compiled-object tested; native drain rate and dynamic
+   lock/LFO timing remain open. At 1,500 full snapshots/s the USB-MIDI payload
+   would be about 126 kB/s (84 USB-MIDI bytes/frame).
 3. Connect Circle receive/ACK and device silence-until-ACK gating. Invalidate
    both sides on machine change, queue overflow, timeout and reconnect;
    clear stale PCM halves before rearming. ACK must identify the new session

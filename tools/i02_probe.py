@@ -121,7 +121,8 @@ def candidate_prepare(args):
         'usb_track_version':version,
         'firmware_label':'I02A' if version=='0.1' else 'I03P',
         'source_hashes':{str(f.relative_to(ROOT)):r03.sha(f) for f in
-            (ROOT/'mods/usb-track/usb_track.c',ROOT/'mods/usb-track/mod.json')}},indent=2)+'\n')
+            (ROOT/'mods/usb-track/usb_track.c',ROOT/'mods/usb-track/src_queue.c',
+             ROOT/'mods/usb-track/src_queue.h',ROOT/'mods/usb-track/mod.json')}},indent=2)+'\n')
     print('CANDIDATE BOOTED AND ASSIGNED',flush=True)
 
 
