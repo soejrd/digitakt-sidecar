@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Depends on | Owner | Acceptance |
 | --- | --- | --- | --- | --- |
-| I03 | SRC + control link | R04 complete; D01 conditional GO recorded | — | Eight SRC controls; ordered trigger/lock values; silence-until-active handshake, congestion and reconnect tests; no dedicated MIDI sequencer track required. |
+| I03 | SRC + control link (in progress; SRC/protocol prototype delivered) | Native DT1 USB adapter + activation ACK remain; see docs/I03-src-control-link.md | codex @ 2026-10-27T11:28:38Z | Eight SRC controls; ordered trigger/lock values; silence-until-active handshake, congestion and reconnect tests; no dedicated MIDI sequencer track required. |
 
 ## Waiting
 

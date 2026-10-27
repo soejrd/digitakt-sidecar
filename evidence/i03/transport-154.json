@@ -1,0 +1,73 @@
+{
+  "main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
+  "level": "static instruction anchors only",
+  "anchors": {
+    "callback_registration": "0x400045aa",
+    "endpoint_1_control": "0x400045ca",
+    "receive_callback_load": "0x400047fa",
+    "receive_callback_call": "0x40004808",
+    "send_wrap_wait": "0x400049d8",
+    "send_capacity_wait": "0x40004a0c"
+  },
+  "candidate_raw_midi_sender": "0x40004990",
+  "candidate_receive_callback_slot": "0x4061046c",
+  "transport_qualified": false,
+  "missing": [
+    "nonblocking send ownership/completion and failure behavior",
+    "receive callback task/context and safe chaining",
+    "render queue throughput with dense LFO/locks",
+    "device/host activation ACK and reconnect integration"
+  ],
+  "ui_emulator": {
+    "candidate_sha256": "13a81f4f1e214e64898239ad86ccd96be809ec535e154ac808483d40b167064f",
+    "level": "compiled OS 1.54 emulator; no physical USB",
+    "booted": true,
+    "labels_ranges_defaults": true,
+    "panel_knobs_changed": [
+      "PTCH",
+      "DEC",
+      "RAMP",
+      "HOLD",
+      "TICK",
+      "NOIS",
+      "DIRT",
+      "DIST"
+    ],
+    "final_8_8_before_after": [
+      [
+        15360,
+        19200
+      ],
+      [
+        16640,
+        19200
+      ],
+      [
+        10496,
+        13056
+      ],
+      [
+        15872,
+        17152
+      ],
+      [
+        23296,
+        28416
+      ],
+      [
+        11264,
+        13824
+      ],
+      [
+        14336,
+        16896
+      ],
+      [
+        14848,
+        16128
+      ]
+    ],
+    "native_defaults_applied": true,
+    "transport_qualified": false
+  }
+}

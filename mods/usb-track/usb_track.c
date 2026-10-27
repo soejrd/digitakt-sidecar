@@ -38,15 +38,65 @@ void usb_track_render(int32_t *blocks)
     }
 }
 
-static const struct cm_ui usb_page = {
-    .abi = cm_ui_v3, .page_from = 3,
+static int32_t control_text(char *buf, int32_t value, int32_t ctx, int32_t machine)
+{
+    uint32_t n = value < 0 ? 0 : value > (127 << 8) ? 127 : (uint32_t)value >> 8;
+    uint32_t pos = 0;
+    (void)ctx; (void)machine;
+    if (n >= 100) buf[pos++] = '0' + n / 100;
+    if (n >= 10) buf[pos++] = '0' + (n / 10) % 10;
+    buf[pos++] = '0' + n % 10;
+    buf[pos] = 0;
+    return 1;
+}
+
+/* Extended ABI applies defaults through native sound updates; legacy v3
+ * only overrides the displayed range. No extra controls are shown. */
+static const struct cm_src_page trx_page = {
+    .title = "TRX-B2", .parameter = {0, 1, 2, 3, 4, 5, 6, 7}
+};
+#define UNUSED_EXTRA {.look = 0x86, .flags = CM_RANGE | CM_DEFAULT, \
+                      .max = 127 << 8, .def = 64 << 8}
+static const struct cm_ui32 usb_page = {
+    .base = {.abi = cm_ui_v32, .page_from = 3, .group = "TRX-B2",
     .knob = {
-        [0] = {.flags = CM_HIDDEN}, [1] = {.flags = CM_HIDDEN},
-        [2] = {.flags = CM_HIDDEN}, [3] = {.flags = CM_HIDDEN | CM_NOT_SAMPLE},
-        [4] = {.flags = CM_HIDDEN}, [5] = {.flags = CM_HIDDEN},
-        [6] = {.flags = CM_HIDDEN}, [7] = {.flags = CM_HIDDEN},
-    }
+        [0] = {.name = "PTCH", .lname = "PTCH",
+               .look = 0x86, .fmt = control_text,
+               .flags = CM_RANGE | CM_DEFAULT | CM_NOT_SAMPLE,
+               .min = 0, .max = 127 << 8, .def = 60 << 8},
+        [1] = {.name = "DEC", .lname = "DEC",
+               .look = 0x86, .fmt = control_text,
+               .flags = CM_RANGE | CM_DEFAULT | CM_NOT_SAMPLE,
+               .min = 0, .max = 127 << 8, .def = 65 << 8},
+        [2] = {.name = "RAMP", .lname = "RAMP",
+               .look = 0x86, .fmt = control_text,
+               .flags = CM_RANGE | CM_DEFAULT | CM_NOT_SAMPLE,
+               .min = 0, .max = 127 << 8, .def = 41 << 8},
+        [3] = {.name = "HOLD", .lname = "HOLD",
+               .look = 0x86, .fmt = control_text,
+               .flags = CM_RANGE | CM_DEFAULT | CM_NOT_SAMPLE,
+               .min = 0, .max = 127 << 8, .def = 62 << 8},
+        [4] = {.name = "TICK", .lname = "TICK",
+               .look = 0x86, .fmt = control_text,
+               .flags = CM_RANGE | CM_DEFAULT | CM_NOT_SAMPLE,
+               .min = 0, .max = 127 << 8, .def = 91 << 8},
+        [5] = {.name = "NOIS", .lname = "NOIS",
+               .look = 0x86, .fmt = control_text,
+               .flags = CM_RANGE | CM_DEFAULT | CM_NOT_SAMPLE,
+               .min = 0, .max = 127 << 8, .def = 44 << 8},
+        [6] = {.name = "DIRT", .lname = "DIRT",
+               .look = 0x86, .fmt = control_text,
+               .flags = CM_RANGE | CM_DEFAULT | CM_NOT_SAMPLE,
+               .min = 0, .max = 127 << 8, .def = 56 << 8},
+        [7] = {.name = "DIST", .lname = "DIST",
+               .look = 0x86, .fmt = control_text,
+               .flags = CM_RANGE | CM_DEFAULT | CM_NOT_SAMPLE,
+               .min = 0, .max = 127 << 8, .def = 58 << 8},
+    }},
+    .extra = {UNUSED_EXTRA, UNUSED_EXTRA, UNUSED_EXTRA, UNUSED_EXTRA,
+              UNUSED_EXTRA, UNUSED_EXTRA, UNUSED_EXTRA},
+    .page_count = 1, .pages = &trx_page
 };
 const struct cm_machine usb_track_machine = {
-    121, "USB1", "USB1", 0, 3, 121, CM_UI_TAG, &usb_page
+    121, "USB1", "USB1", 0, 3, 121, CM_UI_TAG, &usb_page.base
 };

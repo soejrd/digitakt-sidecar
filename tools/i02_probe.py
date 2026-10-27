@@ -99,12 +99,15 @@ def candidate_prepare(args):
                            stdout=log,stderr=subprocess.STDOUT,check=True)
         for mod in ('deps/elekloader/mods/core','deps/elekloader/mods/machine-pages','mods/usb-track'):
             run('-m','elekloader.sdk.build',mod,'--stock',str(args.stock.resolve()),'--out',str(artifacts))
-        mods=[artifacts/name for name in ('core-4.1-os1.54.elemod','machine-pages-1.5-os1.54.elemod','usb-track-0.1.elemod')]
+        version=json.loads((ROOT/'mods/usb-track/mod.json').read_text())['version']
+        mods=[artifacts/name for name in ('core-4.1-os1.54.elemod',
+            'machine-pages-1.5-os1.54.elemod',f'usb-track-{version}.elemod')]
         run('-m','elekloader.lint',str(mods[2]),'--stock',str(args.stock.resolve()),
             '--with',str(mods[0]),'--with',str(mods[1]),'--json')
         run('-m','elekloader.patch','--stock',str(args.stock.resolve()),
             *[v for m in mods for v in ('--mod',str(m))],
-            '--out',str(artifacts/'I02.syx'),'--version','I02A')
+            '--out',str(artifacts/'I02.syx'),'--version',
+            'I02A' if version=='0.1' else 'I03P')
     p,_=firmware_prepare(str(artifacts/'I02.syx'),str(root/'emulator'))
     shutil.copyfile(args.fixture/'plusdrive.img',p.card)
     os.environ.update(p.env())
@@ -115,6 +118,8 @@ def candidate_prepare(args):
         'map':'artifacts/I02.syx.map.json',
         'syx_sha256':r03.sha(artifacts/'I02.syx'),
         'stock_main_sha256':MAIN_SHA,
+        'usb_track_version':version,
+        'firmware_label':'I02A' if version=='0.1' else 'I03P',
         'source_hashes':{str(f.relative_to(ROOT)):r03.sha(f) for f in
             (ROOT/'mods/usb-track/usb_track.c',ROOT/'mods/usb-track/mod.json')}},indent=2)+'\n')
     print('CANDIDATE BOOTED AND ASSIGNED',flush=True)
@@ -369,7 +374,7 @@ def check(args):
         'bounded_lifecycle':all(x['pass'] for x in life['cases']) and life['max_instructions']<=515,
     }
     report={
-        'firmware':'Digitakt mk1 OS 1.54 + core 4.1 + machine-pages 1.5 + usb-track 0.1',
+        'firmware':'Digitakt mk1 OS 1.54 + core 4.1 + machine-pages 1.5 + usb-track '+meta.get('usb_track_version','0.1'),
         'stock_main_sha256':MAIN_SHA,'candidate_sha256':meta['syx_sha256'],
         'source_sha256':r03.sha(ROOT/'mods/usb-track/usb_track.c'),
         'hardware_test':False,'candidate_booted':True,'results':results,
