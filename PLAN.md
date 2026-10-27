@@ -22,6 +22,8 @@ The creator's [Digitakt guide](https://github.com/trigcondition/sidecar-expander
 | Persist and qualify | Save/load, copy/paste, undo, mutes, sound locks, reconnect and dense-pattern regressions | V01 |
 | Expand | Demonstrated transport capacity and CPU headroom before more voices or Teensy | X01, X02 |
 
+D01 records a [conditional GO for native USB copy/clear](docs/adr/0001-usb-return-to-track.md): I02 can proceed, while H01/H02 retain physical transport, full-track and timing qualification. The prototype consumes the whole stereo USB return to feed one mono track; additional independent returns are not assumed.
+
 ## Design requirements
 
 - Control semantic voice events and final modulated values, rather than forwarding every button. Keep normal navigation/filter/amp controls local. USB MIDI/SysEx may carry internal events without dedicating MIDI sequencer tracks.

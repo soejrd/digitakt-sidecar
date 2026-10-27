@@ -17,6 +17,8 @@ Native OS 1.54 USB receive path identified: EP3 OUT descriptors → `0x400035F4`
 
 The inherited DSPI-only/no-DMA verdict was unsupported and is withdrawn. Boot dispatch to the native USB initializer is traced; R07 is complete at the static/function-emulator level. Section 8’s role on the physical unit remains unknown and is not an evidenced prerequisite. No live USB audio or firmware flash occurred. The patched runtime works outside the restrictive sandbox; R03 was not rerun.
 
-## Next
+## D01 decision and next work
 
-D01 is ready to assess the concrete copy/clear route with explicit hardware qualification gates. H01 (physical stream), R04 (control hooks) and R05 (engine/resampling) can proceed independently. I02 must use the half MAIN will consume, preserve the desired mono source, and clear both dry stereo channels; the just-received half belongs to the next block.
+**Conditional GO for the one-track native USB copy/clear prototype.** [Decision and gates](docs/adr/0001-usb-return-to-track.md). I02 is READY: verify the complete OS 1.54 hook ordering, scaling, both halves, track processing, lifecycle behavior and bounded execution. Copy from the half MAIN will consume, then clear both dry channels; the just-received half belongs to the next block. This mode consumes the stereo USB return.
+
+H01 (physical stream), R04 (control hooks) and R05 (engine/resampling) remain independent. H02 stays blocked on H01/I02 and a human trial. Physical clock/rate, full latency/jitter and CPU margin are unmeasured; musical timing tolerance must be agreed from the trial before timing qualification. No hardware flash or audio test occurred.
