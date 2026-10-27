@@ -60,7 +60,7 @@ def run(candidate, output):
         elif addr==0x40077fba:
             put(u,0x40610474,int(state['up']))
             put(u,0xfc0b01c4,0xc800c8 if state['up'] else 0)
-            put(u,0x406104f4,2); put(u,0x4025c294,int(state['up']))
+            put(u,0x406104f4,6); put(u,0x4025c294,int(state['up']))
             if not state['stall']:
                 put(u,0x40610478,0) # synthetic USB completion between render blocks
             if state['dense']:

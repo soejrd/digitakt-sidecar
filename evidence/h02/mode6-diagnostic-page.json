@@ -1,0 +1,26 @@
+{
+  "task": "H02",
+  "pass": true,
+  "scope": "compiled emulator diagnostics only; seeded globals, no physical USB",
+  "candidate_sha256": "5acb609a4b409153d2eed7b528becf4ca553d7cce548031f00d4910c4e0ebd33",
+  "label": "H02F",
+  "diagnostic_page_labels": [
+    "RCLK",
+    "TICK",
+    "STATE",
+    "SYNC",
+    "MIDI",
+    "TX",
+    "RX"
+  ],
+  "formatter_values": {
+    "RCLK": 2345,
+    "TICK": 5678,
+    "STATE": 29,
+    "SYNC": 1,
+    "MIDI": 49,
+    "TX": 0,
+    "RX": 0
+  },
+  "read_only_observed_state": true
+}

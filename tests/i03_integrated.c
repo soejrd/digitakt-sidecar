@@ -76,7 +76,7 @@ int main(void)
     sc_circle_init(&host,install,reply,clear,&host,USB_TRACK_LEASE);
     test_ready=test_isr=1; test_rx_slot=0;
     test_auto_complete=1; test_tx_observer=collect;
-    fw_io_mode=2; fw_io_sync=1; fw_render_machine[0]=121;
+    fw_io_mode=6; fw_io_sync=1; fw_render_machine[0]=121;
     fw_voice_note[0]=60<<16; fw_voice_vel[0]=100<<8;
     for(i=0;i<8;++i) fw_voice_params[i]=(i+1)<<8;
     step(1); assert(!usb_track_gate && blocked==1);

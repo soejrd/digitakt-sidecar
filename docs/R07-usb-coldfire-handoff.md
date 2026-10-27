@@ -46,8 +46,10 @@ The boot dispatcher loads the native initializer `0x40006E0C` into A2 at
 board-flag branch, otherwise setting byte `0x40649124` selects mode 6 (value 1),
 mode 5 (value 2), or mode 2 (default). The initializer stores that mode at
 `0x406104F4`, returned by `0x40006E04`. These are static branch facts, not an
-observed settings read from the user's unit. Mode 2 uses the native 88-byte
-Overbridge-style receiver; the physical endpoint capacity agrees with it.
+observed settings read from the user's unit. H02 corrected the earlier mode
+interpretation: mode **6** uniquely matches the physical PID `0x0b2c` and
+368/88-byte endpoint descriptors; mode 2 is MIDI-only PID `0x000d`.
+[Mode-table/physical-capture match](../evidence/h02/usb-mode-154.json).
 
 The render call selects `0x4000413C` for USB mode 5 and `0x400035F4` otherwise;
 mode is returned by `0x40006E04`. The native Overbridge-style receive routine

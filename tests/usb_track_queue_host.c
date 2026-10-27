@@ -26,6 +26,7 @@ int32_t cm_src_value(int32_t track, int32_t parameter)
     return fw_voice_params[53 * track + parameter];
 }
 
+extern volatile uint32_t usb_track_route;
 void usb_track_render(int32_t *blocks);
 int usb_track_control_open(uint32_t session);
 void usb_track_control_close(void);
@@ -37,7 +38,6 @@ static void tick(void)
 {
     uint32_t i;
     fw_io_selector = 0;
-    fw_io_mode = 2;
     fw_io_sync = 1;
     for (i = 0; i < 128; ++i)
         fw_io_halves[i] = 0;
@@ -49,7 +49,7 @@ int main(void)
     struct ut_record r;
     uint32_t i;
     fw_io_selector = 0;
-    fw_io_mode = 2;
+    fw_io_mode = 6;
     fw_io_sync = 1;
     fw_render_machine[0] = 121;
     fw_voice_note[0] = 60 << 16;
@@ -60,6 +60,7 @@ int main(void)
     /* No session: audio routing is unchanged (and remains silent until armed). */
     tick();
     assert(!usb_track_control_failed());
+    assert(usb_track_route == 1); /* physical PID 0x0b2c is native mode 6 */
 
     assert(usb_track_control_open(9001));
     for (i = 0; i < 4; ++i) {
@@ -112,6 +113,16 @@ int main(void)
     assert(fw_track_blocks[0] == 0);
     for (i = 0; i < 128; ++i)
         assert(fw_io_halves[i] == 0);
+    usb_track_control_close();
+    const uint32_t rejected_modes[] = {0,1,2,3,4,5,7};
+    for (i = 0; i < sizeof rejected_modes / sizeof rejected_modes[0]; ++i) {
+        fw_io_mode = rejected_modes[i];
+        tick();
+        assert(usb_track_route == 0);
+    }
+    fw_io_mode = 6;
+    tick();
+    assert(usb_track_route == 1);
     puts("compiled render hook: session, starts, machine change, overflow silence: PASS");
     return 0;
 }

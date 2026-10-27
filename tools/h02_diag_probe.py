@@ -13,7 +13,7 @@ def run(candidate, output):
     from emu.harness import call
     from unicorn.m68k_const import UC_M68K_REG_PC
     candidate, meta, symbols, firmware = dynamic._fixture(candidate)
-    assert meta['firmware_label'] == 'H02D'
+    assert meta['firmware_label'] in ('H02D', 'H02F')
     dynamic._configure(firmware)
     s = Session(str(candidate/'assigned.snap'), audio=True)
     def addr(name): return int(symbols[name], 0)
@@ -40,7 +40,7 @@ def run(candidate, output):
         put(addr('usb_track_route'), 1)
         put(addr('usb_track_gate'), 0)
         s.m.uc.mem_write(addr('fw_render_machine'), bytes([121]))
-        put(0x406104f4, 2); put(0x4199f134, 1); put(0x4025c294, 1)
+        put(0x406104f4, 6); put(0x4199f134, 1); put(0x4025c294, 1)
         watched = [addr(n) for n in ('usb_track_clock', 'usb_track_worker_ticks',
                                      'usb_track_route', 'usb_track_gate')]
         before = [u32(a) for a in watched]

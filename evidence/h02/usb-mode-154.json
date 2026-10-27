@@ -1,0 +1,53 @@
+{
+  "task": "H02",
+  "pass": true,
+  "scope": "static pinned OS descriptors matched to earlier physical R02 capture; no live RAM read",
+  "main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
+  "physical_capture": "evidence/r02-endpoints-2026-10-26.json",
+  "matching_mode": 6,
+  "old_guard_mode": 2,
+  "mode_rows": [
+    {
+      "mode": 2,
+      "table_address": "0x401f5a50",
+      "initialize": "0x400045ca",
+      "vendor_id": "0x1935",
+      "product_id": "0xd",
+      "configuration_bytes": 101
+    },
+    {
+      "mode": 4,
+      "table_address": "0x401f5aa0",
+      "initialize": "0x40005358",
+      "vendor_id": "0x1935",
+      "product_id": "0xffff",
+      "configuration_bytes": 75
+    },
+    {
+      "mode": 5,
+      "table_address": "0x401f5ac8",
+      "initialize": "0x400042b2",
+      "vendor_id": "0x1935",
+      "product_id": "0x102c",
+      "configuration_bytes": 328
+    },
+    {
+      "mode": 6,
+      "table_address": "0x401f5af0",
+      "initialize": "0x40003852",
+      "vendor_id": "0x1935",
+      "product_id": "0xb2c",
+      "configuration_bytes": 263
+    }
+  ],
+  "hardware_diagnostic": {
+    "RCLK": "increments, wraps in about 7 seconds",
+    "TICK": "about 30/s",
+    "STATE": 20,
+    "SYNC": 1,
+    "MIDI": 125,
+    "TX": 0,
+    "RX": "increases by about 13 every 6 seconds"
+  },
+  "conclusion": "STATE 20 rejects mode==2; mode 6 uniquely matches physical endpoint descriptors. The route guard/model used the wrong USB mode."
+}

@@ -122,7 +122,7 @@ def candidate_prepare(args):
         run('-m','elekloader.patch','--stock',str(args.stock.resolve()),
             *[v for m in mods for v in ('--mod',str(m))],
             '--out',str(artifacts/'I02.syx'),'--version',
-            'H02D' if args.diagnostic else ('I02A' if version=='0.1' else 'I03P'))
+            'H02F' if args.diagnostic else ('I02A' if version=='0.1' else 'I03P'))
     p,_=firmware_prepare(str(artifacts/'I02.syx'),str(root/'emulator'))
     shutil.copyfile(args.fixture/'plusdrive.img',p.card)
     os.environ.update(p.env())
@@ -140,7 +140,7 @@ def write_candidate_metadata(root,p,version,diagnostic=False):
         'syx_sha256':r03.sha(artifacts/'I02.syx'),
         'stock_main_sha256':MAIN_SHA,
         'usb_track_version':version,
-        'firmware_label':'H02D' if diagnostic else ('I02A' if version=='0.1' else 'I03P'),
+        'firmware_label':'H02F' if diagnostic else ('I02A' if version=='0.1' else 'I03P'),
         'compiler_defines':['USB_TRACK_DIAGNOSTIC'] if diagnostic else [],
         'source_hashes':{str(f.relative_to(ROOT)):r03.sha(f) for f in
             sorted(set([p for folder in ('mods/usb-track','mods/usb-midi')
@@ -206,7 +206,7 @@ def capture(root, name, *, route=True, signal=True, cutoff=None, amp_zero=False,
                     first_order = stages[:]
                 stages = ['render']
                 if candidate:
-                    u.mem_write(0x406104F4, struct.pack('>I',2))
+                    u.mem_write(0x406104F4, struct.pack('>I',6))
                     u.mem_write(0x4025C294, struct.pack('>I',1))
                 samples = [round(math.sin(2*math.pi*3000*(phase+i)/48000)*0.1*(2**31-1))
                            if signal and (not candidate or not route or u.mem_read(int(symbols['fw_render_machine'],0),1)[0] == 121) else 0 for i in range(32)]
@@ -322,14 +322,16 @@ def lifecycle(candidate, symbols):
     u.hook_add(UC_HOOK_CODE,hook)
     results=[]
     for name,selector,mode,sync,was_armed,enabled,kind in [
-        ('half_0_extrema',0,2,1,1,True,'copy'),
-        ('half_1_extrema',1,2,1,1,True,'copy'),
-        ('startup_flush',0,2,1,0,True,'flush'),
-        ('disconnect_flush',1,2,0,1,True,'flush'),
-        ('wrong_mode_flush',0,5,1,1,True,'flush'),
-        ('invalid_selector',2,2,1,1,True,'flush'),
-        ('disabled_passthrough',0,2,1,1,False,'disabled'),
-        ('reenter_flush',1,2,1,0,True,'flush')]:
+        ('half_0_extrema',0,6,1,1,True,'copy'),
+        ('half_1_extrema',1,6,1,1,True,'copy'),
+        ('startup_flush',0,6,1,0,True,'flush'),
+        ('disconnect_flush',1,6,0,1,True,'flush'),
+        ('audio_mode_flush',0,5,1,1,True,'flush'),
+        ('midi_only_mode_flush',0,2,1,1,True,'flush'),
+        ('board_mode_flush',0,4,1,1,True,'flush'),
+        ('invalid_selector',2,6,1,1,True,'flush'),
+        ('disabled_passthrough',0,6,1,1,False,'disabled'),
+        ('reenter_flush',1,6,1,0,True,'flush')]:
         initial_tracks=b'\x55'*1024
         u.mem_write(TRACK-4,b'\x5a'*4+initial_tracks+b'\x5a'*4)
         samples=[0x7fffffff,-0x80000000,0,-1]*8
@@ -357,7 +359,7 @@ def lifecycle(candidate, symbols):
         else:
             assert bytes(u.mem_read(TRACK,1024))==initial_tracks
             assert bytes(u.mem_read(USB,512))==initial_usb
-        expected_armed=int(enabled and selector<=1 and mode==2 and sync==1)
+        expected_armed=int(enabled and selector<=1 and mode==6 and sync==1)
         assert struct.unpack('>I',u.mem_read(armed,4))[0]==expected_armed
         results.append({'case':name,'pass':True,'instructions':count})
     return {'cases':results,'max_instructions':max(x['instructions'] for x in results),
@@ -435,7 +437,7 @@ def main():
     p.add_argument('--root', type=Path, required=True)
     p.add_argument('--stock', type=Path, required=True)
     p.add_argument('--fixture', type=Path, required=True)
-    p.add_argument('--diagnostic', action='store_true', help='H02D: read-only SRC diagnostics page')
+    p.add_argument('--diagnostic', action='store_true', help='H02F: corrected native mode with SRC diagnostics')
     args = ap.parse_args()
     {'prepare':prepare,'candidate':candidate_prepare,'check':check}[args.command](args)
 

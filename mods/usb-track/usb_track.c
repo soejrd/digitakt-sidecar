@@ -16,6 +16,9 @@ extern volatile uint32_t usb_track_worker_ticks;
 #define USB_HALVES   ((volatile int32_t *)0x80001f60u)
 #endif
 #define MACHINE_ID 121
+/* OS 1.54 mode table: row 6 matches physical PID 0x0b2c / EP3 368/88.
+ * Row 2 is MIDI-only PID 0x000d. See evidence/h02/usb-mode-154.json. */
+#define USB_NATIVE_OVERBRIDGE_MODE 6u
 
 volatile uint32_t usb_track_clock, usb_track_route, usb_track_gate, usb_track_ack_clock;
 static uint32_t armed;
@@ -136,7 +139,7 @@ void usb_track_render(int32_t *blocks)
     volatile int32_t *pair;
     ++usb_track_clock;
     usb_track_route = fw_render_machine[0] == MACHINE_ID &&
-                      s <= 1 && USB_MODE == 2 && USB_SYNC == 1;
+                      s <= 1 && USB_MODE == USB_NATIVE_OVERBRIDGE_MODE && USB_SYNC == 1;
     if (!usb_track_route || usb_track_clock - usb_track_ack_clock >= USB_TRACK_LEASE)
         usb_track_gate = 0;
     if (capture_control(0)) {
@@ -157,13 +160,13 @@ void usb_track_render(int32_t *blocks)
     /* Invalid/transition state is silence; consume both stale halves once
      * before arming. No calls or USB ownership changes from the renderer. */
     if (!usb_track_gate || usb_track_clock - usb_track_ack_clock >= USB_TRACK_LEASE ||
-        s > 1 || USB_MODE != 2 || USB_SYNC != 1 || !armed) {
+        s > 1 || USB_MODE != USB_NATIVE_OVERBRIDGE_MODE || USB_SYNC != 1 || !armed) {
         for (i = 0; i < 32; ++i)
             blocks[i] = 0;
         for (i = 0; i < 128; ++i)
             USB_HALVES[i] = 0;
         armed = (usb_track_gate && usb_track_clock - usb_track_ack_clock < USB_TRACK_LEASE &&
-                 s <= 1 && USB_MODE == 2 && USB_SYNC == 1);
+                 s <= 1 && USB_MODE == USB_NATIVE_OVERBRIDGE_MODE && USB_SYNC == 1);
         return;
     }
     pair = USB_HALVES + 64*s;
@@ -209,10 +212,10 @@ static int32_t name(char *b, int32_t v, int32_t c, int32_t m) \
 { (void)v; (void)c; (void)m; return diag_text(b, (expression)); }
 DIAG_FORMAT(diag_clock, usb_track_clock)
 DIAG_FORMAT(diag_tick, usb_track_worker_ticks)
-/* STATE: route 1, gate 2, USB1 render machine 4, mode=2 8, half valid 16. */
+/* STATE: route 1, gate 2, USB1 render machine 4, native mode 8, half valid 16. */
 DIAG_FORMAT(diag_state, (usb_track_route ? 1u : 0u) | (usb_track_gate ? 2u : 0u) |
     (fw_render_machine[0] == MACHINE_ID ? 4u : 0u) |
-    (USB_MODE == 2 ? 8u : 0u) | (USB_SELECTOR <= 1 ? 16u : 0u))
+    (USB_MODE == USB_NATIVE_OVERBRIDGE_MODE ? 8u : 0u) | (USB_SELECTOR <= 1 ? 16u : 0u))
 DIAG_FORMAT(diag_sync, USB_SYNC)
 DIAG_FORMAT(diag_midi, usbmidi_device_diag(0))
 DIAG_FORMAT(diag_tx, usbmidi_device_diag(1))

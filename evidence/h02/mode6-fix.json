@@ -1,0 +1,45 @@
+{
+  "task": "H02",
+  "pass": true,
+  "scope": "software correction tested in host/compiled emulator and Pi cross-build; physical update pending",
+  "cause": "mode-2 guard rejected physical native Overbridge mode 6; prior emulator fixtures forced mode 2",
+  "mode_evidence": "evidence/h02/usb-mode-154.json",
+  "regression": {
+    "command": "bash scripts/test_i03_queue.sh",
+    "before": "mode-6 route assertion failed in production render hook",
+    "after": "mode-6 route passes; modes 0,1,2,3,4,5,7 rejected"
+  },
+  "additional_source_finding": "Circle passed its per-second resettable render statistics counter as the lease clock; now advances a separate clock in 32-frame units from actual frame counts. This issue was found in source before physical activation.",
+  "checks": [
+    "bash scripts/test_i03_queue.sh passes with ASan/UBSan and ColdFire object checks",
+    "bash scripts/test_i03_integration.sh passes including 12+20-frame clock conversion and exact lease expiry",
+    "H02F artifact and source pins verified; compiled boot/page/exchange pass",
+    "all five Sidecar patches replay on pinned base and match tested files",
+    "Pi 4 kernel cross-build passes"
+  ],
+  "firmware": {
+    "label": "H02F",
+    "sha256": "5acb609a4b409153d2eed7b528becf4ca553d7cce548031f00d4910c4e0ebd33",
+    "flashed": false
+  },
+  "circle_kernel": {
+    "sha256": "a46476a30ee94c0c32dfe05983626869c198e6522fa0a065e338b0b227228a82",
+    "bytes": 2456232,
+    "deployed": false
+  },
+  "source_sha256": {
+    "mods/usb-track/usb_track.c": "dcfaffcaf0fb8af5b32478d43792365b9f11eb83fec9bec60a4ff6e67a4b9578",
+    "tests/usb_track_queue_host.c": "db3cf3fc1a1294494e694e71d6fff265c4910372f430abde7078b1bf919052c1",
+    "tests/i03_integrated.c": "e5204b675f67f19674d9601572e60b4b7d1068279777d822907824fdd77ae231",
+    "tests/i03_circle_glue.cpp": "88762d799d756ef0149c73c17218be3ddeecf3860ce70e8fa3145dfaea71b98d",
+    "tools/h02_usb_mode.py": "30e8a9e7d50fb6ed6f9fea73fdcb4ed3d8a075eb385ca631d28c5b58b89ee1c7",
+    "tools/i03_integrated_probe.py": "58b3c02dd36cd992756bb19ae2d1c4fd9d4acc87f7a9e2157f46b8ec9d821438",
+    "patches/sidecar-firmware/0005-monotonic-control-clock.patch": "fb478754766b1975f14b57a43d1aaf709e07360bfe186e7f791089bf14236afc",
+    "deps/sidecar-firmware/pi/engine/cores.cpp": "f70c18ef6ef090e41d4bd2c7d08d6c9f25d3839de685067f7504ef6bdf4364a1",
+    "deps/sidecar-firmware/pi/engine/dt_link.cpp": "751e80c75b78b891182475f9b298ec6378dd4f838431c8e03a9208f0c586e4bc"
+  },
+  "limits": [
+    "Physical mode-6 activation, audio routing, timing and ten-minute stability still need qualification.",
+    "The source correction does not establish the cause of the separate H01 USB stall."
+  ]
+}

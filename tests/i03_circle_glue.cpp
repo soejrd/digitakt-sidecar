@@ -63,7 +63,13 @@ int main() {
   hello(42,20); start(42,21); dt_link::Poll(4); assert(dt_link::State(&f));
   silent(); // reconnect needs a new explicit tone enable
   assert(dt_link::TestToneCommand(true));
-  dt_link::Poll(754); assert(!(g_Output.ControlToken()&1) && !dt_link::State(&f));
+  // Production Circle renders 12-frame blocks; leases use 32-frame units.
+  // Advance the protocol clock independently of resettable engine statistics.
+  dt_link::AdvanceFrames(12); dt_link::Poll(); assert(dt_link::State(&f));
+  dt_link::AdvanceFrames(20); dt_link::Poll(); assert(dt_link::State(&f));
+  dt_link::AdvanceFrames(32*747); dt_link::Poll(); assert(dt_link::State(&f));
+  dt_link::AdvanceFrames(32); dt_link::Poll();
+  assert(!(g_Output.ControlToken()&1) && !dt_link::State(&f));
   silent(); assert(!dt_link::TestToneCommand(true));
   while(g_MidiOut.size()) pop();
   while(g_MidiOut.size()<kMidiOutBytes-1) g_MidiOut.push(0);

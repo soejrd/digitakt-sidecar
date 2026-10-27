@@ -1,0 +1,56 @@
+--- a/pi/engine/cores.cpp
++++ b/pi/engine/cores.cpp
+@@ -233,7 +233,8 @@
+ 	// Integrated return is silence or the explicitly enabled H02 diagnostic.
+ 	// Never leak unrelated stock-engine voices onto it.
+ 	if (dt_link::Selected()) dt_link::RenderTestTone(s_Block, bridge::kBlock);
+-	dt_link::Poll(s_nBlocks);
++	dt_link::AdvanceFrames(bridge::kBlock);
++	dt_link::Poll();
+ 	g_Output.Push (s_Block, bridge::kBlock);
+ 	s_nBlocks++;
+ }
+@@ -270,7 +271,7 @@
+ 	{
+ 		u64 t0 = Ticks ();
+ 		boolean bWorked = FALSE;
+-		dt_link::Poll(s_nBlocks);
++		dt_link::Poll();
+ 		u8 b;
+ 		while (g_MidiIn.pop (&b))
+ 		{
+--- a/pi/engine/dt_link.cpp
++++ b/pi/engine/dt_link.cpp
+@@ -11,7 +11,7 @@
+ static sc_frame snapshot;
+ static uint32_t selected, losses, seen_loss;
+ static bool initialized, installed;
+-static uint32_t clock_block;
++static uint32_t clock_block, clock_remainder;
+ 
+ void Select() {
+   __atomic_add_fetch(&losses, 1u, __ATOMIC_RELEASE);
+@@ -51,6 +51,12 @@
+   sc_circle_process(&link, 1u);
+   return true;
+ }
++void AdvanceFrames(unsigned frames) {
++  uint64_t total = (uint64_t)clock_remainder + frames;
++  clock_block += (uint32_t)(total / 32u);
++  clock_remainder = (uint32_t)(total % 32u);
++}
++void Poll() { Poll(clock_block); }
+ void Poll(uint32_t block) {
+   uint32_t token, lost;
+   if (!Selected()) return;
+--- a/pi/engine/dt_link.h
++++ b/pi/engine/dt_link.h
+@@ -7,6 +7,8 @@
+ bool Selected();
+ void Lost();                      // core 0: transport removal/receive loss
+ bool SysEx(const uint8_t *, unsigned); // core 3: consumes DTSC only
++void AdvanceFrames(unsigned frames); // core 3: monotonic 48 kHz frames -> 32-frame lease units
++void Poll();                       // production clock, independent of resettable statistics
+ void Poll(uint32_t block);         // core 3: bounded protocol work + output gate
+ bool State(sc_frame *out);         // core 3: I04 engine's preallocated input
+ }
