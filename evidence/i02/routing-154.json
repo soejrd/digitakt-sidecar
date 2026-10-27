@@ -1,0 +1,320 @@
+{
+  "firmware": "Digitakt mk1 OS 1.54 + core 4.1 + machine-pages 1.5 + usb-track 0.1",
+  "stock_main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
+  "candidate_sha256": "17a59a621fe479df1c7ad2e0ed6016708778fa24999ea4b14b37a42d608bc090",
+  "source_sha256": "ecb0297eb8b378b8cf2ea79ab7fcfe8d34520cec2959eba45a484320722c370a",
+  "hardware_test": false,
+  "candidate_booted": true,
+  "results": {
+    "stock": {
+      "frames": 45632,
+      "peak": 1508,
+      "rms": 699.5986692643617,
+      "amplitude_440_hz": 937.318328614011,
+      "amplitude_3000_hz": 0.06031193358801478,
+      "pcm_sha256": "e64aca9a626f2c70ee10621b8eaf4d0843ea7d51b7c988c6f88d1bef7d713415",
+      "name": "stock",
+      "counts": {
+        "blocks": 1995,
+        "halves": [
+          998,
+          997
+        ],
+        "main": 1995,
+        "toggle": 1995
+      },
+      "order": [
+        "render",
+        "source",
+        "main",
+        "toggle"
+      ],
+      "halted": null,
+      "compiled_instructions_max": 9,
+      "other_track_checks": 1995,
+      "active_blocks": 0
+    },
+    "open": {
+      "frames": 45632,
+      "peak": 1993,
+      "rms": 931.8946048716481,
+      "amplitude_440_hz": 0.19782183899104117,
+      "amplitude_3000_hz": 1247.4481326276566,
+      "pcm_sha256": "2faf441dcaf525f2067d65f67092f433ec4e84e3e515175ecc848b22b3ea94fb",
+      "tail": {
+        "frames": 14400,
+        "peak": 1,
+        "rms": 0.49895724599742347,
+        "amplitude_440_hz": 0.0020194235589962666,
+        "amplitude_3000_hz": 0.00013888888888920916,
+        "pcm_sha256": "5f94a8c7bbccacfa7817672373fa5d202fd84f00e67eb8d33ccbd1391cb0792b"
+      },
+      "name": "open",
+      "counts": {
+        "blocks": 6340,
+        "halves": [
+          3170,
+          3170
+        ],
+        "main": 6340,
+        "toggle": 6340
+      },
+      "order": [
+        "render",
+        "source",
+        "main",
+        "toggle"
+      ],
+      "halted": null,
+      "compiled_instructions_max": 515,
+      "other_track_checks": 6340,
+      "active_blocks": 2023
+    },
+    "closed": {
+      "frames": 45632,
+      "peak": 1,
+      "rms": 0.2572578996425013,
+      "amplitude_440_hz": 0.0010795315260875224,
+      "amplitude_3000_hz": 0.0003835177367151379,
+      "pcm_sha256": "4f846e30316ea7d128d1f4876308155875dde4b1a41702ff28d80f6a94c474d7",
+      "name": "closed",
+      "counts": {
+        "blocks": 5740,
+        "halves": [
+          2870,
+          2870
+        ],
+        "main": 5740,
+        "toggle": 5740
+      },
+      "order": [
+        "render",
+        "source",
+        "main",
+        "toggle"
+      ],
+      "halted": null,
+      "compiled_instructions_max": 515,
+      "other_track_checks": 5740,
+      "active_blocks": 1423
+    },
+    "amp_zero": {
+      "frames": 45600,
+      "peak": 0,
+      "rms": 0.0,
+      "amplitude_440_hz": 0.0,
+      "amplitude_3000_hz": 0.0,
+      "pcm_sha256": "5a7b30e913d334e477aaf4168bb8b995884b2fda2695f797a398c69822c37052",
+      "name": "amp_zero",
+      "counts": {
+        "blocks": 7149,
+        "halves": [
+          3575,
+          3574
+        ],
+        "main": 7149,
+        "toggle": 7149
+      },
+      "order": [
+        "render",
+        "source",
+        "main",
+        "toggle"
+      ],
+      "halted": null,
+      "compiled_instructions_max": 515,
+      "other_track_checks": 7149,
+      "active_blocks": 1420
+    },
+    "zero": {
+      "frames": 45632,
+      "peak": 0,
+      "rms": 0.0,
+      "amplitude_440_hz": 0.0,
+      "amplitude_3000_hz": 0.0,
+      "pcm_sha256": "74f0c9d74ac29ce5a6165e2eb0dbd3b5044363fa514dcc061b48100d3ec05c84",
+      "name": "zero",
+      "counts": {
+        "blocks": 4330,
+        "halves": [
+          2165,
+          2165
+        ],
+        "main": 4330,
+        "toggle": 4330
+      },
+      "order": [
+        "render",
+        "source",
+        "main",
+        "toggle"
+      ],
+      "halted": null,
+      "compiled_instructions_max": 515,
+      "other_track_checks": 4330,
+      "active_blocks": 1422
+    },
+    "send": {
+      "frames": 45600,
+      "peak": 2512,
+      "rms": 1166.1611404114362,
+      "amplitude_440_hz": 0.32267217038259044,
+      "amplitude_3000_hz": 1101.8399723916884,
+      "pcm_sha256": "b7e1ed9d72d79064765a27c0aa08b8ce8da54efea3c1b82d7ad0957bd5471196",
+      "tail": {
+        "frames": 14400,
+        "peak": 781,
+        "rms": 326.64799149424175,
+        "amplitude_440_hz": 0.1526921046252334,
+        "amplitude_3000_hz": 78.6098153076835,
+        "pcm_sha256": "1647aa562d4665aedf0945828bc4da4e3db77335ad69d436488357a0910f5439"
+      },
+      "name": "send",
+      "counts": {
+        "blocks": 7750,
+        "halves": [
+          3875,
+          3875
+        ],
+        "main": 7749,
+        "toggle": 7749
+      },
+      "order": [
+        "render",
+        "source",
+        "main",
+        "toggle"
+      ],
+      "halted": null,
+      "compiled_instructions_max": 515,
+      "other_track_checks": 7750,
+      "active_blocks": 2024
+    },
+    "second_bypass": {
+      "frames": 45632,
+      "peak": 1415,
+      "rms": 710.6556498507534,
+      "amplitude_440_hz": 767.5249721204327,
+      "amplitude_3000_hz": 0.06701463082322681,
+      "pcm_sha256": "06a8e98e48e87f8575f33a1d59fa185899848d4e390b332f1389b4cc0abd7c69",
+      "name": "second_bypass",
+      "counts": {
+        "blocks": 4555,
+        "halves": [
+          2278,
+          2277
+        ],
+        "main": 4555,
+        "toggle": 4555
+      },
+      "order": [
+        "render",
+        "source",
+        "main",
+        "toggle"
+      ],
+      "halted": null,
+      "compiled_instructions_max": 1,
+      "other_track_checks": 4555,
+      "active_blocks": 2072
+    },
+    "second_routed": {
+      "frames": 45600,
+      "peak": 1415,
+      "rms": 710.8192061079454,
+      "amplitude_440_hz": 768.0711234046798,
+      "amplitude_3000_hz": 0.11332059737461725,
+      "pcm_sha256": "4a6ae3d0043a487363f1812dcbd0f275fff8d98018f19911dbdc400bed29991d",
+      "name": "second_routed",
+      "counts": {
+        "blocks": 4556,
+        "halves": [
+          2278,
+          2278
+        ],
+        "main": 4556,
+        "toggle": 4556
+      },
+      "order": [
+        "render",
+        "source",
+        "main",
+        "toggle"
+      ],
+      "halted": null,
+      "compiled_instructions_max": 515,
+      "other_track_checks": 4556,
+      "active_blocks": 2067
+    }
+  },
+  "lifecycle": {
+    "cases": [
+      {
+        "case": "half_0_extrema",
+        "pass": true,
+        "instructions": 312
+      },
+      {
+        "case": "half_1_extrema",
+        "pass": true,
+        "instructions": 312
+      },
+      {
+        "case": "startup_flush",
+        "pass": true,
+        "instructions": 515
+      },
+      {
+        "case": "disconnect_flush",
+        "pass": true,
+        "instructions": 513
+      },
+      {
+        "case": "wrong_mode_flush",
+        "pass": true,
+        "instructions": 506
+      },
+      {
+        "case": "invalid_selector",
+        "pass": true,
+        "instructions": 500
+      },
+      {
+        "case": "disabled_passthrough",
+        "pass": true,
+        "instructions": 9
+      },
+      {
+        "case": "reenter_flush",
+        "pass": true,
+        "instructions": 515
+      }
+    ],
+    "max_instructions": 515,
+    "scope": "compiled function, synthetic state; no USB DMA or timing claim"
+  },
+  "assertions": {
+    "stock_sample_audible": true,
+    "compiled_machine_active": true,
+    "both_halves_exercised": true,
+    "full_cycle_order": true,
+    "tone_reaches_track": true,
+    "filter_attenuation_over_70_db": true,
+    "amp_and_dry_return_silent": true,
+    "zero_replaces_stock_source": true,
+    "reverb_send_tail": true,
+    "other_source_blocks_unchanged": true,
+    "other_track_audible_during_routing": true,
+    "other_track_level_within_3_percent": true,
+    "bounded_lifecycle": true
+  },
+  "pass": true,
+  "limits": [
+    "Synthetic consumed USB PCM, mode and sync state; no USB DMA or physical stream.",
+    "USB is silent until the render machine activates; control handshake remains I03.",
+    "Lifecycle flags are synthetic; physical disconnect detection/reconnect freshness unqualified.",
+    "Instruction counts bound this function, not the complete render hardware timing budget.",
+    "Other source buffers are exact before/after; full-output regression uses a 3% level bound, not byte identity.",
+    "Emulator stock-release overlay checks the card; OS 1.54 first-boot RAM acceptance is not mapped."
+  ]
+}

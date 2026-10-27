@@ -17,8 +17,10 @@ Native OS 1.54 USB receive path identified: EP3 OUT descriptors → `0x400035F4`
 
 The inherited DSPI-only/no-DMA verdict was unsupported and is withdrawn. Boot dispatch to the native USB initializer is traced; R07 is complete at the static/function-emulator level. Section 8’s role on the physical unit remains unknown and is not an evidenced prerequisite. No live USB audio or firmware flash occurred. The patched runtime works outside the restrictive sandbox; R03 was not rerun.
 
-## D01 decision and next work
+## I02 result and next work
 
-**Conditional GO for the one-track native USB copy/clear prototype.** [Decision and gates](docs/adr/0001-usb-return-to-track.md). I02 is READY: verify the complete OS 1.54 hook ordering, scaling, both halves, track processing, lifecycle behavior and bounded execution. Copy from the half MAIN will consume, then clear both dry channels; the just-received half belongs to the next block. This mode consumes the stereo USB return.
+**I02 DONE at the emulator prototype level:** compiled USB1 machine, linked through core/machine-pages, boots on OS 1.54 and passes 13 acceptance checks: both halves/order, direct signed-word copy, >70 dB filter attenuation, exact AMP/dry silence, zero replacement, reverb send tail, unchanged neighboring source buffers and guarded lifecycle paths. Normal copy is 312 guest instructions; maximum tested flush is 515, excluding SDK overhead. [Report/recovery](docs/I02-one-track-routing.md), [results](evidence/i02/routing-154.json), [build](evidence/i02/build.json).
 
-H01 (physical stream), R04 (control hooks) and R05 (engine/resampling) remain independent. H02 stays blocked on H01/I02 and a human trial. Physical clock/rate, full latency/jitter and CPU margin are unmeasured; musical timing tolerance must be agreed from the trial before timing qualification. No hardware flash or audio test occurred.
+[D01's conditional GO](docs/adr/0001-usb-return-to-track.md) remains conditional on hardware qualification. The local I02A candidate is private; no flash or physical audio test occurred. USB must remain silent until the renderer activates USB1; the real acknowledgement belongs to I03. Synthetic mode/sync transitions do not qualify physical reconnect detection. Source-buffer regression is exact; complete other-track output PCM identity is not claimed.
+
+H01 (physical stream), R04 (control hooks) and R05 (engine/resampling) remain READY. H02 now waits on H01 and an agreed human trial of the prepared candidate/recovery. Hardware clock/rate, full latency/jitter and total render headroom remain unmeasured. Set the musical timing tolerance from the trial before timing qualification.

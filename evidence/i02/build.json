@@ -1,0 +1,80 @@
+{
+  "stock_main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
+  "candidate_sha256": "17a59a621fe479df1c7ad2e0ed6016708778fa24999ea4b14b37a42d608bc090",
+  "version": "I02A",
+  "mods": [
+    {
+      "id": "core",
+      "version": "4.1",
+      "sha256": "c262e70bdcc92b4e1c0adde724f589c072219efc6e8789350b404f3a2b6d9666",
+      "sites": 46
+    },
+    {
+      "id": "machine-pages",
+      "version": "1.5",
+      "sha256": "66cf834f750155968ef5b0892bbf462246215c817b37ac9ac48e3afbc3a0618d",
+      "sites": 102
+    },
+    {
+      "id": "usb-track",
+      "version": "0.1",
+      "sha256": "d32a7d61af430ad5f92ab3a0a1036e3a52af9952888f519d1b344910da7b0c65",
+      "sites": 0
+    }
+  ],
+  "link_order": [
+    "core 4.1",
+    "machine-pages 1.5",
+    "usb-track 0.1"
+  ],
+  "layout": {
+    "boot": [
+      1076222528,
+      1076222616
+    ],
+    "run_load": 1076222624,
+    "ddr": [
+      1203503104,
+      1203515324
+    ],
+    "bss": [
+      1203515324,
+      1203519992
+    ],
+    "fast": [
+      2147546880,
+      2147546880
+    ],
+    "blob_len": 12316,
+    "sections": {
+      "core .boot": 1076222528,
+      "core .run": 1203503104,
+      "machine-pages .run": 1203505180,
+      "usb-track .run": 1203514680,
+      "core .bss": 1203515324,
+      "machine-pages .bss": 1203515360,
+      "usb-track .bss": 1203519988
+    },
+    "ddr_spare": 245256,
+    "fast_spare": 2304,
+    "ddr_size": 262144,
+    "fast_size": 2304
+  },
+  "checks": {
+    "sdk_build": true,
+    "lint_and_link": true,
+    "container_reread_verified": true,
+    "unchanged_sections": [
+      2,
+      4,
+      5,
+      8
+    ]
+  },
+  "hardware_test": false,
+  "cross_gcc": "16.2.0",
+  "source_hashes": {
+    "mods/usb-track/usb_track.c": "ecb0297eb8b378b8cf2ea79ab7fcfe8d34520cec2959eba45a484320722c370a",
+    "mods/usb-track/mod.json": "848660544aa13a2376d4fe58c966149c825e304d82c0235420a8084a53e96ceb"
+  }
+}

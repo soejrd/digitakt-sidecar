@@ -1,0 +1,9 @@
+{
+  "id": "usb-track", "version": "0.1", "title": "USB track prototype",
+  "license": "GPL-2.0-or-later", "device": "digitakt-mk1", "os": "1.54",
+  "description": "Experimental single-track native USB return; emulator qualification only.",
+  "sources": ["usb_track.c"],
+  "machines": [{"id": 121, "descriptor": "usb_track_machine"}],
+  "subscribe": [{"event": "ev_render_voices", "fn": "usb_track_render", "order": 20}],
+  "requires": ["core", "machine-pages"], "resources": {"core": "3.0"}
+}
