@@ -4,13 +4,13 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 ## Ready
 
-No unblocked implementation tasks. H02 requires the agreed human hardware trial.
+H02 hardware trial is active; no other unblocked implementation tasks.
 
-## Waiting
+## Active and waiting
 
 | ID | Work | Status | Release condition / dependencies | Acceptance |
 | --- | --- | --- | --- | --- |
-| H02 | Real track pipeline | BLOCKED | Human available; USB progress restored by Pi reboot; gated Circle kernel installed/verified on existing card; physical boot/15-second silence transport pass; human recovery/Transfer check and I03P install pending; silence until USB1 render activation | External tone responds to track filter/amp/sends; timing measured; ten-minute zero-gap/underrun run. [Preflight](docs/H02-real-track-pipeline.md). |
+| H02 | Real track pipeline | IN PROGRESS — Codex, 2026-10-27 21:04 UTC | Circle boot/quiet transport pass; human reports I03P upgrade complete; verify Digitakt boot and USB1 session before tone | External tone responds to track filter/amp/sends; timing measured; ten-minute zero-gap/underrun run. [Preflight](docs/H02-real-track-pipeline.md). |
 | I04 | External TRX-B2 voice | BLOCKED | H02 (I03 and R05 passed; engine/resampling remains host-benchmark evidence) | One audio track controls Pi synthesis through SRC/locks/LFOs and local processing; explicit note/velocity policy and timing evidence. |
 | V01 | Persistence and stress | BLOCKED | I04 | Save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and dense modulation regressions. |
 | X01 | More voices | DEFERRED | V01 + transport capacity decision | Establish independent-channel capacity and measured worst-case margin before scaling. |

@@ -1,17 +1,19 @@
 # H02 — Real track pipeline
 
-Status: **BLOCKED pending human firmware install and physical routing trial**
+Status: **IN PROGRESS — human firmware upgrade completed; boot/routing trial pending**
 (2026-10-27). Human confirmed hardware availability, backups and ability to
 lower output levels. The Circle test kernel is installed on the existing
-Sidecar SD and physically booted. Digitakt remains stock 1.54; no test tone played.
+Sidecar SD and physically booted. The human reached the FUNC-startup OS receiver and reports sending I03P,
+pressing YES and completing the upgrade. Normal boot/firmware identity is
+not yet verified; no test tone played.
 
 ## Current setup and next step
 
 Use the **one existing Sidecar/Circle SD card**. The new Circle build
 (`Oct 27 2026 20:54:01`) boots; its [15-second silence check](../evidence/h02/new-kernel-boot.json)
 passes with advancing USB packets and zero gaps/errors/underruns. Next,
-confirm human recovery-menu access and a working Transfer connection, then
-install I03P. No alternate card is required.
+verify normal Digitakt boot, reconnect it to the Pi, restart the Pi with
+Digitakt on and select/trigger USB1 on track 1 in a disposable test project. No alternate card is required.
 
 [SD deployment evidence](../evidence/h02/sd-deployment.json): the installed
 2,456,232-byte image matches the tested build, SHA-256
