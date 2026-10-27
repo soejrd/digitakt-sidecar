@@ -14,8 +14,8 @@ Current status/ownership: [TASKBOARD.md](TASKBOARD.md). Dependency pins: sources
 
 ## Hardware state and next work
 
-- **One Sidecar/Circle SD card.** H02 test kernel installed, read-back verified and card safely ejected. Wi-Fi configuration, credentials and all other existing files are unchanged. Card backup: `kernel8-rpi4.before-h02.img`; local backup: `private/h02/sd-backup/`. [Deployment evidence](evidence/h02/sd-deployment.json).
-- **Next:** put the card back in the Pi, leave Digitakt on/USB connected, boot and verify the new build and packet progress. Digitakt remains stock 1.54. Agree the pinned I03P candidate and stock recovery setup before the human firmware install. Headphone volume down; remove analog loopback for listening, input monitoring off.
+- **One Sidecar/Circle SD card.** H02 test kernel installed, read-back verified and physically booted; 15-second stock-Digitakt silence check passes with zero gaps/errors/underruns. Wi-Fi configuration, credentials and all other existing files are unchanged. Card backup: `kernel8-rpi4.before-h02.img`; local backup: `private/h02/sd-backup/`. [Deployment evidence](evidence/h02/sd-deployment.json).
+- **Next:** Digitakt remains stock 1.54. Human is checking FUNC-at-power-on recovery-menu access and connecting USB to the Mac for Transfer. Pinned candidate/recovery files are staged in `private/h02/trial/` with distinct names. Confirm working Transfer connection before the human firmware install. Headphone volume down; remove analog loopback for listening, input monitoring off.
 - **H02 remains open:** gated 3 kHz Circle test tone passes actual-glue ASan/UBSan and Pi 4 cross-build; defaults off, explicit enable after handshake, 200 ms fade, <= −42 dBFS on MAIN, disarms on loss. Physical filter/amp/send routing, timing/headroom, reconnect and ten-minute stability are unqualified. [Report](docs/H02-real-track-pipeline.md).
 - **Transport finding:** earlier H01 host stalled with a stale streaming flag; Digitakt restart did not recover, Pi reboot did. Subsequent 15-second check passed with zero gaps/errors/underruns. No root-cause or automatic-reconnect claim.
 

@@ -1,7 +1,7 @@
 {
   "task": "H02",
   "date_utc": "2026-10-27T20:57:30.859405+00:00",
-  "scope": "existing Sidecar FAT32 SD kernel update only; physical boot pending; no Digitakt firmware flashed",
+  "scope": "Sidecar SD kernel update and physical boot verified; no Digitakt firmware flashed",
   "old_kernel_sha256": "4b05c3bbcd08acbd2851b96f56d4448039716511ff4033a13c964cdfc4f5f7bc",
   "new_kernel_sha256": "1514f996a9c63e0d82bad5091cc3075c3dac52827273d701ae21494c89d07721",
   "new_kernel_bytes": 2456232,
@@ -19,6 +19,7 @@
     "card_safely_ejected": true
   },
   "pass": true,
-  "boot_verified": false,
-  "rollback": "With Pi off and card mounted, replace kernel8-rpi4.img with kernel8-rpi4.before-h02.img and restore SHA256SUMS.before-h02 as SHA256SUMS."
+  "boot_verified": true,
+  "rollback": "With Pi off and card mounted, replace kernel8-rpi4.img with kernel8-rpi4.before-h02.img and restore SHA256SUMS.before-h02 as SHA256SUMS.",
+  "boot_evidence": "evidence/h02/new-kernel-boot.json"
 }
