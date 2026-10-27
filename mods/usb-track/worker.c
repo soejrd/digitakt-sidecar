@@ -7,6 +7,9 @@
 static struct sc_device_link device;
 static uint32_t epoch, voice, keepalive_at;
 static uint8_t initialized, running, first;
+#ifdef USB_TRACK_DIAGNOSTIC
+volatile uint32_t usb_track_worker_ticks;
+#endif
 
 static int send_bytes(const uint8_t *p, uint32_t n)
 {
@@ -38,6 +41,9 @@ static void receive(void *ctx, const uint8_t *p, uint32_t n)
 }
 void usb_track_tick(void *ctrl)
 {
+#ifdef USB_TRACK_DIAGNOSTIC
+    ++usb_track_worker_ticks;
+#endif
     struct ut_record r;
     uint8_t out[SC_WIRE_SIZE];
     unsigned budget=63, k; /* reserve one transport slot for liveness/close */

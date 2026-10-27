@@ -1,0 +1,28 @@
+{
+  "task": "H02",
+  "hardware_test": true,
+  "scope": "ordinary USB MIDI diagnostic, not USB1 control qualification",
+  "human_port_settings": {
+    "input_from": "MIDI+USB",
+    "output_to": "MIDI+USB",
+    "trig_key_dest": "INT"
+  },
+  "human_action": "Enabled CLOCK SEND and played an existing beat; pattern was not empty.",
+  "observed_seconds": 46.21,
+  "incoming_midi_bytes_per_report": [
+    0,
+    48,
+    48,
+    48,
+    48,
+    48,
+    48,
+    48,
+    48,
+    48
+  ],
+  "midi_lost_observed": 0,
+  "usb1_tone_enable_after_clock": "rejected: USB1 session inactive",
+  "result": "ordinary USB MIDI reaches Pi; USB1 control activation remains failed",
+  "next": "Read H02D firmware state diagnostics; do not infer the blocking guard from MIDI clock alone."
+}

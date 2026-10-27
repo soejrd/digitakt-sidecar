@@ -1,6 +1,10 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #include "digitakt-mk1/core3.h"
 #include "usb_track.h"
+#ifdef USB_TRACK_DIAGNOSTIC
+#include "../usb-midi/usb_midi.h"
+extern volatile uint32_t usb_track_worker_ticks;
+#endif
 
 /* OS 1.54 only. Sources: evidence/r07/handoff-facts.json and D01.
  * These USB globals are not exported by the pinned core SDK. Keep this
@@ -184,9 +188,38 @@ static int32_t control_text(char *buf, int32_t value, int32_t ctx, int32_t machi
 
 /* Extended ABI applies defaults through native sound updates; legacy v3
  * only overrides the displayed range. No extra controls are shown. */
-static const struct cm_src_page trx_page = {
-    .title = "TRX-B2", .parameter = {0, 1, 2, 3, 4, 5, 6, 7}
+static const struct cm_src_page trx_pages[] = {
+    {.title = "TRX-B2", .parameter = {0, 1, 2, 3, 4, 5, 6, 7}},
+#ifdef USB_TRACK_DIAGNOSTIC
+    {.title = "H02 DIAG", .parameter = {8, 9, 10, 11, 12, 13, 14, 0}},
+#endif
 };
+#ifdef USB_TRACK_DIAGNOSTIC
+static int32_t diag_text(char *buf, uint32_t n)
+{
+    uint32_t divisor = 1000, pos = 0;
+    n %= 10000;
+    while (divisor > 1 && n < divisor) divisor /= 10;
+    do { buf[pos++] = '0' + n / divisor; n %= divisor; divisor /= 10; } while (divisor);
+    buf[pos] = 0;
+    return 1;
+}
+#define DIAG_FORMAT(name, expression) \
+static int32_t name(char *b, int32_t v, int32_t c, int32_t m) \
+{ (void)v; (void)c; (void)m; return diag_text(b, (expression)); }
+DIAG_FORMAT(diag_clock, usb_track_clock)
+DIAG_FORMAT(diag_tick, usb_track_worker_ticks)
+/* STATE: route 1, gate 2, USB1 render machine 4, mode=2 8, half valid 16. */
+DIAG_FORMAT(diag_state, (usb_track_route ? 1u : 0u) | (usb_track_gate ? 2u : 0u) |
+    (fw_render_machine[0] == MACHINE_ID ? 4u : 0u) |
+    (USB_MODE == 2 ? 8u : 0u) | (USB_SELECTOR <= 1 ? 16u : 0u))
+DIAG_FORMAT(diag_sync, USB_SYNC)
+DIAG_FORMAT(diag_midi, usbmidi_device_diag(0))
+DIAG_FORMAT(diag_tx, usbmidi_device_diag(1))
+DIAG_FORMAT(diag_rx, usbmidi_device_diag(2))
+#define DIAG_KNOB(label, formatter) {.name = label, .lname = label, .look = 0x86, \
+    .flags = CM_RANGE | CM_DEFAULT | CM_NOT_SAMPLE, .max = 127 << 8, .fmt = formatter}
+#endif
 #define UNUSED_EXTRA {.look = 0x86, .flags = CM_RANGE | CM_DEFAULT, \
                       .max = 127 << 8, .def = 64 << 8}
 static const struct cm_ui32 usb_page = {
@@ -225,9 +258,16 @@ static const struct cm_ui32 usb_page = {
                .flags = CM_RANGE | CM_DEFAULT | CM_NOT_SAMPLE,
                .min = 0, .max = 127 << 8, .def = 58 << 8},
     }},
+#ifdef USB_TRACK_DIAGNOSTIC
+    .extra = {DIAG_KNOB("RCLK", diag_clock), DIAG_KNOB("TICK", diag_tick),
+              DIAG_KNOB("STATE", diag_state), DIAG_KNOB("SYNC", diag_sync),
+              DIAG_KNOB("MIDI", diag_midi), DIAG_KNOB("TX", diag_tx), DIAG_KNOB("RX", diag_rx)},
+    .page_count = 2, .pages = trx_pages
+#else
     .extra = {UNUSED_EXTRA, UNUSED_EXTRA, UNUSED_EXTRA, UNUSED_EXTRA,
               UNUSED_EXTRA, UNUSED_EXTRA, UNUSED_EXTRA},
-    .page_count = 1, .pages = &trx_page
+    .page_count = 1, .pages = trx_pages
+#endif
 };
 const struct cm_machine usb_track_machine = {
     121, "USB1", "USB1", 0, 3, 121, CM_UI_TAG, &usb_page.base

@@ -99,7 +99,20 @@ def candidate_prepare(args):
         def run(*cmd):
             subprocess.run([__import__('sys').executable,*cmd],env=env,cwd=ROOT,
                            stdout=log,stderr=subprocess.STDOUT,check=True)
-        for mod in ('deps/elekloader/mods/core','deps/elekloader/mods/machine-pages','mods/usb-midi','mods/usb-track'):
+        track_mod = 'mods/usb-track'
+        if args.diagnostic:
+            overlay = root/'source'
+            (overlay/'mods/usb-track').mkdir(parents=True)
+            (overlay/'control').symlink_to(ROOT/'control', target_is_directory=True)
+            (overlay/'mods/usb-midi').symlink_to(ROOT/'mods/usb-midi', target_is_directory=True)
+            for source in (ROOT/'mods/usb-track').iterdir():
+                if source.suffix in ('.c', '.h'):
+                    shutil.copyfile(source, overlay/'mods/usb-track'/source.name)
+            manifest = json.loads((ROOT/'mods/usb-track/mod.json').read_text())
+            manifest['cflags'] = manifest.get('cflags', []) + ['-DUSB_TRACK_DIAGNOSTIC']
+            (overlay/'mods/usb-track/mod.json').write_text(json.dumps(manifest, indent=2)+'\n')
+            track_mod = str(overlay/'mods/usb-track')
+        for mod in ('deps/elekloader/mods/core','deps/elekloader/mods/machine-pages','mods/usb-midi',track_mod):
             run('-m','elekloader.sdk.build',mod,'--stock',str(args.stock.resolve()),'--out',str(artifacts))
         version=json.loads((ROOT/'mods/usb-track/mod.json').read_text())['version']
         mods=[artifacts/name for name in ('core-4.1-os1.54.elemod',
@@ -109,17 +122,17 @@ def candidate_prepare(args):
         run('-m','elekloader.patch','--stock',str(args.stock.resolve()),
             *[v for m in mods for v in ('--mod',str(m))],
             '--out',str(artifacts/'I02.syx'),'--version',
-            'I02A' if version=='0.1' else 'I03P')
+            'H02D' if args.diagnostic else ('I02A' if version=='0.1' else 'I03P'))
     p,_=firmware_prepare(str(artifacts/'I02.syx'),str(root/'emulator'))
     shutil.copyfile(args.fixture/'plusdrive.img',p.card)
     os.environ.update(p.env())
     first_run(p,progress=lambda e:print(e.step,e.kind,flush=True) if e.kind in ('start','done') else None)
     assign_project(p,root)
-    write_candidate_metadata(root,p,version)
+    write_candidate_metadata(root,p,version,args.diagnostic)
     print('CANDIDATE BOOTED AND ASSIGNED',flush=True)
 
 
-def write_candidate_metadata(root,p,version):
+def write_candidate_metadata(root,p,version,diagnostic=False):
     artifacts=root/'artifacts'
     (root/'fixture.json').write_text(json.dumps({
         'firmware_root':str(Path(p.root).relative_to(root)),
@@ -127,7 +140,8 @@ def write_candidate_metadata(root,p,version):
         'syx_sha256':r03.sha(artifacts/'I02.syx'),
         'stock_main_sha256':MAIN_SHA,
         'usb_track_version':version,
-        'firmware_label':'I02A' if version=='0.1' else 'I03P',
+        'firmware_label':'H02D' if diagnostic else ('I02A' if version=='0.1' else 'I03P'),
+        'compiler_defines':['USB_TRACK_DIAGNOSTIC'] if diagnostic else [],
         'source_hashes':{str(f.relative_to(ROOT)):r03.sha(f) for f in
             sorted(set([p for folder in ('mods/usb-track','mods/usb-midi')
                         for p in (ROOT/folder).glob('*')
@@ -421,6 +435,7 @@ def main():
     p.add_argument('--root', type=Path, required=True)
     p.add_argument('--stock', type=Path, required=True)
     p.add_argument('--fixture', type=Path, required=True)
+    p.add_argument('--diagnostic', action='store_true', help='H02D: read-only SRC diagnostics page')
     args = ap.parse_args()
     {'prepare':prepare,'candidate':candidate_prepare,'check':check}[args.command](args)
 

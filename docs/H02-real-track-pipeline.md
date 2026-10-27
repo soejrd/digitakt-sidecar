@@ -11,13 +11,39 @@ pressing YES and completing the upgrade. Normal boot and USB1 SRC engine paramet
 Use the **one existing Sidecar/Circle SD card**. The new Circle build
 (`Oct 27 2026 20:54:01`) boots; its [15-second silence check](../evidence/h02/new-kernel-boot.json)
 passes with advancing USB packets and zero gaps/errors/underruns. I03P boots;
-the human confirms USB1 on audio track 1 and its SRC engine parameters.
-[First activation](../evidence/h02/first-activation.json) fails: two tone-on
-requests are rejected because the control session is inactive; the observed
-log intervals show zero incoming MIDI bytes while audio transport progresses.
-The track-1/recording-off manual trigger was rechecked. Tone is explicitly
-off. MIDI port settings are requested; render/USB-ready gating and native MIDI
-submission remain hypotheses, not diagnosed causes.
+USB1 and its SRC engine parameters on audio track 1 are human-verified.
+[Activation fails](../evidence/h02/first-activation.json): the Pi rejects tone-on
+because the control session is inactive. Port settings are MIDI+USB in/out,
+TRIG KEY DEST INT. [CLOCK SEND test](../evidence/h02/midi-clock-check.json)
+proves ordinary MIDI reaches Pi (~48 B/s without loss) while USB1 remains
+inactive. The human played an existing beat, not an empty pattern. Tone is
+off. Read native worker/render diagnostics before inferring a cause.
+
+**Next candidate: H02D**, staged as
+`private/h02/trial/Digitakt-H02D-diagnostic.syx`, SHA-256
+`61dba3090f82893ee894133810de62aa23dae7dd8d6a465281ba06fd43ebd1e1`.
+It adds a read-only second SRC page under `--diagnostic`; the normal build
+retains one SRC page. [Compiled page/counter check](../evidence/h02/diagnostic-page.json)
+and [activation/loss/reconnect regression](../evidence/h02/diagnostic-exchange.json)
+pass in the emulator. No hardware fix or successful activation is claimed.
+
+After human install, select/trigger USB1 on audio track 1, connect to Pi and
+press SRC again. Read RCLK, TICK, STATE, SYNC, MIDI, TX and RX. Counters wrap
+at 10000; flip SRC pages to refresh. RCLK/TICK show render/worker activity;
+STATE combines route/gate/machine/mode/half validity; SYNC is the raw USB
+sync flag; MIDI combines native ready/callback/link flags; TX/RX are submitted
+messages/received bytes. Their bit definitions are in the diagnostic source.
+Reproduce with a fresh root and the existing private runtime:
+
+```sh
+"$PY" tools/i02_probe.py candidate --root private/h02-diagnostic \
+  --stock private/i02-fixture/Digitakt_OS1.54.syx --fixture private/i02-fixture --diagnostic
+"$PY" tools/h02_diag_probe.py --candidate private/h02-diagnostic \
+  --output evidence/h02/diagnostic-page.json
+```
+
+Restore CLOCK SEND to its pre-test setting. Keep the gate and original stock
+recovery file; no bootloader changes are included.
 
 [SD deployment evidence](../evidence/h02/sd-deployment.json): the installed
 2,456,232-byte image matches the tested build, SHA-256

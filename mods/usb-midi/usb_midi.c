@@ -124,6 +124,17 @@ int usbmidi_device_send(const uint8_t *bytes, uint32_t n)
 }
 
 int usbmidi_device_link(void) { return opened && fw_link_up(0); }
+uint32_t usbmidi_device_diag(unsigned field)
+{
+    if (field == 1) return transport.submitted;
+    if (field == 2) return transport.rx_bytes;
+    if (field == 3) return transport.staged;
+    return (opened ? 1u : 0u) | (failed ? 2u : 0u) |
+           (USB_READY == 1 ? 4u : 0u) | (USB_ISR_ON ? 8u : 0u) |
+           (USB_RX_SLOT ? 16u : 0u) |
+           (USB_RX_SLOT == (uintptr_t)native_rx ? 32u : 0u) |
+           (transport.link ? 64u : 0u) | (USB_SYSEX ? 128u : 0u);
+}
 int usbmidi_device_failed(void)
 {
     return failed || transport.tx_overflow || transport.submit_failures || transport.rx.dropped;

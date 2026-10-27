@@ -35,6 +35,12 @@ int main(void)
     test_queued=0xffb-32; usbmidi_tick(0);
     assert(native_calls==1 && test_queued==0xffb && transport.tx_head==transport.tx_tail);
     test_queued=0; test_sysex=0xf0; assert(!fw_can_send(0,sizeof f)); test_sysex=0;
+    /* Diagnostics observe the production adapter without changing transport. */
+    struct dt1_transport saved = transport;
+    assert(usbmidi_device_diag(0)==125);
+    assert(usbmidi_device_diag(1)==1 && usbmidi_device_diag(3)==1);
+    assert(usbmidi_device_diag(2)==sizeof f+sizeof notes);
+    assert(!memcmp(&saved,&transport,sizeof saved));
     usbmidi_device_close(); assert(test_rx_slot==(uintptr_t)stock);
     usbmidi_device_init(receive,&ours); usbmidi_device_open();
     partial_send=1; assert(usbmidi_device_send(f,sizeof f)==0); usbmidi_tick(0);
