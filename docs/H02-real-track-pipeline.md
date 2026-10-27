@@ -47,14 +47,38 @@ The I02A artifact hash was rechecked against `evidence/i02/build.json`:
 The original stock 1.54 recovery file hash was rechecked:
 `f78ba80fa7b1da5fb0e1ff61ad61e9e71aafe79f4364fc49679f3651353e3cf6`.
 
-Proposed trial pairing is I02A plus the existing Linux diagnostic, whose
-fixed tone is −36 dBFS with a 200 ms initial fade and −12 dBFS clamp.
-Human candidate/recovery agreement and Linux-card setup remain pending.
-Alternative pairing details: I02A needs observed render
-activation before nonzero PCM; I03P adds the handshake but its current
-integrated Circle mode deliberately emits silence. It needs a gated quiet
-test source before routing can be qualified. Do not treat either pairing
-as already hardware-qualified.
+The user clarified that the current setup has **one Sidecar/Circle SD card**.
+The previous proposed Linux-card swap relied on an outdated handoff and is
+withdrawn. No separate Linux card is required or assumed available.
+
+The prepared pairing is the existing I03P firmware candidate plus the gated
+Circle H02 test host. [Host tests/build](../evidence/h02/test-host-build.json)
+pass; neither component has been installed for this trial. I03P hash:
+`8ab9d4728889fd0dbb0d3f6511e849c99d8841590cf26be58156a3ed0c868309`.
+Its artifact and all firmware source pins were rechecked against the private
+fixture metadata. It retains the I02 recovery procedure above.
+
+Apply dependency patches 0001 through 0004 to the pinned Sidecar base, then:
+
+```sh
+bash scripts/i03_prepare_circle.sh
+bash scripts/test_i03_integration.sh
+bash deps/sidecar-firmware/pi/engine/build.sh kernel
+```
+
+Patch 0004 adds the Circle command `h02tone=on|off`. It uses the source-owned
+`control/h02_test_tone.h` overlay. On is rejected before the control handshake;
+activation alone never enables it. A fresh explicit enable produces a 3 kHz
+source at <= −42 dBFS on MAIN, with its own 200 ms fade and the existing output
+limiter. Loss, reconnect or lease expiry disarms it. The actual Circle glue
+and Output are host-tested with ASan/UBSan; no USB callback renders the tone.
+The Pi 4 image is 2,456,232 bytes; its hash is in the build evidence.
+
+To deploy, power off the Pi and mount its existing Sidecar SD on the Mac.
+Back up and hash its current kernel before replacement; preserve its boot
+configuration, Wi-Fi files and credentials. Read back and hash the new image
+before ejecting. A card write and a human firmware install are still pending.
+The paired Digitakt candidate/recovery setup must be agreed before flashing.
 
 Start with headphone volume down, speakers off, analog loopback removed and
 input monitoring off. Use silence first, followed by a limited/faded quiet

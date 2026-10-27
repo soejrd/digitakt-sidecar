@@ -1,0 +1,49 @@
+{
+  "task": "H02",
+  "scope": "host tests and Pi 4 cross-build only; no deployment, firmware flash or hardware tone playback",
+  "pass": true,
+  "dependency_base": "6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457",
+  "source_sha256": {
+    "control/h02_test_tone.h": "c34b3baba5cd84b429f79ffe587b6c0e45406802cfd93bb8b6dc7c532bce1fb7",
+    "scripts/i03_prepare_circle.sh": "05fc7a082d024034ef31b2f9da533e3b558eb0cc022472eada65317d97d99002",
+    "tests/i03_circle_glue.cpp": "deb14622d8784e8040fe2b44d98988cf16997fcbb0a769e20ffa505d7d9d494a",
+    "deps/sidecar-firmware/pi/engine/dt_link.cpp": "b506f3301608a06681ada5f86d940524849a8dd4b9859de3fdc6c569a181b279",
+    "deps/sidecar-firmware/pi/engine/dt_link.h": "20d2d0808301fb35a81dd9e69a771d901ce1008584161306ff19e46c94f31727",
+    "deps/sidecar-firmware/pi/engine/cores.cpp": "228db9068611fc00c900433781125fa2b679b67f8148e136df4795b289feff4f",
+    "patches/sidecar-firmware/0004-h02-gated-test-tone.patch": "42f3c9df1a41d0ec42d9005324924b780c48f4e87583c747a40b688d145f936c"
+  },
+  "checks": [
+    "bash scripts/test_i03_integration.sh passes with ASan/UBSan",
+    "actual Circle glue: explicit enable rejected before handshake; handshake alone stays silent",
+    "actual Circle glue: 200 ms fade, peak bounded at 519/32768 before MAIN gain; other voices zero",
+    "actual Circle glue: loss, reconnect and lease expiry stop tone; reconnect requires explicit enable",
+    "all four dependency patches replay on pinned base and match tested files",
+    "I03P candidate artifact and all firmware source pins still match private fixture metadata",
+    "bash deps/sidecar-firmware/pi/engine/build.sh kernel passes"
+  ],
+  "circle_kernel": {
+    "target": "Pi 4 / AArch64",
+    "bytes": 2456232,
+    "sha256": "1514f996a9c63e0d82bad5091cc3075c3dac52827273d701ae21494c89d07721",
+    "deployed": false
+  },
+  "digitakt_candidate": {
+    "label": "I03P",
+    "sha256": "8ab9d4728889fd0dbb0d3f6511e849c99d8841590cf26be58156a3ed0c868309",
+    "flashed": false
+  },
+  "tone": {
+    "frequency_hz": 3000,
+    "sample_rate_hz": 48000,
+    "fade_frames": 9600,
+    "main_peak_dbfs_max": -42,
+    "command": "h02tone=on|off",
+    "default": "off",
+    "session_loss": "off; explicit enable required again"
+  },
+  "limits": [
+    "Cross-build does not qualify physical DMA, MIDI acknowledgement delivery, routing, audio timing or render headroom.",
+    "Automatic USB reconnect remains unqualified; observed H01 stall needed a Pi reboot.",
+    "No separate Linux card is available in the current user setup."
+  ]
+}

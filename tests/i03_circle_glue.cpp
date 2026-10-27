@@ -29,18 +29,46 @@ static void start(unsigned id,unsigned block) {
 }
 int main() {
   sc_frame f;
+  int16_t pcm[32][8];
+  auto silent = [&]() {
+    dt_link::RenderTestTone(pcm,32);
+    for (auto &row:pcm) for(auto x:row) assert(x==0);
+  };
+  assert(!dt_link::TestToneCommand(true)); silent();
   assert(!dt_link::Selected()); dt_link::Select(); dt_link::Poll(1);
   assert(!(g_Output.ControlToken()&1));
   hello(41,10); assert(!dt_link::State(&f)); start(41,11); dt_link::Poll(2);
   assert(dt_link::State(&f) && f.params[0]==60<<8 && (g_Output.ControlToken()&1));
+  silent(); // handshake never enables the tone implicitly
+  assert(dt_link::TestToneCommand(true));
+  dt_link::RenderTestTone(pcm,32); assert(pcm[0][0]==0);
+  for(auto &row:pcm) assert(row[0]>=-2 && row[0]<=2);
+  unsigned nonzero=0;
+  for(unsigned block=0; block<400; ++block) {
+    dt_link::RenderTestTone(pcm,32);
+    for(auto &row:pcm) {
+      assert(row[0]>=-519 && row[0]<=519);
+      nonzero += row[0]!=0;
+      for(unsigned v=1;v<8;++v) assert(row[v]==0);
+    }
+  }
+  assert(nonzero>10000);
+  dt_link::RenderTestTone(pcm,32);
+  assert(pcm[4][0]==519 && pcm[12][0]==-519);
+  assert(dt_link::TestToneCommand(false)); silent();
+  assert(dt_link::TestToneCommand(true));
   dt_link::Lost(); assert(!(g_Output.ControlToken()&1)); dt_link::Poll(3);
+  silent(); assert(!dt_link::TestToneCommand(true));
   assert(!dt_link::State(&f));
   hello(42,20); start(42,21); dt_link::Poll(4); assert(dt_link::State(&f));
+  silent(); // reconnect needs a new explicit tone enable
+  assert(dt_link::TestToneCommand(true));
   dt_link::Poll(754); assert(!(g_Output.ControlToken()&1) && !dt_link::State(&f));
+  silent(); assert(!dt_link::TestToneCommand(true));
   while(g_MidiOut.size()) pop();
   while(g_MidiOut.size()<kMidiOutBytes-1) g_MidiOut.push(0);
   uint8_t b[SC_CONTROL_WIRE_SIZE]; sc_control c={43,1,30,SC_HELLO};
   assert(sc_encode_control(b,&c)); assert(dt_link::SysEx(b,sizeof b)); dt_link::Poll(755);
   assert(!(g_Output.ControlToken()&1) && !dt_link::State(&f));
-  puts("actual Circle dt_link: handshake, state installation, loss, reconnect, lease, ACK queue congestion: PASS");
+  puts("actual Circle dt_link: handshake, state installation, loss, reconnect, lease, ACK congestion, explicit faded bounded H02 tone: PASS");
 }

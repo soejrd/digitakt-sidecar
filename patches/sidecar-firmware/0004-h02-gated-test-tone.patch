@@ -1,0 +1,85 @@
+--- a/pi/engine/cores.cpp
++++ b/pi/engine/cores.cpp
+@@ -230,9 +230,9 @@
+ 	}
+ 	unsigned nUs = (unsigned) ((Ticks () - t0) * 1000000 / TickRate ());
+ 	if (nUs > s_nMaxBlock) s_nMaxBlock = nUs;
+-	// No integrated engine is installed yet (I04). Never leak unrelated
+-	// stock-engine voices onto the reserved integrated return.
+-	if (dt_link::Selected()) memset(s_Block, 0, sizeof s_Block);
++	// Integrated return is silence or the explicitly enabled H02 diagnostic.
++	// Never leak unrelated stock-engine voices onto it.
++	if (dt_link::Selected()) dt_link::RenderTestTone(s_Block, bridge::kBlock);
+ 	dt_link::Poll(s_nBlocks);
+ 	g_Output.Push (s_Block, bridge::kBlock);
+ 	s_nBlocks++;
+@@ -316,7 +316,14 @@
+ void CEngineCores::Command (const char *p)
+ {
+ 	CLogger *L = CLogger::Get ();
+-	if (strncmp (p, "notemach=", 9) == 0 && p[9] >= '0' && p[9] <= '7' && p[10] == ':')
++	if (strcmp(p, "h02tone=on") == 0 || strcmp(p, "h02tone=off") == 0)
++	{
++		bool on = strcmp(p, "h02tone=on") == 0;
++		bool accepted = dt_link::TestToneCommand(on);
++		L->Write(From, LogNotice, "H02 tone %s: %s", on ? "on" : "off",
++		         accepted ? "accepted" : "rejected (USB1 session inactive)");
++	}
++	else if (strncmp (p, "notemach=", 9) == 0 && p[9] >= '0' && p[9] <= '7' && p[10] == ':')
+ 	{
+ 		int v = p[9] - '0';
+ 		if (s_Notes.SetMachine (v, p + 11)) L->Write (From, LogNotice, "notes: voice %d plays %s", v, p + 11);
+--- a/pi/engine/dt_link.cpp
++++ b/pi/engine/dt_link.cpp
+@@ -1,11 +1,13 @@
+-// DTSC session plumbing. Synthesis is I04; until an engine consumes State(),
+-// the integrated mode produces silence while still acknowledging controls.
++// DTSC session plumbing. Integrated output is silent unless the explicit
++// session-bound H02 diagnostic tone is enabled. Synthesis remains I04.
+ #include "dt_link.h"
+ #include "dt_control/circle_link_adapter.h"
++#include "dt_control/h02_test_tone.h"
+ #include "shared.h"
+ #include <circle/util.h>
+ namespace dt_link {
+ static sc_circle_link link;
++static H02TestTone test_tone;
+ static sc_frame snapshot;
+ static uint32_t selected, losses, seen_loss;
+ static bool initialized, installed;
+@@ -32,6 +34,7 @@
+   snapshot = *f; installed = true; return 1;
+ }
+ static void Clear(void *) {
++  test_tone.Disable();
+   installed = false; memset(&snapshot, 0, sizeof snapshot);
+   g_Output.ControlClose();
+ }
+@@ -67,4 +70,15 @@
+   if (!installed || !sc_circle_audio_allowed(&link)) return false;
+   *out = snapshot; return true;
+ }
++bool TestToneCommand(bool on) {
++  sc_frame f;
++  bool allowed = State(&f);
++  return test_tone.Enable(on, allowed, allowed ? f.session : 0);
+ }
++void RenderTestTone(int16_t (*out)[8], unsigned frames) {
++  sc_frame f;
++  bool allowed = State(&f);
++  test_tone.Render(out, frames, allowed, allowed ? f.session : 0);
++}
++
++}
+--- a/pi/engine/dt_link.h
++++ b/pi/engine/dt_link.h
+@@ -10,3 +10,9 @@
+ void Poll(uint32_t block);         // core 3: bounded protocol work + output gate
+ bool State(sc_frame *out);         // core 3: I04 engine's preallocated input
+ }
++
++namespace dt_link {
++// Core 3 only. Explicit H02 diagnostic; rejected before activation, off on loss.
++bool TestToneCommand(bool on);
++void RenderTestTone(int16_t (*out)[8], unsigned frames);
++}
