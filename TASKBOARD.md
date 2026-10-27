@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Depends on | Owner | Acceptance |
 | --- | --- | --- | --- | --- |
-| I03 | SRC + control link (in progress; SRC, bounded render queue, portable host/ACK gate delivered) | Native DT1 transport, render-hook gate wiring and compiled-device/dynamic execution remain; see docs/I03-src-control-link.md | codex @ 2026-10-27T11:28:38Z | Eight SRC controls; ordered trigger/lock values; silence-until-active handshake, congestion and reconnect tests; no dedicated MIDI sequencer track required. |
+| I03 | SRC + control link (in progress; SRC, bounded render queue, portable host/ACK gate and USB-MIDI transport adapter delivered) | Handshake wiring to Circle/device gating and live USB drain/reconnect measurement remain; see docs/I03-src-control-link.md and docs/I03-transport.md | codex @ 2026-10-27T11:28:38Z | Eight SRC controls; ordered trigger/lock values; silence-until-active handshake, congestion and reconnect tests; no dedicated MIDI sequencer track required. |
 
 ## Waiting
 

@@ -1,0 +1,9 @@
+{
+  "id": "usb-midi", "version": "0.1", "title": "USB MIDI transport",
+  "license": "GPL-2.0-or-later", "device": "digitakt-mk1", "os": "1.54",
+  "description": "Bounded, nonblocking Digitakt mk1 OS 1.54 USB-MIDI transport: stage from render, submit from the UI tick, receive through a chained callback. Carries the Sidecar control frames; does not own render audio.",
+  "sources": ["usb_midi.c", "../../control/usbmidi.c", "../../control/sysex_split.c",
+              "../../control/dt1_transport.c"],
+  "subscribe": [{"event": "ev_tick", "fn": "usbmidi_tick", "order": 30}],
+  "requires": ["core"], "resources": {"core": "4.0"}
+}

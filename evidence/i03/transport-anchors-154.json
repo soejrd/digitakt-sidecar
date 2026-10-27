@@ -1,0 +1,69 @@
+{
+  "firmware": "Digitakt mk1 OS 1.54",
+  "hardware_test": false,
+  "level": "static instruction anchors only; no execution",
+  "main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
+  "anchors": {
+    "0x400049a2": "cmp.l $40610474.l, d1",
+    "0x400049ac": "move.l $fc0b01c4.l, d1",
+    "0x400049b6": "moveq #$2f, d6",
+    "0x400049d0": "movea.l $40610478.l, a0",
+    "0x400049d8": "bge.b $400049d0",
+    "0x400049e0": "movea.l $4061047c.l, a0",
+    "0x400049e6": "adda.l #$4ba84000, a0",
+    "0x400049fe": "move.l $40610478.l, d1",
+    "0x40004a06": "cmpi.l #$ffb, d1",
+    "0x40004a0c": "bgt.b $400049fe",
+    "0x40004404": "move.l $4399e9fc.l, d0",
+    "0x40004416": "sub.l d0, $40610478.l",
+    "0x400047a8": "moveq #$f, d0",
+    "0x400047aa": "and.l d4, d0",
+    "0x400047ac": "move.l $2c(a7, d0.l), d0",
+    "0x400047cc": "movea.l $18(a7, d1.l), a1",
+    "0x400047d8": "move.b (a0)+, (a1)",
+    "0x40004808": "jsr (a0)",
+    "0x4000481e": "jsr (a0)",
+    "0x400045aa": "move.l (a0), $4061046c.l",
+    "0x400045b4": "move.l (a0), $40610470.l",
+    "0x4000a770": "jsr $400ca574.l"
+  },
+  "cin_copy_table": {
+    "address": "0x4017ce70",
+    "longs": [
+      0,
+      0,
+      2,
+      3,
+      3,
+      1,
+      2,
+      3,
+      3,
+      3,
+      3,
+      3,
+      2,
+      2,
+      3,
+      1
+    ]
+  },
+  "facts": {
+    "sender": "0x40004990",
+    "sender_ready_flag": "0x40610474 must be 1",
+    "sender_isr_flag": "0xFC0B01C4 must be nonzero",
+    "staging_ring": "0x4BA84000 + index at 0x4061047C",
+    "queued_counter": "0x40610478, lowered only by the completion callback 0x40004404",
+    "wrap_wait": "index > 0xFBF for messages > 0x2F bytes; waits for queued < index - 0x3F",
+    "capacity_wait": "queued >= 0xFFB",
+    "receive_callback_cable0": "0x4061046C",
+    "receive_callback_cable1": "0x40610470",
+    "receive_call": "0x40004808 (handler(bytes, count))",
+    "ui_tick_site": "0x4000A770, core 4.1"
+  },
+  "limitations": [
+    "Instruction presence is not execution; no DMA, ISR ordering or physical completion timing is measured.",
+    "The real stock receive handlers at 0x400D3298/0x400D34CC were not disassembled here; chaining is exercised only against a host stand-in that forwards bytes.",
+    "USB-MIDI CIN 0x4 groups carry three data bytes with no bit-7 test in the receiver, so senders pad the last group with zeroes; the adapter drops at most two zeroes after F7."
+  ]
+}
