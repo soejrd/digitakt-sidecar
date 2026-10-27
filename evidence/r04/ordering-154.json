@@ -1,0 +1,177 @@
+{
+  "firmware": "Digitakt mk1 OS 1.54",
+  "main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
+  "hardware_test": false,
+  "method": "hash-pinned static disassembly of private MAIN; no execution",
+  "anchors": {
+    "seq_audio_fire": "0x4006F4BE",
+    "seq_lock_resolve": "0x4006F46E",
+    "lock_apply": "0x40074B0A",
+    "lock_restore": "0x40074A40",
+    "engine_sound": "0x40077282",
+    "engine_block": "0x40074B9E",
+    "lfo": "0x400ED766",
+    "voice_process": "0x40075184",
+    "post_voice": "0x400757FE",
+    "render_source_hook": "0x40077FBA",
+    "set_param": "0x400771E8"
+  },
+  "callers": {
+    "seq_audio_fire": [
+      {
+        "from": "0x4006FCF0",
+        "op": "jsr"
+      },
+      {
+        "from": "0x4007099C",
+        "op": "jsr"
+      }
+    ],
+    "seq_lock_resolve": [
+      {
+        "from": "0x4006F748",
+        "op": "jsr"
+      },
+      {
+        "from": "0x400D57E8",
+        "op": "jsr"
+      }
+    ],
+    "lock_apply": [
+      {
+        "from": "0x400778D4",
+        "op": "jsr"
+      },
+      {
+        "from": "0x40077BE4",
+        "op": "jsr"
+      }
+    ],
+    "lock_restore": [
+      {
+        "from": "0x40077BCA",
+        "op": "jsr"
+      }
+    ],
+    "engine_sound": [
+      {
+        "from": "0x40077B36",
+        "op": "jsr"
+      },
+      {
+        "from": "0x40077BB2",
+        "op": "jsr"
+      }
+    ],
+    "engine_block": [
+      {
+        "from": "0x40077E9A",
+        "op": "jsr"
+      }
+    ],
+    "lfo": [
+      {
+        "from": "0x40077EAC",
+        "op": "jsr"
+      }
+    ],
+    "voice_process": [
+      {
+        "from": "0x40077F8E",
+        "op": "jsr"
+      }
+    ],
+    "post_voice": [
+      {
+        "from": "0x40077FA6",
+        "op": "jsr"
+      }
+    ],
+    "render_source_hook": [],
+    "set_param": [
+      {
+        "from": "0x4000FD3E",
+        "op": "jsr"
+      },
+      {
+        "from": "0x4001075A",
+        "op": "jsr"
+      },
+      {
+        "from": "0x40011110",
+        "op": "jsr"
+      },
+      {
+        "from": "0x400111A4",
+        "op": "jsr"
+      },
+      {
+        "from": "0x40015E9A",
+        "op": "jsr"
+      },
+      {
+        "from": "0x40016026",
+        "op": "jsr"
+      }
+    ]
+  },
+  "render_window": {
+    "range": [
+      "0x40077AC0",
+      "0x40077FC8"
+    ],
+    "calls_in_address_order": [
+      {
+        "op": "jsr",
+        "target": "engine_sound",
+        "from": "0x40077B36"
+      },
+      {
+        "op": "jsr",
+        "target": "engine_sound",
+        "from": "0x40077BB2"
+      },
+      {
+        "op": "jsr",
+        "target": "lock_restore",
+        "from": "0x40077BCA"
+      },
+      {
+        "op": "jsr",
+        "target": "lock_apply",
+        "from": "0x40077BE4"
+      },
+      {
+        "op": "jsr",
+        "target": "engine_block",
+        "from": "0x40077E9A"
+      },
+      {
+        "op": "jsr",
+        "target": "lfo",
+        "from": "0x40077EAC"
+      },
+      {
+        "op": "jsr",
+        "target": "voice_process",
+        "from": "0x40077F8E"
+      },
+      {
+        "op": "jsr",
+        "target": "post_voice",
+        "from": "0x40077FA6"
+      }
+    ]
+  },
+  "source_contract": {
+    "seq_fire": "stored step word, condition, note, velocity and stored p-lock list",
+    "engine": "sound copy, p-lock apply/restore, then parameters and LFOs",
+    "render": "fw_voice_start bit, final 8.8 A-H targets, note and velocity"
+  },
+  "unresolved": [
+    "Retrigger is not evidenced as a distinct sequencer event in the pinned sources.",
+    "The render consumes final values; no dynamic timestamp or hardware order is claimed.",
+    "Lock lifetime is bounded by engine apply/restore sites, but not traced per voice on hardware."
+  ],
+  "release_condition": "Run the dynamic probe in an execution environment where the pinned patched Unicorn can mem_map without SIGILL; retain the same private fixture and report stage timestamps, track IDs and lock lifetime."
+}

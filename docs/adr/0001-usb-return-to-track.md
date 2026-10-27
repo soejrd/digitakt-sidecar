@@ -98,9 +98,11 @@ or scaling. A stable stream alone is insufficient evidence of usable timing.
 - **H02 stays BLOCKED on H01 + I02 and a human hardware trial:** qualify real
   track processing, timing and ten-minute stability. Confirm native USB path
   selection. Retain output limiting/fade-in; start with silence and quiet tone.
-- **R04/R05 remain READY; I03 is still blocked on R04.** Firmware semantic
-  events must carry final modulation/locks and ordered triggers; a MIDI-track
-  demo does not discharge that requirement.
+- **R04 and R05 are complete at source/benchmark level; I03 is READY.** R04
+  established the render hook as the final lock/smoothing/LFO value source and
+  proposed ordered semantic events. Dynamic timing and a distinct retrigger
+  path remain unverified; I03 must label those limits. A MIDI-track demo still
+  does not discharge the requirement.
 
 Reopen D01 if the unit selects a different receive path, the required hook
 ordering fails, suppression damages internal audio, or measured timing cannot
