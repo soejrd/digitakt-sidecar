@@ -1,0 +1,70 @@
+{
+  "platform": "Pi 4B Circle Sidecar",
+  "hardware_test": true,
+  "observation_seconds": 15.06569124996895,
+  "status_samples": 4,
+  "transport_samples": 142,
+  "baseline": {
+    "stream_ms": 295465,
+    "in_blocks": 949880,
+    "gaps": 0,
+    "lost": 0,
+    "odd_gaps": 0,
+    "short": 0,
+    "bad_headers": 0,
+    "in_errors": 0,
+    "out_blocks": 949878,
+    "out_errors": 0,
+    "credit_drops": 0,
+    "in_submit_fail": 0,
+    "out_submit_fail": 0
+  },
+  "final": {
+    "stream_ms": 312465,
+    "in_blocks": 949880,
+    "gaps": 0,
+    "lost": 0,
+    "odd_gaps": 0,
+    "short": 0,
+    "bad_headers": 0,
+    "in_errors": 0,
+    "out_blocks": 949878,
+    "out_errors": 0,
+    "credit_drops": 0,
+    "in_submit_fail": 0,
+    "out_submit_fail": 0
+  },
+  "delta": {
+    "stream_ms": 17000,
+    "in_blocks": 0,
+    "gaps": 0,
+    "lost": 0,
+    "odd_gaps": 0,
+    "short": 0,
+    "bad_headers": 0,
+    "in_errors": 0,
+    "out_blocks": 0,
+    "out_errors": 0,
+    "credit_drops": 0,
+    "in_submit_fail": 0,
+    "out_submit_fail": 0
+  },
+  "initial_underruns": 986,
+  "final_underruns": 986,
+  "max_temperature_c": 35,
+  "network_errors": [],
+  "assertions": {
+    "network_reads_complete": true,
+    "streaming_throughout": true,
+    "usb_link_and_main": true,
+    "four_minute_device_window": true,
+    "in_and_out_progress": false,
+    "no_new_usb_errors_or_gaps": true,
+    "no_new_engine_underruns": true
+  },
+  "pass": false,
+  "limits": [
+    "15-second transport observation only; not ten-minute H02 acceptance or a root-cause diagnosis."
+  ],
+  "scope": "H02 read-only recovery preflight on existing H01 host; no modified Digitakt firmware"
+}

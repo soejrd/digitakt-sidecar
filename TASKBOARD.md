@@ -10,7 +10,7 @@ No unblocked implementation tasks. H02 requires the agreed human hardware trial.
 
 | ID | Work | Status | Release condition / dependencies | Acceptance |
 | --- | --- | --- | --- | --- |
-| H02 | Real track pipeline | BLOCKED | Human available; restore physical USB packet progress, then agree candidate/host trial; silence until USB1 render activation | External tone responds to track filter/amp/sends; timing measured; ten-minute zero-gap/underrun run. [Preflight](docs/H02-real-track-pipeline.md). |
+| H02 | Real track pipeline | BLOCKED | Human available; USB progress restored by Pi reboot; agree I02A/Linux trial and recovery; silence until USB1 render activation | External tone responds to track filter/amp/sends; timing measured; ten-minute zero-gap/underrun run. [Preflight](docs/H02-real-track-pipeline.md). |
 | I04 | External TRX-B2 voice | BLOCKED | H02 (I03 and R05 passed; engine/resampling remains host-benchmark evidence) | One audio track controls Pi synthesis through SRC/locks/LFOs and local processing; explicit note/velocity policy and timing evidence. |
 | V01 | Persistence and stress | BLOCKED | I04 | Save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and dense modulation regressions. |
 | X01 | More voices | DEFERRED | V01 + transport capacity decision | Establish independent-channel capacity and measured worst-case margin before scaling. |
