@@ -1,19 +1,23 @@
 # H02 — Real track pipeline
 
-Status: **IN PROGRESS — human firmware upgrade completed; boot/routing trial pending**
+Status: **IN PROGRESS — physical firmware boot/UI pass; control activation fails**
 (2026-10-27). Human confirmed hardware availability, backups and ability to
 lower output levels. The Circle test kernel is installed on the existing
 Sidecar SD and physically booted. The human reached the FUNC-startup OS receiver and reports sending I03P,
-pressing YES and completing the upgrade. Normal boot/firmware identity is
-not yet verified; no test tone played.
+pressing YES and completing the upgrade. Normal boot and USB1 SRC engine parameters are human-verified; no test tone played.
 
 ## Current setup and next step
 
 Use the **one existing Sidecar/Circle SD card**. The new Circle build
 (`Oct 27 2026 20:54:01`) boots; its [15-second silence check](../evidence/h02/new-kernel-boot.json)
-passes with advancing USB packets and zero gaps/errors/underruns. Next,
-verify normal Digitakt boot, reconnect it to the Pi, restart the Pi with
-Digitakt on and select/trigger USB1 on track 1 in a disposable test project. No alternate card is required.
+passes with advancing USB packets and zero gaps/errors/underruns. I03P boots;
+the human confirms USB1 on audio track 1 and its SRC engine parameters.
+[First activation](../evidence/h02/first-activation.json) fails: two tone-on
+requests are rejected because the control session is inactive; the observed
+log intervals show zero incoming MIDI bytes while audio transport progresses.
+The track-1/recording-off manual trigger was rechecked. Tone is explicitly
+off. MIDI port settings are requested; render/USB-ready gating and native MIDI
+submission remain hypotheses, not diagnosed causes.
 
 [SD deployment evidence](../evidence/h02/sd-deployment.json): the installed
 2,456,232-byte image matches the tested build, SHA-256

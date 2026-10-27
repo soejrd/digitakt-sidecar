@@ -1,0 +1,14 @@
+{
+  "task": "H02",
+  "scope": "physical I03P activation attempt; failure evidence, not routing acceptance",
+  "ui_observation": "Human confirms USB1 on audio track 1 with SRC engine parameters; STOP twice and manual TRIG 1 with recording off.",
+  "observed_tone_requests": [
+    "H02 tone on: rejected (USB1 session inactive)"
+  ],
+  "last_usb_metrics": "180719ms IN 6859/s 1239185 gap 0 lost 0 max 0 odd 0 sh 0 bad 0 err 0 dt 529us pk 6 | OUT 6859/s 1239178 err 0 age 0ms cr 0 drop 0 | pend 8/7 q 8/7 ep 1/1 rq 0 sf 0/0 | evI 1239185 ok 1239185 sh 0 ms 0 x 0(0) o 0 evO 1239178 ok 1239178 ms 0 x 0(0) o 0",
+  "last_engine_metrics": "fifo min 78 max 96 target 96 under 0 | blocks 4001 max 1 us | cpu c1 0.3 c2 0.3 c3 1.0 % | pass max 3 us | | midi 0 B (lost 0) sysex 0 notes 0 | to-host sent 488 B 38 msgs fail 0 dropped 0 | peak 0/1000 | 38 C",
+  "result": "USB audio transport advances but USB1 control session is inactive; host reports zero incoming MIDI bytes in observed log intervals.",
+  "cause": "unconfirmed; track assignment checked; MIDI port settings requested before changes",
+  "tone_state": "explicit off command sent after rejected enable attempts",
+  "hardware_routing_pass": false
+}
