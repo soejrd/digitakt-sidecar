@@ -70,7 +70,7 @@ int main(void)
         tick();
     }
     assert(usb_track_control_pop(&r));
-    assert(r.session == 9001 && r.sequence == 1 && r.block == 0);
+    assert(r.session == 9001 && r.sequence == 1 && r.block == 2);
     assert(r.note == 60 << 16 && r.velocity == 90 << 8 && r.flags == 0);
     assert(r.params[0] == 10 << 8);
     assert(usb_track_control_pop(&r));

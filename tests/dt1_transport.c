@@ -32,7 +32,7 @@ static int fw_can_send(void *ctx, uint32_t n)
     struct fake_fw *f = ctx;
     if (f->in_render)
         ++f->ran_from_render;      /* must never happen */
-    if (!dt1_model_accepts(&f->m))
+    if (!dt1_model_accepts(&f->m) || n > DT1_QUEUE_LIMIT - f->m.queued)
         return 0;
     if (n > 0x2f && f->m.index > DT1_WRAP_LIMIT &&
         f->m.queued >= f->m.index - DT1_WRAP_KEEP)
@@ -134,7 +134,7 @@ static void usb_pack(uint8_t *out, const uint8_t *bytes, uint32_t n)
     for (i = 0; i < n; i += 3) {
         uint32_t take = n - i < 3 ? n - i : 3;
         memset(out + (i / 3) * 4, 0, 4);
-        out[(i / 3) * 4] = 0x4;
+        out[(i / 3) * 4] = i + take == n ? (uint8_t)(0x4 + take) : 0x4;
         memcpy(out + (i / 3) * 4 + 1, bytes + i, take);
     }
 }
@@ -425,12 +425,7 @@ static void test_receive_chaining_preserves_midi(void)
     dt1_rx_service(&t, 4096);
     assert(s.frames == 1);
     assert(s.ours_len == sizeof ours && !memcmp(s.ours, ours, sizeof ours));
-    /* Everything else arrives at the stock handler in the original order.
-     * The final zero is the firmware's own doing, not ours: 0x40004760 copies
-     * table[cin] data bytes for every packet, and that is three for CIN 0xB,
-     * so the fourth byte of the CC packet (zero) is copied too. The adapter
-     * must neither add nor reorder bytes, and must not silently drop one the
-     * stock parser would have received. */
+    /* Native CIN decoding supplies exactly the MIDI bytes; no packet padding. */
     {
         uint8_t expect[64];
         uint32_t e = 0;
@@ -438,7 +433,6 @@ static void test_receive_chaining_preserves_midi(void)
         memcpy(expect + e, foreign, 6); e += 6;
         expect[e++] = 0xf8;
         expect[e++] = 0xb0; expect[e++] = 0x07; expect[e++] = 0x40;
-        expect[e++] = 0x00;         /* OS 1.54's third data byte for CIN 0xB */
         assert(s.chain_len == e);
         assert(!memcmp(s.chain, expect, e));
     }

@@ -42,7 +42,8 @@ int usbmidi_packetize(uint8_t raw[USBMIDI_PACKET], const uint8_t *msg, unsigned 
 /* A run of MIDI bytes with no packet framing (what the codec sees). */
 struct usbmidi_bytes {
     uint8_t *buf;
-    uint32_t size, head, tail, dropped;
+    uint32_t size;
+    volatile uint32_t head, tail, dropped;
 };
 
 /* ---- producer side: render interrupt. No queue access, no waiting. ---- */

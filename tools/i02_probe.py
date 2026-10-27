@@ -76,6 +76,8 @@ def assign_project(p, root):
                 r03.tap(s, 14, after=70)
             r03.tap(s, 15)
             r03.tap(s, 12)
+            for _ in range(3):
+                r03.tap(s, 13)  # close sample confirmation/browser before changing tracks
         r03.save_session(s, root/'assigned.snap')
     finally:
         s.close()
@@ -97,13 +99,13 @@ def candidate_prepare(args):
         def run(*cmd):
             subprocess.run([__import__('sys').executable,*cmd],env=env,cwd=ROOT,
                            stdout=log,stderr=subprocess.STDOUT,check=True)
-        for mod in ('deps/elekloader/mods/core','deps/elekloader/mods/machine-pages','mods/usb-track'):
+        for mod in ('deps/elekloader/mods/core','deps/elekloader/mods/machine-pages','mods/usb-midi','mods/usb-track'):
             run('-m','elekloader.sdk.build',mod,'--stock',str(args.stock.resolve()),'--out',str(artifacts))
         version=json.loads((ROOT/'mods/usb-track/mod.json').read_text())['version']
         mods=[artifacts/name for name in ('core-4.1-os1.54.elemod',
-            'machine-pages-1.5-os1.54.elemod',f'usb-track-{version}.elemod')]
-        run('-m','elekloader.lint',str(mods[2]),'--stock',str(args.stock.resolve()),
-            '--with',str(mods[0]),'--with',str(mods[1]),'--json')
+            'machine-pages-1.5-os1.54.elemod','usb-midi-0.1.elemod',f'usb-track-{version}.elemod')]
+        run('-m','elekloader.lint',str(mods[-1]),'--stock',str(args.stock.resolve()),
+            '--with',str(mods[0]),'--with',str(mods[1]),'--with',str(mods[2]),'--json')
         run('-m','elekloader.patch','--stock',str(args.stock.resolve()),
             *[v for m in mods for v in ('--mod',str(m))],
             '--out',str(artifacts/'I02.syx'),'--version',
@@ -113,6 +115,12 @@ def candidate_prepare(args):
     os.environ.update(p.env())
     first_run(p,progress=lambda e:print(e.step,e.kind,flush=True) if e.kind in ('start','done') else None)
     assign_project(p,root)
+    write_candidate_metadata(root,p,version)
+    print('CANDIDATE BOOTED AND ASSIGNED',flush=True)
+
+
+def write_candidate_metadata(root,p,version):
+    artifacts=root/'artifacts'
     (root/'fixture.json').write_text(json.dumps({
         'firmware_root':str(Path(p.root).relative_to(root)),
         'map':'artifacts/I02.syx.map.json',
@@ -121,9 +129,13 @@ def candidate_prepare(args):
         'usb_track_version':version,
         'firmware_label':'I02A' if version=='0.1' else 'I03P',
         'source_hashes':{str(f.relative_to(ROOT)):r03.sha(f) for f in
-            (ROOT/'mods/usb-track/usb_track.c',ROOT/'mods/usb-track/src_queue.c',
-             ROOT/'mods/usb-track/src_queue.h',ROOT/'mods/usb-track/mod.json')}},indent=2)+'\n')
-    print('CANDIDATE BOOTED AND ASSIGNED',flush=True)
+            sorted(set([p for folder in ('mods/usb-track','mods/usb-midi')
+                        for p in (ROOT/folder).glob('*')
+                        if p.suffix in ('.c','.h','.json')] +
+                       [ROOT/'control'/name for name in
+                        ('link.c','link.h','device_link.c','device_link.h',
+                         'sc_memory.h','dt1_transport.c','dt1_transport.h',
+                         'usbmidi.c','usbmidi.h','sysex_split.c','sysex_split.h')]))}},indent=2)+'\n')
 
 
 def capture(root, name, *, route=True, signal=True, cutoff=None, amp_zero=False, track=0, candidate=None, send=False, bypass=False):

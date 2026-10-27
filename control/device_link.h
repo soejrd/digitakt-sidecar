@@ -11,7 +11,7 @@ extern "C" {
  * window keeps every START whose ACTIVATE has not been observed, so resend
  * after an ACK loss is byte-identical (same sequence and block). */
 
-#define SC_DEVICE_REPLAY 8u
+#define SC_DEVICE_REPLAY 128u
 
 enum sc_device_state {
     SC_DEVICE_CLOSED = 0,
@@ -32,7 +32,7 @@ struct sc_device_replay {
 
 struct sc_device_link {
     struct sc_device_replay replay[SC_DEVICE_REPLAY];
-    uint32_t session, next_sequence, last_rx_block;
+    uint32_t session, next_sequence, last_rx_block, last_tx_block;
     uint32_t hello_block;
     uint32_t accepted_sequence, accepted_block;
     uint8_t head, count;

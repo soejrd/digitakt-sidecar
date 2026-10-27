@@ -173,7 +173,7 @@ int usbmidi_scratch_push_message(struct usbmidi_scratch *s,
     for (i = 0; i < n; i += 3) {
         unsigned take = n - i < 3 ? n - i : 3;
         zero_bytes(packet, USBMIDI_PACKET);
-        packet[0] = CIN_SYSEX;
+        packet[0] = i + take == n ? (uint8_t)(0x4u + take) : CIN_SYSEX;
         copy_bytes(packet + 1, msg + i, take);
         if (!usbmidi_scratch_push(s, packet))
             return 0;
@@ -292,10 +292,6 @@ uint32_t usbmidi_pop_message(struct usbmidi_bytes *q, uint8_t *out,
     for (i = 0; i < len; ++i)
         out[i] = q->buf[(q->tail + i) % q->size];
     q->tail += len;
-    if (q->tail == q->head) {
-        q->tail = 0;
-        q->head = 0;
-    }
     return len;
 }
 
@@ -363,6 +359,7 @@ uint32_t usbmidi_rx_put(struct usbmidi_bytes *q, const uint8_t *data,
             break;
         }
         q->buf[q->head % q->size] = data[i];
+        barrier();
         q->head += 1;
         ++taken;
     }
@@ -375,13 +372,11 @@ uint32_t usbmidi_rx_get(struct usbmidi_bytes *q, uint8_t *out, uint32_t n)
     if (!q || !out)
         return 0;
     used = q->head - q->tail;
+    barrier();
     taken = used < n ? used : n;
     for (i = 0; i < taken; ++i)
         out[i] = q->buf[(q->tail + i) % q->size];
+    barrier();
     q->tail += taken;
-    if (q->tail == q->head) {
-        q->tail = 0;
-        q->head = 0;
-    }
     return taken;
 }

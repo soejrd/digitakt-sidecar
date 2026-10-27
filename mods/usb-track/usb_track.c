@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #include "digitakt-mk1/core3.h"
-#include "src_queue.h"
+#include "usb_track.h"
 
 /* OS 1.54 only. Sources: evidence/r07/handoff-facts.json and D01.
  * These USB globals are not exported by the pinned core SDK. Keep this
@@ -13,6 +13,7 @@
 #endif
 #define MACHINE_ID 121
 
+volatile uint32_t usb_track_clock, usb_track_route, usb_track_gate, usb_track_ack_clock;
 static uint32_t armed;
 static struct ut_session control;
 static uint8_t control_machine;
@@ -21,6 +22,7 @@ static uint8_t control_have_machine;
 static void disarm_control(void)
 {
     armed = 0;
+    usb_track_gate = 0;
     control_have_machine = 0;
 }
 
@@ -95,6 +97,7 @@ static int capture_control(int32_t track)
         return ut_session_failed(&control);
     for (i = 0; i < 8; ++i)
         params[i] = (int16_t)cm_src_value(0, (int32_t)i);
+    control.block = usb_track_clock; /* absolute device block, including reset gaps */
     result = ut_session_capture(&control, machine, params,
                                 fw_voice_note[0], fw_voice_vel[0],
                                 (fw_voice_start & 1u) != 0);
@@ -109,6 +112,11 @@ void usb_track_render(int32_t *blocks)
 {
     uint32_t i, s = USB_SELECTOR;
     volatile int32_t *pair;
+    ++usb_track_clock;
+    usb_track_route = fw_render_machine[0] == MACHINE_ID &&
+                      s <= 1 && USB_MODE == 2 && USB_SYNC == 1;
+    if (!usb_track_route || usb_track_clock - usb_track_ack_clock >= USB_TRACK_LEASE)
+        usb_track_gate = 0;
     if (capture_control(0)) {
         for (i = 0; i < 32; ++i)
             blocks[i] = 0;
@@ -119,16 +127,21 @@ void usb_track_render(int32_t *blocks)
     }
     if (fw_render_machine[0] != MACHINE_ID) {
         armed = 0;
+        /* This one-voice prototype reserves both USB return channels. Never
+         * let a late sidecar block escape through dry MAIN after deselection. */
+        for (i = 0; i < 128; ++i) USB_HALVES[i] = 0;
         return;
     }
     /* Invalid/transition state is silence; consume both stale halves once
      * before arming. No calls or USB ownership changes from the renderer. */
-    if (s > 1 || USB_MODE != 2 || USB_SYNC != 1 || !armed) {
+    if (!usb_track_gate || usb_track_clock - usb_track_ack_clock >= USB_TRACK_LEASE ||
+        s > 1 || USB_MODE != 2 || USB_SYNC != 1 || !armed) {
         for (i = 0; i < 32; ++i)
             blocks[i] = 0;
         for (i = 0; i < 128; ++i)
             USB_HALVES[i] = 0;
-        armed = (s <= 1 && USB_MODE == 2 && USB_SYNC == 1);
+        armed = (usb_track_gate && usb_track_clock - usb_track_ack_clock < USB_TRACK_LEASE &&
+                 s <= 1 && USB_MODE == 2 && USB_SYNC == 1);
         return;
     }
     pair = USB_HALVES + 64*s;

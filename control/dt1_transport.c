@@ -49,6 +49,7 @@ int dt1_transport_open(struct dt1_transport *t)
         return 0;
     t->prev_rx = t->fw.set_rx_handler(t->fw_ctx, (void *)dt1_rx_trampoline, t,
                                       &t->prev_rx_ctx);
+    dt1_link_update(t, t->fw.link_up && t->fw.link_up(t->fw_ctx));
     return 1;
 }
 
@@ -144,6 +145,8 @@ int dt1_link_update(struct dt1_transport *t, int up)
         return 0;
     if (!up) {
         uint32_t head, tail;
+        vstore(&t->link, 0);
+        barrier();
         head = vload(&t->tx_head);
         tail = vload(&t->tx_tail);
         if (head != tail)
@@ -155,7 +158,7 @@ int dt1_link_update(struct dt1_transport *t, int up)
         usbmidi_bytes_init(&t->rx, t->rx_buf, sizeof t->rx_buf);
         sysex_split_init(&t->sysex, t->sysex_buf, t->sysex_tags,
                      sizeof t->sysex_buf);
-        vstore(&t->link, 0);
+        t->rx_pad = 0;
         return 0;
     }
     vstore(&t->link, 1);
@@ -168,34 +171,11 @@ int dt1_link_update(struct dt1_transport *t, int up)
  * allocation-free, no firmware calls. */
 void dt1_rx_bytes(struct dt1_transport *t, const uint8_t *data, uint32_t n)
 {
-    uint32_t i;
-    uint8_t kept[64];
-    uint32_t k = 0;
-    if (!t || (!data && n))
-        return;
+    if (!t || !t->link || (!data && n)) return;
     t->rx_bytes += n;
-    /* USB-MIDI carries SysEx in 4-byte CIN 0x4 groups and pads the final
-     * group with zeroes: OS 1.54's own sender does that (0x40004BEC..0x40004C10)
-     * and its receiver copies the group's three data bytes without a bit-7
-     * test. Nothing may follow EOX inside a packet, so at most two zeroes
-     * directly after an F7 are framing, not MIDI. Drop them and nothing else;
-     * a third zero is passed on for the stock parser to judge. */
-    for (i = 0; i < n; ++i) {
-        uint8_t b = data[i];
-        if (t->rx_pad && b == 0x00) {
-            --t->rx_pad;
-            ++t->rx_padding;
-        } else {
-            t->rx_pad = b == 0xf7 ? 2u : 0u;
-            kept[k++] = b;
-        }
-        if (k == sizeof kept) {
-            usbmidi_rx_put(&t->rx, kept, k);
-            k = 0;
-        }
-    }
-    if (k)
-        usbmidi_rx_put(&t->rx, kept, k);
+    /* Native CIN decoding already removes USB packet padding. These bytes
+     * are MIDI, not packets: preserve all foreign bytes including zeroes. */
+    usbmidi_rx_put(&t->rx, data, n);
 }
 
 struct dt1_rx_sink {
@@ -227,6 +207,8 @@ static void other_cb(void *ctx, uint8_t b)
     ++t->rx_chain_bytes;
     if (t->chain)
         t->chain(t->cb_ctx, &b, 1);
+    else if (t->prev_rx)
+        ((void (*)(void *, const uint8_t *, uint32_t))t->prev_rx)(t->prev_rx_ctx, &b, 1);
 }
 
 uint32_t dt1_rx_service(struct dt1_transport *t, uint32_t budget)

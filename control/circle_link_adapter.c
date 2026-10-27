@@ -132,6 +132,14 @@ unsigned sc_circle_process(struct sc_circle_link *l, unsigned budget)
     uint32_t r, w;
     uint8_t out[SC_CONTROL_WIRE_SIZE];
     if (l == NULL) return 0;
+    if (__atomic_load_n(&l->lost_reason, __ATOMIC_ACQUIRE)) {
+        uint8_t reason;
+        gate_store(l,0);
+        reason=__atomic_exchange_n(&l->lost_reason,SC_REASON_NONE,__ATOMIC_ACQ_REL);
+        __atomic_store_n(&l->rx_read,__atomic_load_n(&l->rx_write,__ATOMIC_ACQUIRE),__ATOMIC_RELEASE);
+        invalidate_task(l,reason);
+        return 0;
+    }
     r = __atomic_load_n(&l->rx_read, __ATOMIC_RELAXED);
     w = __atomic_load_n(&l->rx_write, __ATOMIC_ACQUIRE);
     while (done < budget && r != w) {
@@ -175,7 +183,7 @@ void sc_circle_transport_lost(struct sc_circle_link *l, uint8_t reason)
 
 int sc_circle_audio_allowed(const struct sc_circle_link *l)
 {
-    return l != NULL && gate_load(l);
+    return l != NULL && gate_load(l) && !__atomic_load_n(&l->lost_reason,__ATOMIC_ACQUIRE);
 }
 
 unsigned sc_circle_rx_queued(const struct sc_circle_link *l)

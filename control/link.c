@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #include "link.h"
-#include <string.h>
+#include "sc_memory.h"
 #include <limits.h>
 static void put(uint8_t **p, uint32_t v, unsigned n)
 {
@@ -39,7 +39,7 @@ int sc_decode(struct sc_frame *f, const uint8_t *in, unsigned size)
 {
     const uint8_t *p; struct sc_frame x = {0}; unsigned i;
     static const uint8_t prefix[] = {0xf0,0x7d,'D','T','S','C',1};
-    if (size != SC_WIRE_SIZE || memcmp(in,prefix,sizeof prefix) ||
+    if (size != SC_WIRE_SIZE || sc_compare(in,prefix,sizeof prefix) ||
         in[size-1] != 0xf7) return 0;
     for (i=7; i<size-1; ++i) if (in[i] & 128) return 0;
     /* Reject overlong integers rather than silently truncating. */
@@ -57,7 +57,7 @@ int sc_decode(struct sc_frame *f, const uint8_t *in, unsigned size)
 int sc_is_dtsc(const uint8_t *in, unsigned size)
 {
     static const uint8_t prefix[] = {0xf0,0x7d,'D','T','S','C'};
-    return size >= sizeof prefix && !memcmp(in,prefix,sizeof prefix);
+    return size >= sizeof prefix && !sc_compare(in,prefix,sizeof prefix);
 }
 
 int sc_encode_control(uint8_t out[SC_CONTROL_WIRE_SIZE],
@@ -80,7 +80,7 @@ int sc_decode_control(struct sc_control *c, const uint8_t *in, unsigned size)
     const uint8_t *p; struct sc_control x = {0}; unsigned i;
     static const uint8_t prefix[] = {0xf0,0x7d,'D','T','S','C',
                                      SC_CONTROL_VERSION};
-    if (size != SC_CONTROL_WIRE_SIZE || memcmp(in,prefix,sizeof prefix) ||
+    if (size != SC_CONTROL_WIRE_SIZE || sc_compare(in,prefix,sizeof prefix) ||
         in[size-1] != 0xf7) return 0;
     for (i=7; i<size-1; ++i) if (in[i] & 128) return 0;
     /* Canonical lengths: each 5-group integer's top group is 4 bits. */
@@ -94,7 +94,7 @@ int sc_decode_control(struct sc_control *c, const uint8_t *in, unsigned size)
 }
 void sc_reset(struct sc_receiver *r, uint32_t session)
 {
-    memset(r,0,sizeof *r); r->session=session; r->next=1;
+    sc_zero(r, sizeof *r); r->session=session; r->next=1;
 }
 int sc_accept(struct sc_receiver *r, const struct sc_frame *f)
 {

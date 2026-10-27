@@ -13,6 +13,9 @@ extern "C" {
  * untouched: only a complete, validated DTSC SysEx enters the link queue. */
 struct sc_circle_usbmidi {
     struct sc_circle_link link;
+    sc_install_fn install;
+    sc_circle_clear_fn clear;
+    void *callback_ctx;
     void *midi;                          /* CUSBMIDIDevice*, opaque here */
     int (*send_plain_midi)(void *midi, unsigned cable, const uint8_t *data,
                            unsigned size, unsigned chunk);

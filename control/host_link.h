@@ -43,6 +43,8 @@ struct sc_host {
     uint32_t session, hello_sequence, hello_block;
     uint32_t last_sequence, last_block;
     uint32_t confirmed_sequence, confirmed_block;
+    struct { uint32_t sequence, block; } ack_history[128];
+    uint32_t ack_next, ack_count;
     uint32_t last_rx_block;
     uint32_t pending_sequence, pending_block;
     uint32_t recent_closed[SC_HOST_RECENT_SESSIONS];

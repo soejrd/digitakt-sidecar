@@ -16,8 +16,7 @@ extern "C" {
  *                PCM or wait. Queue overflow immediately latches silence.
  * Task/ev_tick context:
  *   sc_circle_process: parse bounded queued frames; install parameters before
- *                ACTIVATE; send replies; require the device's KEEPALIVE before
- *                opening the PCM gate. Timeout and lost-transport DEACTIVATE
+ *                sending ACTIVATE; open the host gate only after that reply is queued. Timeout and lost-transport DEACTIVATE
  *                are emitted here.
  * Render context:
  *   AudioAllowed: one atomic read; no locks, allocations or calls.

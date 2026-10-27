@@ -3,39 +3,12 @@
 #define SIDECAR_DT1_USBMIDI_MODEL_H
 #include <stdint.h>
 
-/* A host-side model of the Digitakt mk1 OS 1.54 raw-MIDI queue, written from
- * the disassembly rather than from a guess. It exists to test our adapter's
- * ownership rules against the firmware's real observable behaviour on the
- * paths we intend to use, not to replace the firmware.
- *
- * Firmware facts encoded here (MAIN sha256 5c58bf9e..., all addresses from
- * evidence/i03/transport-154.json):
- *
- *   sender 0x40004990  - refuses unless `ready` (0x40610474) == 1 and the
- *                        USB clopper ISR is on (0xFC0B01C4 != 0)
- *                      - for a message longer than 0x2F bytes, wraps the
- *                        4096-byte staging ring (0x4BA84000 + index
- *                        0x4061047C) when index > 0xFBF: a busy wait until
- *                        queued < index - 0x3F (0x400049CA..0x400049D8), then
- *                        index = 0. Our adapter never sends a message that
- *                        long, so this path is unreachable from it
- *                      - second busy wait, per byte, while queued exceeds
- *                        0xFFB (0x400049FE..0x40004A0C)
- *                      - the queue drains only from a USB completion callback
- *                        (0x40610478 is subtracted in 0x40004404), so a
- *                        caller that spins can never make progress itself
- *                      - returns without queueing when the loop cannot run
- *   receiver 0x40004760 - pulls 4-byte packets from the ISR ring and copies
- *                        table[cin & 0xf] data bytes (longs at 0x4017CE70:
- *                        0,0,2,3,3,1,2,3,3,3,3,3,2,2,3,1 - the USB-MIDI data
- *                        byte counts) with no bit-7 test
- *                      - bit 4 of the packet header selects the stream: cable
- *                        0 packets (headers 0x00-0x0f, our SysEx CIN 0x4) go
- *                        to 0x4061015C and its handler slot 0x4061046C; cable
- *                        1 packets go to 0x406102DC / slot 0x40610470
- *   callback slots 0x4061046C (cable 0) and 0x40610470 (cable 1) are set at
- *   boot from 0x40069128 by 0x400045A6 to 0x400D3298 and 0x400D34CC, and are
- *   invoked with (ptr, count) from 0x40004808. */
+/* Legacy byte-queue stand-in for portable staging/backpressure tests.
+ * Occupancy here counts raw MIDI bytes, unlike the native USB-byte counter.
+ * It is NOT an ABI, serializer, descriptor, DMA or native-capacity proof.
+ * Production-adapter tests are tests/dt1_native.c; the compiled firmware
+ * probe executes the actual serializer with modelled USB submission.
+ * The CIN lengths below follow the native receiver / USB-MIDI format. */
 #define DT1_READY        0x40610474u
 #define DT1_ISR_ON       0xFC0B01C4u
 #define DT1_WRAP_INDEX   0x4061047Cu

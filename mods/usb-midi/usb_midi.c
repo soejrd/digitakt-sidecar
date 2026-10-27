@@ -1,33 +1,43 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
-/* Digitakt mk1 OS 1.54 USB-MIDI transport adapter: the firmware-facing half.
- *
- * All firmware knowledge is here, pinned to OS 1.54 and cited from
- * evidence/i03/transport-154.json; control/dt1_transport.c holds the
- * device-neutral rules and control/dt1_usbmidi_model.c models these same
- * paths for host tests.
- *
- * Ownership: the adapter is the single caller of the raw-MIDI sender
- * 0x40004990 and the single owner of its queue counters. Only the UI task
- * calls it. Render may only stage a message. */
+/* OS 1.54 companion adapter; native ABI/addresses stay here for eventual
+ * core integration. No caller may enter this adapter from render. */
 #include "digitakt-mk1/core3.h"
+#include "usb_midi.h"
 #include "../../control/dt1_transport.h"
 
-/* Raw-MIDI sender state, from the disassembly (see dt1_usbmidi_model.h). */
-#define USB_READY      (*(volatile uint32_t *)0x40610474u)  /* 0x400049A2 */
-#define USB_ISR_ON     (*(volatile uint32_t *)0xFC0B01C4u)  /* 0x400049AC */
-#define USB_INDEX      (*(volatile uint32_t *)0x4061047Cu)  /* 0x400049E0 */
-#define USB_QUEUED     (*(volatile uint32_t *)0x40610478u)  /* 0x400049F0 */
-#define USB_RX_HANDLER 0x4061046Cu                            /* 0x400045AA */
-#define USB_QUEUE_LIMIT 0xFFBu                                /* 0x40004A06 */
-#define USB_WRAP_LIMIT  0xFBFu                                /* 0x40004A06 site */
-#define USB_WRAP_KEEP   0x3Fu                                 /* 0x400049CA */
-#define USB_MSG_WRAP    0x2Fu                                 /* 0x400049B6 */
-
-typedef uint32_t (*usb_send_fn)(uint32_t count, const uint8_t *bytes);
-typedef void (*usb_rx_fn)(void *ctx, const uint8_t *bytes, uint32_t count);
+#ifndef DT1_NATIVE_TEST
+#define USB_READY      (*(volatile uint32_t *)0x40610474u)
+#define USB_ISR_ON     (*(volatile uint32_t *)0xFC0B01C4u)
+#define USB_INDEX      (*(volatile uint32_t *)0x4061047Cu)
+#define USB_QUEUED     (*(volatile uint32_t *)0x40610478u)
+#define USB_SYSEX      (*(volatile uint32_t *)0x40610464u)
+#define USB_RX_SLOT    (*(volatile uintptr_t *)0x4061046Cu)
+#define USB_SEND(n,p)  ((void (*)(uint32_t,const uint8_t *))0x40004990u)(n,p)
+static uint16_t irq_save(void)
+{
+    uint16_t sr;
+    __asm__ volatile ("move.w %%sr,%0\n\tmove.w #0x2700,%%sr" : "=d"(sr) :: "memory");
+    return sr;
+}
+static void irq_restore(uint16_t sr)
+{
+    __asm__ volatile ("move.w %0,%%sr" :: "d"(sr) : "memory");
+}
+#else
+#include "dt1_native_io.h"
+#endif
 
 static struct dt1_transport transport;
-static uint8_t sysex_out[DT1_RX_FRAME];
+static void (*rx_handler)(void *, const uint8_t *, uint32_t);
+static void *rx_context;
+static void (*stock_rx)(const uint8_t *, uint32_t);
+static uint8_t opened, failed;
+
+/* Native calls exactly (pointer, length), with no context argument. */
+static void native_rx(const uint8_t *bytes, uint32_t n)
+{
+    if (rx_handler) rx_handler(rx_context, bytes, n);
+}
 
 static int fw_link_up(void *ctx)
 {
@@ -37,113 +47,133 @@ static int fw_link_up(void *ctx)
 
 static int fw_can_send(void *ctx, uint32_t n)
 {
+    uint32_t encoded = 4u * ((n + 2u) / 3u);
     (void)ctx;
-    if (USB_READY != 1 || !USB_ISR_ON)
+    if (!n || n > DT1_MSG_MAX || !fw_link_up(0) || USB_INDEX > 0xfffu || USB_SYSEX != 0)
+        return 0; /* never interleave with a stock sender's partial SysEx */
+    /* Native capacity test is queued + locally staged USB bytes, not MIDI
+     * input bytes. Reserve the complete encoding, conservatively below FFB. */
+    if (USB_QUEUED > 0xffbu || encoded > 0xffbu - USB_QUEUED)
         return 0;
-    /* 0x400049FE..0x40004A0C: the per-byte capacity wait. */
-    if (USB_QUEUED >= USB_QUEUE_LIMIT)
-        return 0;
-    /* 0x400049B6..0x400049D8: longer messages wrap when index > 0xFBF and
-     * busy-wait until queued < index - 0x3F. Never enter it. */
-    if (n > USB_MSG_WRAP && USB_INDEX > USB_WRAP_LIMIT &&
-        USB_QUEUED >= USB_INDEX - USB_WRAP_KEEP)
+    if (n > 0x2fu && USB_INDEX > 0xfbfu &&
+        USB_QUEUED >= USB_INDEX - 0x3fu)
         return 0;
     return 1;
 }
 
-static uint32_t fw_send(void *ctx, const uint8_t *msg, uint32_t n)
+static uint32_t fw_send(void *ctx, const uint8_t *bytes, uint32_t n)
 {
-    (void)ctx;
-    return ((usb_send_fn)0x40004990u)(n, msg);
+    uint16_t sr = irq_save();
+    uint32_t before, accepted = 0, encoded = 4u * ((n + 2u) / 3u);
+    /* One single-core critical section closes the preflight/send race with
+     * stock MIDI writers. No task switches, completions or counter changes
+     * can intervene. Native descriptor submission has a bounded 1000-poll
+     * retry; its two unbounded capacity/wrap waits are excluded above. */
+    if (fw_can_send(ctx, n)) {
+        before = USB_QUEUED;
+        USB_SEND(n, bytes); /* native function is void: d0 is not a byte count */
+        if (USB_QUEUED - before == encoded) accepted = n;
+        else failed = 1; /* descriptor exhaustion/partial submission: no retry */
+    }
+    irq_restore(sr);
+    return accepted;
 }
 
-static void *fw_set_rx(void *ctx, void *handler, void *handler_ctx,
-                       void **prev_ctx)
+static void *fw_set_rx(void *ctx, void *handler, void *handler_ctx, void **prev_ctx)
 {
-    volatile uint32_t *slot = (volatile uint32_t *)USB_RX_HANDLER;
-    uint32_t prev = *slot;
+    uintptr_t previous;
+    uint16_t sr = irq_save();
     (void)ctx;
-    if (prev_ctx)
-        *prev_ctx = 0;      /* the stock handler's own context is a constant */
-    *slot = (uint32_t)(uintptr_t)handler;
-    (void)handler_ctx;
-    return (void *)(uintptr_t)prev;
+    previous = USB_RX_SLOT;
+    if (handler_ctx) {
+        stock_rx = (void (*)(const uint8_t *, uint32_t))previous;
+        rx_handler = (void (*)(void *, const uint8_t *, uint32_t))handler;
+        rx_context = handler_ctx;
+        USB_RX_SLOT = (uintptr_t)native_rx;
+    } else {
+        USB_RX_SLOT = (uintptr_t)handler;
+        rx_handler = 0;
+        rx_context = 0;
+    }
+    if (prev_ctx) *prev_ctx = 0;
+    irq_restore(sr);
+    return (void *)previous;
 }
 
-static const struct dt1_fw_ops fw_ops = {
-    fw_link_up, fw_can_send, fw_send, fw_set_rx
-};
+static const struct dt1_fw_ops fw_ops = {fw_link_up, fw_can_send, fw_send, fw_set_rx};
 
-/* Our frames only: the DTSC signature and a known control version. START
- * (version 1) and the session control frames (version 2) are both ours. */
+static void chain_stock(void *ctx, const uint8_t *p, uint32_t n)
+{
+    (void)ctx;
+    if (stock_rx) stock_rx(p, n);
+}
+
 static int accept_dtsc(void *ctx, const uint8_t *f, uint32_t n)
 {
     (void)ctx;
-    return n >= 8 && f[0] == 0xf0 && f[1] == 0x7d && f[2] == 'D' &&
-           f[3] == 'T' && f[4] == 'S' && f[5] == 'C' &&
-           (f[6] == 1 || f[6] == 2) && f[n - 1] == 0xf7;
+    return n >= 6 && f[0] == 0xf0 && f[1] == 0x7d && f[2] == 'D' &&
+           f[3] == 'T' && f[4] == 'S' && f[5] == 'C';
 }
 
-/* Provided for the handshake module (ev_tick context). Nonblocking: it
- * submits only when the firmware will not spin, otherwise reports busy. */
 int usbmidi_device_send(const uint8_t *bytes, uint32_t n)
 {
-    if (!dt1_link_update(&transport, fw_link_up(0)))
-        return -1;
-    if (dt1_tx_stage(&transport, bytes, n) != DT1_TX_OK)
-        return -2;
-    return dt1_tx_service(&transport, 1u) ? 0 : -3;
+    if (!opened || failed || !transport.link) return -1;
+    /* Success means copied to our owned queue. A deferred submission must
+     * never be reported as a refusal and then enqueued again by the caller. */
+    return dt1_tx_stage(&transport, bytes, n) == DT1_TX_OK ? 0 : -2;
 }
 
-int usbmidi_device_link(void)
+int usbmidi_device_link(void) { return opened && fw_link_up(0); }
+int usbmidi_device_failed(void)
 {
-    return dt1_link_update(&transport, fw_link_up(0));
+    return failed || transport.tx_overflow || transport.submit_failures || transport.rx.dropped;
 }
 
-/* Set by the control module before the link is opened. */
-void usbmidi_device_init(void (*on_sysex)(void *, const uint8_t *, uint32_t),
-                         void (*chain)(void *, const uint8_t *, uint32_t),
-                         void *ctx)
+void usbmidi_device_init(void (*on_sysex)(void *, const uint8_t *, uint32_t), void *ctx)
 {
+    uint16_t sr = irq_save();
     dt1_transport_init(&transport, &fw_ops, 0);
     transport.on_sysex = on_sysex;
     transport.accept = accept_dtsc;
-    transport.chain = chain;
+    transport.chain = chain_stock;
     transport.cb_ctx = ctx;
+    failed = opened = 0;
+    irq_restore(sr);
 }
 
 void usbmidi_device_open(void)
 {
-    if (dt1_transport_open(&transport))
-        dt1_link_update(&transport, fw_link_up(0));
+    uint16_t sr = irq_save();
+    if (!opened && USB_RX_SLOT) opened = dt1_transport_open(&transport);
+    dt1_link_update(&transport, fw_link_up(0));
+    irq_restore(sr);
 }
 
 void usbmidi_device_close(void)
 {
-    dt1_transport_close(&transport);
+    uint16_t sr = irq_save();
+    if (opened && USB_RX_SLOT == (uintptr_t)native_rx) dt1_transport_close(&transport);
+    opened = 0;
     dt1_link_update(&transport, 0);
+    irq_restore(sr);
 }
 
-/* ev_tick, order 30 (core 4.0): the only place firmware transport runs. */
 void usbmidi_tick(void *ctrl)
 {
+    uint16_t sr;
     (void)ctrl;
+    if (!opened) return;
+    /* USB reinitialization replaces the callback; capture the new stock
+     * handler rather than restoring a stale pointer after a cable replug. */
+    sr = irq_save();
+    if (USB_RX_SLOT && USB_RX_SLOT != (uintptr_t)native_rx) {
+        stock_rx = (void (*)(const uint8_t *, uint32_t))USB_RX_SLOT;
+        transport.prev_rx = (void *)USB_RX_SLOT;
+        USB_RX_SLOT = (uintptr_t)native_rx;
+    }
     dt1_link_update(&transport, fw_link_up(0));
-    dt1_tx_service(&transport, 8u);
-    dt1_rx_service(&transport, 512u);
-}
-
-void usbmidi_device_stats(uint32_t *submitted, uint32_t *dropped,
-                          uint32_t *deferrals, uint32_t *frames)
-{
-    if (submitted) *submitted = transport.submitted;
-    if (dropped) *dropped = transport.dropped;
-    if (deferrals) *deferrals = transport.deferrals;
-    if (frames) *frames = transport.rx_frames;
-}
-
-/* Unused storage keeps the linker from folding the receive buffer away. */
-void *usbmidi_sysex_buffer(void)
-{
-    return sysex_out;
+    irq_restore(sr);
+    if (failed) return;
+    dt1_rx_service(&transport, 4096u);
+    dt1_tx_service(&transport, 64u);
 }

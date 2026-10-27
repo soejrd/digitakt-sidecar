@@ -4,12 +4,30 @@
   "level": "compiled OS 1.54 emulator; no hardware timing",
   "candidate": {
     "firmware_label": "I03P",
-    "usb_track_version": "0.2",
-    "syx_sha256": "13a81f4f1e214e64898239ad86ccd96be809ec535e154ac808483d40b167064f",
+    "usb_track_version": "0.3",
+    "syx_sha256": "27501f97cc2daf5fbfe52b7372e164d17412047faa5f2ee74351b1510b2909b6",
     "stock_main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
     "source_hashes": {
-      "mods/usb-track/usb_track.c": "29b2e9a51548a61521f20492bbdfdcdff07812e993ed6033a36d32ddfe9dcae3",
-      "mods/usb-track/mod.json": "10afbe181dc8518d3a5fd47a58a6d5675e8f5ff4825293438cac469888421ee8"
+      "control/device_link.c": "802f7a4ec99634e475b07e0139ebd466a89c77e37d1df03525ea7139e20bd170",
+      "control/device_link.h": "a2cc8967016b7fd5f07ab0efa4ad79a337d811fde86fd574a61b5b1715aefc93",
+      "control/dt1_transport.c": "91383c3c0096fe71dbd83c38615a18593f55ceec6bdeaaeb800bd309f7b67b41",
+      "control/dt1_transport.h": "36605565ed400c442817a64e2782f4d365555ed1e36dd24f714e9e1e18653162",
+      "control/link.c": "62327cdda3c9d30c865c3faad4d8275de00f16142103d8b0e20446ccdb384dac",
+      "control/link.h": "bb0cfa2d8e3c178dc877525bfe248376cbaa32a954d03ac6850a9052dc585718",
+      "control/sc_memory.h": "f45d7f79fe37f563581f751f9330709b35d912d9ddc68a42a7453dbbb2ed5ca1",
+      "control/sysex_split.c": "edfcffa64dea00fd50be0f909f27ce8d1a843eceb1888b2fe98a712751b425d4",
+      "control/sysex_split.h": "bdc3f393187f792419b955514e56c6704811ea4e0e64332dab4916276f09580d",
+      "control/usbmidi.c": "1e8d69223b593ca5c6293e5931d617aa2c46806b0a2ff1fcb0b10fb03fbdd93b",
+      "control/usbmidi.h": "1d7479908f0bf4ac186fc37978a758bebf18bc5f16e4296d017ed1973830e82d",
+      "mods/usb-midi/mod.json": "1e96ed0eb373a4de93c2ca9d52095555f5a2d6f929857c867c8ae2b90463f548",
+      "mods/usb-midi/usb_midi.c": "1e47ad8d9228543725e680c26501ab819630fe6161af7800a11318dc7a4295ec",
+      "mods/usb-midi/usb_midi.h": "983f3e1c3c57bc2af5b218a87b9f1f646aa326a7af6021118b278ea3a966b7d5",
+      "mods/usb-track/mod.json": "54c5b605758db87732976dd75b88c68c2f49ac627d82277868f355b1dcb62887",
+      "mods/usb-track/src_queue.c": "2de5d0209e05151065d6f9a4af09967b904b95c6b13e9ab7427eb90f5d7a79ab",
+      "mods/usb-track/src_queue.h": "577dbad5a473c637234ce3874b57669e3005b654a353c78ddc64481303e007cf",
+      "mods/usb-track/usb_track.c": "ce0a91dbfb27bf662d648f40da2a6bce4fe87de287585e373e6d768fd8c8281e",
+      "mods/usb-track/usb_track.h": "617c27cddb0e9552cbc611aca9cc220ef060cc4dfbadebda9b275a2469797df9",
+      "mods/usb-track/worker.c": "ed9be1fd93394ab14af51cfa17dba3d8eaf4967510b012cf5316b053c0309d2f"
     }
   },
   "probe": {
@@ -38,19 +56,36 @@
     "A blocked Unicorn preflight produces evidence of the environment failure, not a PASS."
   ],
   "reproduce": "PYTHONPATH=\"$PWD/private/r03-runtime:$PWD/deps/digiemu\" \"$PY\" tools/i03_dynamic_probe.py --candidate private/i03-final --output evidence/i03/dynamic-154.json",
-  "status": "blocked_environment",
+  "status": "worker_failed",
   "preflight": {
     "command": "python tools/i03_dynamic_probe.py --worker preflight",
-    "returncode": -4,
-    "passed": false,
+    "returncode": 0,
+    "passed": true,
     "output_tail": [
       "unicorn-import",
       "unicorn-construct",
-      "mem-map-start"
-    ],
-    "signal": 4,
-    "signal_name": "SIGILL"
+      "mem-map-start",
+      "mem-map-ok",
+      "exec-ok"
+    ]
   },
   "verified": [],
-  "environment_conclusion": "Unicorn cannot map executable memory in this execution sandbox; no firmware scenario ran and no dynamic behavior is claimed."
+  "worker": {
+    "returncode": 1,
+    "stdout_tail": [],
+    "stderr_tail": [
+      "Traceback (most recent call last):",
+      "  File \"tools/i03_dynamic_probe.py\", line 613, in <module>",
+      "    raise SystemExit(main())",
+      "                     ^^^^^^",
+      "  File \"tools/i03_dynamic_probe.py\", line 511, in main",
+      "    dynamic_worker(args.candidate, args.output)",
+      "  File \"tools/i03_dynamic_probe.py\", line 426, in dynamic_worker",
+      "    'plock_restore': _scenario_plock(candidate, symbols),",
+      "                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+      "  File \"tools/i03_dynamic_probe.py\", line 260, in _scenario_plock",
+      "    raise AssertionError('holding the step changed the sound instead of only its lock')",
+      "AssertionError: holding the step changed the sound instead of only its lock"
+    ]
+  }
 }

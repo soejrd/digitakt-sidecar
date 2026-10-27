@@ -29,10 +29,12 @@ static int send_trampoline(void *ctx, unsigned cable, const uint8_t *data,
 }
 
 static int installed;
-static int install(void *, const sc_frame *) { ++installed; return 1; }
+static void *expected_context;
+static int install(void *ctx, const sc_frame *) { assert(ctx==expected_context); ++installed; return 1; }
 
 int main() {
   FakeMidi midi{};
+  expected_context=&midi;
   struct sc_circle_usbmidi bridge;
   sc_circle_usbmidi_init(&bridge, &midi, send_trampoline, install, nullptr,
                          &midi, 100);

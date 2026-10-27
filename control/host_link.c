@@ -95,6 +95,8 @@ int sc_host_receive_control(struct sc_host *h, const struct sc_control *c,
         h->hello_ack_sent = 0;
         h->reply_ready = 0;
         h->pending_sequence = h->pending_block = 0;
+        h->ack_next = h->ack_count = 0;
+        h->confirmed_sequence = h->confirmed_block = 0;
         if (h->clear != NULL) h->clear(h->ctx);
         reply.kind = SC_HELLO_ACK;
         reply.session = c->session;
@@ -119,12 +121,17 @@ int sc_host_receive_control(struct sc_host *h, const struct sc_control *c,
     if (c->kind == SC_HELLO_ACK) return 0;
     if (c->kind != SC_KEEPALIVE) return 0;
     if (h->state != SC_HOST_ACTIVE) return 0;
-    /* A device keepalive may still name the previous confirmed snapshot
-     * while a new ACTIVATE is in flight. Anything else is a sequence fault. */
-    if (!(c->sequence == h->confirmed_sequence &&
-          c->value == h->confirmed_block) &&
-        !(c->sequence == h->last_sequence && c->value == h->last_block))
-        return close_gate(h, SC_REASON_SEQUENCE, out);
+    /* ACKs queued this tick may not have reached the device yet. Accept a
+     * monotonically confirmed tuple from the bounded outstanding window. */
+    {
+        unsigned i; int found=0;
+        for (i=0;i<h->ack_count;++i)
+            if (h->ack_history[i].sequence==c->sequence &&
+                h->ack_history[i].block==c->value) found=1;
+        if (!found || c->sequence<h->confirmed_sequence)
+            return close_gate(h, SC_REASON_SEQUENCE, out);
+        h->confirmed_sequence=c->sequence; h->confirmed_block=c->value;
+    }
     h->last_rx_block = current_block;
     return 0;
 }
@@ -203,8 +210,10 @@ int sc_host_reply_sent(struct sc_host *h, int queued, uint8_t reason,
     if (h->pending == SC_HOST_PENDING_ACTIVATE) {
         h->pending = SC_HOST_PENDING_NONE;
         if (h->state == SC_HOST_HEARD) h->state = SC_HOST_ACTIVE;
-        h->confirmed_sequence = h->last_sequence;
-        h->confirmed_block = h->last_block;
+        h->ack_history[h->ack_next].sequence=h->pending_sequence;
+        h->ack_history[h->ack_next].block=h->pending_block;
+        h->ack_next=(h->ack_next+1u)%128u;
+        if(h->ack_count<128) ++h->ack_count;
         h->last_rx_block = current_block;
         return 1;
     }

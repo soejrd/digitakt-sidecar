@@ -9,6 +9,17 @@ static int send_reply(void *ctx, const uint8_t *frame, uint32_t size)
     return u->send_plain_midi(u->midi, 0, frame, size, 0) != 0;
 }
 
+static int install_state(void *ctx, const struct sc_frame *f)
+{
+    struct sc_circle_usbmidi *u=ctx;
+    return !u->install || u->install(u->callback_ctx,f);
+}
+static void clear_state(void *ctx)
+{
+    struct sc_circle_usbmidi *u=ctx;
+    if(u->clear) u->clear(u->callback_ctx);
+}
+
 void sc_circle_usbmidi_init(struct sc_circle_usbmidi *u, void *midi,
                             int (*send_plain_midi)(void *, unsigned,
                                                    const uint8_t *, unsigned,
@@ -16,11 +27,11 @@ void sc_circle_usbmidi_init(struct sc_circle_usbmidi *u, void *midi,
                             sc_install_fn install, sc_circle_clear_fn clear,
                             void *ctx, uint32_t lease_blocks)
 {
-    (void)ctx;
     memset(u, 0, sizeof *u);
+    u->install=install; u->clear=clear; u->callback_ctx=ctx;
     u->midi = midi;
     u->send_plain_midi = send_plain_midi;
-    sc_circle_init(&u->link, install, send_reply, clear, u, lease_blocks);
+    sc_circle_init(&u->link, install_state, send_reply, clear_state, u, lease_blocks);
 }
 
 void sc_circle_usbmidi_feed(struct sc_circle_usbmidi *u, const uint8_t *bytes,

@@ -35,3 +35,18 @@ its localhost web mocks in this sandbox; the C/C++ portions pass.
 
 Not tested here: a Circle kernel cross-build (the Circle tree is not present)
 and an actual Digitakt USB stream (H01).
+
+## 0003-dtsc-control-link.patch
+
+I03: core-3 DTSC receiver/ACK worker, single-track control-state installation,
+consumer-side PCM gate with FIFO epochs, and descriptor-based selection of the
+12-IN/2-OUT integrated device. MIDI loss/removal closes the gate. The host
+stores snapshots; TRX-B2 synthesis remains I04, so integrated mode outputs zero.
+The normal Rytm path remains enabled unless the integrated device is selected.
+
+Apply after **0001 and 0002** at the same pinned base, then run
+`bash scripts/i03_prepare_circle.sh` to overlay the device-neutral protocol
+sources from this repository. No firmware-derived adapter code is copied into
+the dependency. `bash scripts/test_i03_integration.sh` checks the real Output
+consumer gate and the portable device/host exchange. The patched Pi 4 kernel
+cross-builds with the existing `rytm-circle` toolchain image; no SD was written.

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Production firmware C + native ABI + portable Circle peer. No hardware.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+mkdir -p build/i03
+CFLAGS=(-std=c99 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined
+        -Itests -Icontrol -Imods/usb-track -Ideps/elekloader/elekloader/sdk/include)
+TRANSPORT=(control/usbmidi.c control/sysex_split.c control/dt1_transport.c)
+"${CC:-cc}" "${CFLAGS[@]}" tests/dt1_native.c "${TRANSPORT[@]}" -o build/i03/native
+build/i03/native
+"${CC:-cc}" "${CFLAGS[@]}" tests/i03_integrated.c mods/usb-track/src_queue.c \
+  control/link.c control/device_link.c control/host_link.c control/circle_link_adapter.c \
+  "${TRANSPORT[@]}" -o build/i03/integrated
+build/i03/integrated
+"${CXX:-c++}" -std=c++17 -O1 -Wall -Wextra -Werror -fsanitize=address,undefined \
+  -Ideps/sidecar-firmware/pi/engine -Ideps/sidecar-firmware/core \
+  tests/i03_output_gate.cpp deps/sidecar-firmware/pi/engine/output.cpp \
+  -o build/i03/output_gate
+build/i03/output_gate

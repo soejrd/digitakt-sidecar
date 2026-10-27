@@ -1,9 +1,42 @@
 {
-  "id": "usb-track", "version": "0.2", "title": "USB track prototype",
-  "license": "GPL-2.0-or-later", "device": "digitakt-mk1", "os": "1.54",
-  "description": "USB return with TRX-B2 SRC labels; control transport not connected.",
-  "sources": ["usb_track.c", "src_queue.c"],
-  "machines": [{"id": 121, "descriptor": "usb_track_machine"}],
-  "subscribe": [{"event": "ev_render_voices", "fn": "usb_track_render", "order": 20}],
-  "requires": ["core", "machine-pages"], "resources": {"core": "3.0"}
+  "id": "usb-track",
+  "version": "0.3",
+  "title": "USB track prototype",
+  "license": "GPL-2.0-or-later",
+  "device": "digitakt-mk1",
+  "os": "1.54",
+  "description": "Single audio-track USB return with final SRC snapshots, native MIDI control link and activation gate.",
+  "sources": [
+    "usb_track.c",
+    "src_queue.c",
+    "worker.c",
+    "../../control/link.c",
+    "../../control/device_link.c"
+  ],
+  "machines": [
+    {
+      "id": 121,
+      "descriptor": "usb_track_machine"
+    }
+  ],
+  "subscribe": [
+    {
+      "event": "ev_render_voices",
+      "fn": "usb_track_render",
+      "order": 20
+    },
+    {
+      "event": "ev_tick",
+      "fn": "usb_track_tick",
+      "order": 40
+    }
+  ],
+  "requires": [
+    "core",
+    "machine-pages",
+    "usb-midi"
+  ],
+  "resources": {
+    "core": "3.0"
+  }
 }

@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #include "device_link.h"
 #include <stddef.h>
-#include <string.h>
+#include "sc_memory.h"
 
 static uint32_t block_delta(uint32_t now, uint32_t then)
 {
@@ -10,7 +10,7 @@ static uint32_t block_delta(uint32_t now, uint32_t then)
 
 static void forget_replay(struct sc_device_link *d)
 {
-    memset(d->replay, 0, sizeof d->replay);
+    sc_zero(d->replay, sizeof d->replay);
     d->head = d->count = 0;
 }
 
@@ -40,7 +40,7 @@ int sc_dev_open(struct sc_device_link *d, uint32_t session, uint32_t block,
 {
     struct sc_control c;
     if (d == NULL || out == NULL || !session) return 0;
-    memset(d, 0, sizeof *d);
+    sc_zero(d, sizeof *d);
     d->session = session;
     d->next_sequence = 1;
     d->hello_block = block;
@@ -70,7 +70,9 @@ int sc_dev_send_start(struct sc_device_link *d, const struct sc_frame *source,
         close_session(d, SC_REASON_OVERFLOW, NULL);
         return 0;
     }
-    if (block_delta(block, d->last_rx_block) >= 0x80000000u) return 0;
+    if (d->next_sequence > 1 &&
+        (!block_delta(block, d->last_tx_block) ||
+         block_delta(block, d->last_tx_block) >= 0x80000000u)) return 0;
     f = *source;
     f.session = d->session;
     f.sequence = d->next_sequence;
@@ -82,7 +84,7 @@ int sc_dev_send_start(struct sc_device_link *d, const struct sc_frame *source,
     r->used = 1;
     ++d->count;
     ++d->next_sequence;
-    d->last_rx_block = block;
+    d->last_tx_block = block;
     return 1;
 }
 
