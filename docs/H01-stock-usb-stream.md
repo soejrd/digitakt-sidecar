@@ -53,10 +53,10 @@ by this run. The measured quiet-tone format/channel/timing proof above uses the
 separate Linux diagnostic on the same Pi and stock Digitakt. H02 must measure
 the actual integrated track/control path; R05 must measure TRX-B2 CPU/resampling.
 
-The Pi is left running Circle on the spare SD with the network console at
-`http://sidecar.local/`. Its normal Linux card is kept separately; Linux boot
-configuration/kernel were never replaced. Earlier diagnostic/staging files in
-that Linux user's home directory remain disposable test files.
+The current setup uses one Sidecar/Circle SD card and the network console at
+`http://sidecar.local/`. H01's Linux diagnostic results above are historical
+transport evidence. Current deployment and recovery are in the
+[H02 report](H02-real-track-pipeline.md).
 
 ## Host and build work
 
@@ -93,8 +93,8 @@ SD card. Merely enabling `wifi=1` and saving credentials does not start the
 chip when those files are absent. This omission was found after the first
 Wi-Fi-only boot attempt; all three files were missing from the H01 SD package.
 The returned card was repaired without changing its kernel or credentials.
-Association/DHCP still needs a new physical boot; the wired H01 stream proof
-does not qualify Wi-Fi operation.
+H02 subsequently verified Wi-Fi association and web access on a physical
+boot; H01 remains the wired stream proof.
 
 `scripts/h01_build_circle.sh` now includes those dependencies and their licence.
 For an existing mounted card, run `python3 scripts/prepare_pi_wifi.py
@@ -136,5 +136,5 @@ formatted FAT32/MBR, copied, hash-verified and ejected. The card boots straight
 into the kernel, with no serial bootloader needed. It starts with silence:
 `out=main notes=off gadget=0 wifi=0`, plus wired IP/netmask/web options.
 The Circle network console is described in the pinned Sidecar
-`docs/pi-engine.md` (Web page section). Keep the normal Linux card safe for
-recovery; shutting down and swapping back restores that installation.
+`docs/pi-engine.md` (Web page section). Restore the backed-up kernel on the
+same card for recovery; see the current H02 deployment record.
