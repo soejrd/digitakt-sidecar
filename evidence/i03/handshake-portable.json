@@ -1,0 +1,26 @@
+{
+  "scope": "portable host/device state machine and Circle-shaped adapter; no hardware, Circle link, emulator, synthesis or USB transport",
+  "wire": {"v1_snapshot_bytes": 61, "v2_control_bytes": 24,
+           "framing": "explicit 7-bit little-endian; canonical top-group checks"},
+  "pass": true,
+  "circle_real_header_check": "passed",
+  "checks": [
+    "signed extrema and malformed/truncated/noncanonical snapshots",
+    "HELLO_ACK; START only after HELLO_ACK; install before ACTIVATE",
+    "PCM gate stays closed until ACTIVATE is successfully queued",
+    "device gate opens only after receiving the matching ACTIVATE",
+    "ordered snapshots remain active; sequence gap/duplicate/overflow latch silence",
+    "conflicting replay payload and wrong-block device keepalive are rejected",
+    "bounded device replay-window overflow latches invalid",
+    "activation/reply timeout and transport loss close the gate",
+    "stale session and reconnect data are rejected; fresh session reactivates",
+    "Circle wrapper sends only from task processing, receives chunked MIDI bytes",
+    "Circle adapter compiles against the pinned real CUSBMIDIDevice declaration"
+  ],
+  "limits": [
+    "No Digitakt firmware or native USB-MIDI send/receive is exercised.",
+    "No physical USB congestion, DMA lifetime or disconnect behavior is measured.",
+    "No synthesis or PCM is rendered; the gate is only state.",
+    "Circle atomics are portable C11 atomics in this test, not a linked Circle build."
+  ]
+}

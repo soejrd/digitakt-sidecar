@@ -38,6 +38,15 @@ OS 1.54. Nothing flashed; no hardware audio or Pi changes.
   without latching a render fault. The hook zeroes the current block and both
   stale USB halves on a fatal queue condition. Consecutive start bits are
   retained in separate ordered records.
+- Host session/ACK and silence gating are implemented as a portable state
+  machine with a simulated device and Circle-shaped adapter. The v1 snapshot
+  is unchanged; a separate 24-byte v2 control frame carries session, sequence
+  and ACK/activation state. The Pi-side PCM gate opens only after ACTIVATE is
+  queued; the simulated Digitakt opens only after receiving it. Sequence
+  loss, malformed frames, bounded-queue overflow, timeout, transport loss and
+  stale reconnect all latch silence. See [handshake contract](I03-handshake.md)
+  and [portable evidence](../evidence/i03/handshake-portable.json),
+  reproduced by `scripts/test_i03_handshake.sh`.
 
 ## Render queue evidence
 
@@ -91,6 +100,10 @@ Remaining acceptance work, in order:
    both sides on machine change, queue overflow, timeout and reconnect;
    clear stale PCM halves before rearming. ACK must identify the new session
    and accepted sequence; a generic MIDI connection is insufficient.
+   **Partially delivered:** the portable receiver/ACK state machine,
+   simulated sender, Circle-shaped adapter and tests pass. The I02 USB-track
+   render hook is not yet wired to the gate, and no native USB-MIDI exchange
+   has run. See [I03-handshake.md](I03-handshake.md).
 4. Run compiled-device/host congestion and reconnect tests, then dynamic
    p-lock/LFO ordering tests. Distinct retrigger semantics remain unmeasured.
 

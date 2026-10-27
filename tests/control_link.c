@@ -34,5 +34,34 @@ int main(void)
     a.sequence=1; a.block=UINT32_MAX; sc_reset(&r,43); assert(sc_accept(&r,&a));
     a.sequence=2; a.block=0; assert(sc_accept(&r,&a)); /* block clock wrap */
     a.sequence=UINT32_MAX; assert(!sc_encode(wire,&a));
+
+    {
+        struct sc_control c={.session=0x12345678,.sequence=7,
+                             .value=0x0abcdef,.kind=SC_ACTIVATE};
+        struct sc_control d={0};
+        uint8_t cw[SC_CONTROL_WIRE_SIZE], cb[SC_CONTROL_WIRE_SIZE];
+        assert(SC_CONTROL_WIRE_SIZE==24);
+        assert(sc_encode_control(cw,&c));
+        assert(cw[0]==0xf0 && cw[1]==0x7d && cw[6]==2 && cw[7]==SC_ACTIVATE);
+        assert(cw[23]==0xf7);
+        assert(sc_decode_control(&d,cw,sizeof cw));
+        assert(d.session==c.session && d.sequence==c.sequence &&
+               d.value==c.value && d.kind==c.kind);
+        for(i=0;i<sizeof cw;++i) {
+            memcpy(cb,cw,sizeof cw); cb[i]=0xff;
+            assert(!sc_decode_control(&d,cb,sizeof cb));
+        }
+        assert(!sc_decode_control(&d,cw,sizeof cw-1));
+        memcpy(cb,cw,sizeof cw); cb[12]=16;
+        assert(!sc_decode_control(&d,cb,sizeof cb));
+        c.session=0; assert(!sc_encode_control(cw,&c));
+        c.session=1; c.sequence=0; assert(!sc_encode_control(cw,&c));
+        c.sequence=UINT32_MAX; assert(!sc_encode_control(cw,&c));
+        c.sequence=1; c.kind=0; assert(!sc_encode_control(cw,&c));
+        c.kind=6; assert(!sc_encode_control(cw,&c));
+        assert(sc_is_dtsc(wire,6));
+        assert(!sc_is_dtsc(wire,5));
+        assert(sc_is_dtsc(wire,sizeof wire));
+    }
     puts("control codec / ordering / congestion / reconnect / lease: PASS");
 }

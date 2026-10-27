@@ -53,6 +53,45 @@ int sc_decode(struct sc_frame *f, const uint8_t *in, unsigned size)
     if (!x.session || !x.sequence || x.sequence==UINT32_MAX || x.flags & ~SC_START) return 0;
     *f=x; return 1;
 }
+
+int sc_is_dtsc(const uint8_t *in, unsigned size)
+{
+    static const uint8_t prefix[] = {0xf0,0x7d,'D','T','S','C'};
+    return size >= sizeof prefix && !memcmp(in,prefix,sizeof prefix);
+}
+
+int sc_encode_control(uint8_t out[SC_CONTROL_WIRE_SIZE],
+                      const struct sc_control *c)
+{
+    uint8_t *p = out;
+    if (!c->session || !c->sequence || c->sequence == UINT32_MAX ||
+        c->kind < SC_HELLO || c->kind > SC_KEEPALIVE) return 0;
+    *p++ = 0xf0; *p++ = 0x7d; *p++ = 'D'; *p++ = 'T';
+    *p++ = 'S'; *p++ = 'C'; *p++ = SC_CONTROL_VERSION;
+    *p++ = c->kind;
+    put(&p, c->session, 5); put(&p, c->sequence, 5);
+    put(&p, c->value, 5);
+    *p++ = 0xf7;
+    return p-out == SC_CONTROL_WIRE_SIZE;
+}
+
+int sc_decode_control(struct sc_control *c, const uint8_t *in, unsigned size)
+{
+    const uint8_t *p; struct sc_control x = {0}; unsigned i;
+    static const uint8_t prefix[] = {0xf0,0x7d,'D','T','S','C',
+                                     SC_CONTROL_VERSION};
+    if (size != SC_CONTROL_WIRE_SIZE || memcmp(in,prefix,sizeof prefix) ||
+        in[size-1] != 0xf7) return 0;
+    for (i=7; i<size-1; ++i) if (in[i] & 128) return 0;
+    /* Canonical lengths: each 5-group integer's top group is 4 bits. */
+    for (i=12; i<=22; i+=5) if (in[i] > 15) return 0;
+    p = in+8;
+    x.kind=in[7];
+    x.session=get(&p,5); x.sequence=get(&p,5); x.value=get(&p,5);
+    if (x.kind < SC_HELLO || x.kind > SC_KEEPALIVE || !x.session ||
+        !x.sequence || x.sequence == UINT32_MAX) return 0;
+    *c=x; return 1;
+}
 void sc_reset(struct sc_receiver *r, uint32_t session)
 {
     memset(r,0,sizeof *r); r->session=session; r->next=1;
