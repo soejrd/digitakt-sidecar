@@ -1,0 +1,11 @@
+{
+  "platform": "libusb diagnostic", "hardware_test": true, "pass": true,
+  "seconds": 5.000036, "tone_channel": -1, "tone_dbfs": -36,
+  "in_packet_bytes": 368, "out_packet_bytes": 88,
+  "in_blocks": 34283, "out_blocks": 34286, "counter_gaps": 0, "lost_blocks": 0,
+  "bad_headers": 0, "short_packets": 0, "in_errors": 0, "out_errors": 0, "out_pool_exhausted": 0,
+  "measured_frame_rate_hz": 47961.235413, "max_host_callback_gap_ms": 4.570208, "transfers_drained": true,
+  "first_header": "0700000700000000000000000000000000000000000000000000000000000000",
+  "peaks": [1376, 1376, 288, 131, 112, 0, 0, 0, 0, 0, 17152, 16128],
+  "captured_frames": 96000
+}

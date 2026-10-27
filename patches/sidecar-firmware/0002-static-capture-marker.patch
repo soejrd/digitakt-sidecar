@@ -1,0 +1,13 @@
+--- a/pi/engine/ob_usb.cpp
++++ b/pi/engine/ob_usb.cpp
+@@ -147,7 +147,9 @@
+ // IRQ (the MIDI completion): a note-on arrived; marks the next IN frame of the capture
+ void CObUsb::CaptureMarkMIDI (void)
+ {
+-	if (s_bCapOn && s_pCapBuf != 0 && s_nCapVoiceCh >= (unsigned) m_nInChannels && s_nCapPos < CaptureFrames)
++	CObUsb *p = s_pThis;
++	if (p != 0 && s_bCapOn && s_pCapBuf != 0
++	    && s_nCapVoiceCh >= (unsigned) p->m_nInChannels && s_nCapPos < CaptureFrames)
+ 	{
+ 		s_pCapBuf[s_nCapPos * CaptureChannels + 3] |= CaptureMarkerMIDI;
+ 	}

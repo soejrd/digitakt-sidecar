@@ -1,5 +1,7 @@
 # I01 — separate USB IN/OUT host layouts
 
+Follow-up: [H01](H01-stock-usb-stream.md) builds and boots the full Circle kernel and measures the physical stock transport. The original host-test scope below is preserved; its static MIDI-capture compile error is fixed by patch 0002.
+
 Status: **implementation complete for the host-side layout policy; Circle
 kernel build and live stream remain for H01.** Owner: `codex-i01 @
 2026-10-26T18:46:33Z`.

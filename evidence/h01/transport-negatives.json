@@ -1,0 +1,14 @@
+{
+  "mac_interface_claim": {
+    "result": "LIBUSB_ERROR_ACCESS",
+    "libusb_detail": "USBInterfaceOpen: another process has device opened for exclusive access",
+    "elektron_driverkit_enabled": true,
+    "resolution": "Use Pi host; no driver changes"
+  },
+  "initial_linux_tone": {
+    "pass": false,
+    "out_pool_exhausted": 6,
+    "counter_gaps": 0,
+    "resolution": "Retain bounded OUT credits across batched completion callbacks; later four-minute run passes"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "sidecar_revision": "6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457",
+  "circle_revision": "7a81e1b480fe7d19fc1fc695b89bff0a0848f44b",
+  "circle_tag": "Step51.1.1",
+  "pi_boot_firmware_revision": "0641c5bf25d185d5bf25d8dcafd1da6dc8fdbf68",
+  "patches": [
+    "patches/sidecar-firmware/0001-directional-overbridge-layout.patch",
+    "patches/sidecar-firmware/0002-static-capture-marker.patch"
+  ],
+  "circle_kernel_build_pass": true,
+  "sd_readback_pass": true,
+  "sd_fat32_mbr": true,
+  "sd_file_sha256": {
+    "LICENCE.broadcom": "c7283ff51f863d93a275c66e3b4cb08021a5dd4d8c1e7acc47d872fbe52d3d6b",
+    "armstub8-rpi4.bin": "aa08182481bfd98788e66633795aef1b6b8af065c525395141f9e5c61716015e",
+    "bcm2711-rpi-4-b.dtb": "78327a03eb80f4ce8869768541a116c17894f37e52475332892ac6eee1644437",
+    "fixup4.dat": "304b53a7a5a7129531b2674b0fd55240086c5bbd276ff029c63cd68fcf28c0e1",
+    "kernel8-rpi4.img": "4b05c3bbcd08acbd2851b96f56d4448039716511ff4033a13c964cdfc4f5f7bc",
+    "start4.elf": "61d198caf99fdf3b82467dc7b5319a6bae1a99fe22c94fdafaa86711490a0c23"
+  },
+  "hardware_boot_qualified": true,
+  "sustained_stream_qualified": true,
+  "observed_boot": {
+    "version": "0.2.0",
+    "commit": "6cff67b",
+    "dirty": true,
+    "circle": "Circle 51.1.1",
+    "streaming": true,
+    "link": "usb",
+    "out": "main",
+    "underruns": 0,
+    "gadget": "0",
+    "notes": false
+  },
+  "source_sha256": {
+    "tools/h01_usb_stream.cpp": "b0eb20e57c9203ea928a27436be22d8726dd749131fbf8f609d9466e678f7031",
+    "patches/sidecar-firmware/0002-static-capture-marker.patch": "455b1c1d08189f2ec5e21e8173176508da46569fe6cd1758a0f5aa9286c97e5e"
+  },
+  "portable_regression": "scripts/test_i01.sh passed"
+}
