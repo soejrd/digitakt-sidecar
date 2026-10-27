@@ -14,7 +14,7 @@ Current status/ownership: [TASKBOARD.md](TASKBOARD.md). Dependency pins: sources
 
 ## Hardware state and next work
 
-The Pi is running the patched Circle host from the user-authorized spare SD, with wired console at `http://sidecar.local/`. The normal Linux card is kept separately; its boot files were not replaced. Digitakt remains stock 1.54. During testing the analog cable was moved to MAIN OUT R → INPUT L; keep input monitoring off while looped.
+The spare Circle SD card was configured on the Mac for Wi-Fi (2.4 GHz, NL, DHCP), with the network password converted locally to a WPA key. `cmdline.txt` now enables Wi-Fi; `cmdline.before-wifi.txt` preserves the previous boot settings. The installed H01 kernel and all other boot options are unchanged; the I03 kernel was not deployed. Network association and web access still need verification after returning the card to the Pi. Credentials are stored only on the SD card and are not project evidence. The normal Linux card is kept separately. Digitakt remains stock 1.54. During earlier testing the analog cable was moved to MAIN OUT R → INPUT L; keep input monitoring off while looped.
 
 **R05 DONE at host-benchmark level:** real mdkit TRX-B2 at 44.1 kHz, exact 160/147 streaming converter, bit-identical continuous/ragged blocks, retrigger and pitch endpoints pass, 60 s produces exactly 2,880,000 frames, and host CPU is ≈800× realtime combined. [Report](docs/R05-engine-resampling.md), [results](evidence/r05/benchmark.json), `scripts/test_r05.sh`. Limits: 22 kHz rejection is −26.3 dB, no Pi/CPU-headroom claim and no integrated-latency claim.
 
