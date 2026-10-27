@@ -1,18 +1,18 @@
 {
   "task": "I03 render-side SRC queue",
   "date_utc": "2026-10-27",
-  "base_revision": "b7b98cbcd81d9fd3a0f77e5f9b8f0586348a9879",
-  "scope": "Host and cross-compiled evidence for a bounded render queue; no hardware, USB transport, lock/LFO timing, or audio claim.",
+  "base_revision": "029080518bcee21d6aedd7acfc71239feb1b9690",
+  "scope": "Bounded render queue, change-only capture and PCM gate; host and ColdFire objects, no hardware timing.",
   "sources_sha256": {
     "mods/usb-track/src_queue.c": "2de5d0209e05151065d6f9a4af09967b904b95c6b13e9ab7427eb90f5d7a79ab",
     "mods/usb-track/src_queue.h": "577dbad5a473c637234ce3874b57669e3005b654a353c78ddc64481303e007cf",
-    "mods/usb-track/usb_track.c": "7178567b3ab94e15e4d1cae0883cc4706e4241f63b026bd48da83c4f5e90108f",
-    "mods/usb-track/mod.json": "2912d0054a117da51cd87f1200bab55b234d7fa08aabf727b28a624c4c8ff78d",
+    "mods/usb-track/usb_track.c": "e098d127e57cf07ee3dd8e41d6c7f188a0b4b828960d063cf96b5a6dab0707fb",
+    "mods/usb-track/mod.json": "54c5b605758db87732976dd75b88c68c2f49ac627d82277868f355b1dcb62887",
     "tests/src_queue.c": "10a78384eed86f50f614dea9144b360a5e7533397d36103de18ac8335c72e236",
-    "tests/usb_track_queue_host.c": "6f6255133e8f4019c26f8a09c387a9c14446bd88dbea9c1c6b3c12a8282ca1c8",
+    "tests/usb_track_queue_host.c": "414c5169c396ac40fbc41cfdb208cafda550d067229f11f5296b0488fcc56ec1",
     "tests/usb_track_queue_io.h": "576703346786e70f4cffae7e6e74cbb384026a72ce6af0b97b0d8dec154c833a",
     "scripts/test_i03_queue.sh": "50fa5b0069b8c4369f857f96c1280a31d00a72b4f3d3aa167d51aecc7d9a287b",
-    "tools/i02_probe.py": "8874fe84a413dda404e06f6c810703a3f71d070ddf030c85ff742815b7afc4c0"
+    "tools/i02_probe.py": "21e6e07bd2cd77cee6bade54785523743e4537a4af8d28939b2a135d171d0ba4"
   },
   "queue": {
     "capacity_records": 256,
@@ -20,7 +20,17 @@
     "array_stride_bytes": 36,
     "block_period_ms_at_1500hz": 0.6667,
     "nominal_history_ms": 170.7,
-    "fields_per_record": ["session", "block", "sequence", "note_16_16", "eight_final_params_8_8", "velocity_8_8", "machine", "start_flag"]
+    "fields_per_record": [
+      "session",
+      "block",
+      "sequence",
+      "note_16_16",
+      "eight_final_params_8_8",
+      "velocity_8_8",
+      "machine",
+      "start_flag"
+    ],
+    "capture_policy": "Every change and START, plus identical-state refresh every 64 blocks; no changed-record coalescing."
   },
   "commands": [
     "bash scripts/test_i03_queue.sh",
@@ -41,23 +51,21 @@
       "allocator_or_wait_imports": [],
       "calls_inside_ut_session_capture": [],
       "producer_text_bytes": 1250,
-      "render_object_text_bytes": 1703,
-      "render_object_bss_bytes": 9256
+      "render_object_text_bytes": 2113,
+      "render_object_bss_bytes": 9298
     },
     "elekloader_build": {
-      "result": "BUILT usb-track-0.2.elemod",
-      "run_bytes": 2867,
-      "bss_bytes": 9256,
+      "result": "BUILT usb-track-0.3.elemod",
+      "run_bytes": 8303,
+      "bss_bytes": 14728,
       "sites": 0,
-      "relocations": 77,
-      "imports": ["cm_src_value", "cm_ui_v32", "fw_render_machine", "fw_voice_note", "fw_voice_start", "fw_voice_vel"]
-    }
+      "relocations": 210
+    },
+    "unchanged_blocks_suppressed": true,
+    "slow_worker_12000_blocks_no_session_churn": true
   },
   "not_proven": [
-    "Native Digitakt USB-MIDI serialization/DMA/ownership and disconnect behavior.",
-    "Compiled OS 1.54 emulator execution in this sandbox: i02_probe candidate fails before guest code with SIGILL/rc=132 at Unicorn ladder start; this is not a pass.",
-    "Dynamic lock/LFO ordering and distinct retrigger semantics.",
-    "Physical congestion, reconnect, throughput, and integrated audio timing.",
-    "The USB return path is not gated on ACTIVATE by this queue alone; the handshake adapter owns that gate."
+    "Physical USB/DMA cadence, reconnect detection, integrated audio and hardware timing.",
+    "Distinct sequencer retrigger semantics; only native START bits are retained."
   ]
 }

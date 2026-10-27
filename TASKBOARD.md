@@ -4,16 +4,14 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 ## Ready
 
-| ID | Work | Depends on | Owner | Acceptance |
-| --- | --- | --- | --- | --- |
-| I03 | SRC + control link (in progress; SRC, bounded render queue, portable host/ACK gate and USB-MIDI transport adapter delivered) | Compiled emulator blocked by ~300-block worker interval overflowing 256-entry capture queue; dynamic p-lock probe also fails; see docs/I03-src-control-link.md and docs/I03-transport.md | codex @ 2026-10-27T11:28:38Z | Eight SRC controls; ordered trigger/lock values; silence-until-active handshake, congestion and reconnect tests; no dedicated MIDI sequencer track required. |
+No unblocked implementation tasks. H02 requires the agreed human hardware trial.
 
 ## Waiting
 
 | ID | Work | Status | Release condition / dependencies | Acceptance |
 | --- | --- | --- | --- | --- |
 | H02 | Real track pipeline | BLOCKED | Agreed human trial of I02A candidate/recovery (H01 passed); silence until USB1 render activation | External tone responds to track filter/amp/sends; timing measured; ten-minute zero-gap/underrun run. |
-| I04 | External TRX-B2 voice | BLOCKED | H02 and I03 (R05 passed: engine/resampling benchmark only) | One audio track controls Pi synthesis through SRC/locks/LFOs and local processing; explicit note/velocity policy and timing evidence. |
+| I04 | External TRX-B2 voice | BLOCKED | H02 (I03 and R05 passed; engine/resampling remains host-benchmark evidence) | One audio track controls Pi synthesis through SRC/locks/LFOs and local processing; explicit note/velocity policy and timing evidence. |
 | V01 | Persistence and stress | BLOCKED | I04 | Save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and dense modulation regressions. |
 | X01 | More voices | DEFERRED | V01 + transport capacity decision | Establish independent-channel capacity and measured worst-case margin before scaling. |
 | X02 | Teensy port | DEFERRED | V01 + proven architecture | Measure USB, conversion and DSP capacity; state supported voice count. |
@@ -22,6 +20,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Result | Evidence |
 | --- | --- | --- |
+| I03 | Eight native SRC controls, ordered START/final lock/LFO values, native USB-MIDI worker, matching-session activation gate and Circle integration pass host/compiled-emulator checks; congestion and reconnect recover. Pi 4 kernel builds. No hardware claim | [Report](docs/I03-src-control-link.md), [compiled exchange](evidence/i03/integrated-154.json), [dynamic ordering](evidence/i03/dynamic-154.json), [integration/build](evidence/i03/integration.json) |
 | R05 | Real TRX-B2 stays at 44.1 kHz; exact 160/147 streaming conversion passes continuous/ragged boundary invariance, retrigger, pitch endpoints, 60 s drift and host CPU checks. No Pi/hardware claim; 22 kHz rejection is −26.3 dB | [Report](docs/R05-engine-resampling.md), [results](evidence/r05/benchmark.json), `scripts/test_r05.sh` |
 | R04 | OS 1.54 static order established: sequencer stored locks → engine sound/lock apply/restore → engine/LFO → render final params, note, velocity and voice-start bit; ordered event contract proposed. Dynamic timing and distinct retrigger behavior remain unmeasured | [Report](docs/R04-control-ordering.md), [static results](evidence/r04/ordering-154.json), [probe](tools/r04_probe.py) |
 | H01 | Pi Linux tone/loopback and Circle both pass four-minute physical streams; Circle FIFO under 0; 48 kHz, 12/2 framing and Linux round-trip measured | [Report](docs/H01-stock-usb-stream.md), [Circle](evidence/h01/circle-stability.json), [Linux](evidence/h01/linux-stability.json), [build](evidence/h01/circle-build.json) |

@@ -18,6 +18,10 @@ static uint32_t armed;
 static struct ut_session control;
 static uint8_t control_machine;
 static uint8_t control_have_machine;
+/* Producer-owned comparison copy: never rewrite a published queue record. */
+static int16_t captured_params[8], captured_velocity;
+static int32_t captured_note;
+static uint32_t captured_at;
 
 static void disarm_control(void)
 {
@@ -79,6 +83,7 @@ static int capture_control(int32_t track)
 {
     int16_t params[8];
     uint32_t i;
+    int changed;
     uint8_t machine;
     int result;
     if (track != 0)
@@ -93,16 +98,29 @@ static int capture_control(int32_t track)
     }
     if (machine != MACHINE_ID)
         return 0;
+    changed = !control_have_machine || (fw_voice_start & 1u) ||
+              captured_note != fw_voice_note[0] || captured_velocity != fw_voice_vel[0];
+    for (i = 0; i < 8; ++i) {
+        params[i] = (int16_t)cm_src_value(0, (int32_t)i);
+        changed |= params[i] != captured_params[i];
+    }
+    /* Suppress only identical non-START snapshots; retain a periodic sample
+     * so the existing block lease remains live. Every change and adjacent
+     * START keeps its original block and FIFO position. */
+    if (!changed && usb_track_clock - captured_at < 64u)
+        return 0;
     if (!ut_session_room(&control))
         return ut_session_failed(&control);
-    for (i = 0; i < 8; ++i)
-        params[i] = (int16_t)cm_src_value(0, (int32_t)i);
     control.block = usb_track_clock; /* absolute device block, including reset gaps */
     result = ut_session_capture(&control, machine, params,
                                 fw_voice_note[0], fw_voice_vel[0],
                                 (fw_voice_start & 1u) != 0);
     if (result == UT_CAPTURE_OK) {
         control_machine = machine;
+        for (i = 0; i < 8; ++i) captured_params[i] = params[i];
+        captured_note = fw_voice_note[0];
+        captured_velocity = fw_voice_vel[0];
+        captured_at = usb_track_clock;
         control_have_machine = 1;
     }
     return result == UT_CAPTURE_FAILED;

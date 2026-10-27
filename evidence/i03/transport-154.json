@@ -13,13 +13,10 @@
   "candidate_receive_callback_slot": "0x4061046c",
   "transport_qualified": false,
   "missing": [
-    "nonblocking send ownership/completion and failure behavior",
-    "receive callback task/context and safe chaining",
-    "render queue throughput with dense LFO/locks",
-    "device/host activation ACK and reconnect integration"
+    "physical USB DMA/completion cadence, disconnect detection and hardware timing"
   ],
   "ui_emulator": {
-    "candidate_sha256": "13a81f4f1e214e64898239ad86ccd96be809ec535e154ac808483d40b167064f",
+    "candidate_sha256": "8ab9d4728889fd0dbb0d3f6511e849c99d8841590cf26be58156a3ed0c868309",
     "level": "compiled OS 1.54 emulator; no physical USB",
     "booted": true,
     "labels_ranges_defaults": true,
@@ -36,11 +33,11 @@
     "final_8_8_before_after": [
       [
         15360,
-        19200
+        17920
       ],
       [
         16640,
-        19200
+        20480
       ],
       [
         10496,
@@ -48,15 +45,15 @@
       ],
       [
         15872,
-        17152
+        18432
       ],
       [
         23296,
-        28416
+        24576
       ],
       [
         11264,
-        13824
+        15104
       ],
       [
         14336,
@@ -64,10 +61,11 @@
       ],
       [
         14848,
-        16128
+        17408
       ]
     ],
     "native_defaults_applied": true,
     "transport_qualified": false
-  }
+  },
+  "qualification_scope": "anchors/UI only; compiled exchange is evidence/i03/integrated-154.json"
 }

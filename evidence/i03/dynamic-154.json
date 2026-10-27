@@ -1,11 +1,12 @@
 {
   "schema": "i03-dynamic-154/1",
+  "status": "verified",
+  "level": "compiled OS 1.54 emulator; render hook; no hardware timing",
   "hardware_test": false,
-  "level": "compiled OS 1.54 emulator; no hardware timing",
   "candidate": {
     "firmware_label": "I03P",
     "usb_track_version": "0.3",
-    "syx_sha256": "27501f97cc2daf5fbfe52b7372e164d17412047faa5f2ee74351b1510b2909b6",
+    "syx_sha256": "8ab9d4728889fd0dbb0d3f6511e849c99d8841590cf26be58156a3ed0c868309",
     "stock_main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
     "source_hashes": {
       "control/device_link.c": "802f7a4ec99634e475b07e0139ebd466a89c77e37d1df03525ea7139e20bd170",
@@ -25,38 +26,476 @@
       "mods/usb-track/mod.json": "54c5b605758db87732976dd75b88c68c2f49ac627d82277868f355b1dcb62887",
       "mods/usb-track/src_queue.c": "2de5d0209e05151065d6f9a4af09967b904b95c6b13e9ab7427eb90f5d7a79ab",
       "mods/usb-track/src_queue.h": "577dbad5a473c637234ce3874b57669e3005b654a353c78ddc64481303e007cf",
-      "mods/usb-track/usb_track.c": "ce0a91dbfb27bf662d648f40da2a6bce4fe87de287585e373e6d768fd8c8281e",
+      "mods/usb-track/usb_track.c": "e098d127e57cf07ee3dd8e41d6c7f188a0b4b828960d063cf96b5a6dab0707fb",
       "mods/usb-track/usb_track.h": "617c27cddb0e9552cbc611aca9cc220ef060cc4dfbadebda9b275a2469797df9",
       "mods/usb-track/worker.c": "ed9be1fd93394ab14af51cfa17dba3d8eaf4967510b012cf5316b053c0309d2f"
     }
   },
-  "probe": {
-    "path": "tools/i03_dynamic_probe.py",
-    "sha256": "d41b76ffe8e672a172e8edef1e157d1d19136ec359c1fd955929999cb9acd80a"
-  },
-  "runtime": {
-    "python": "3.12.14",
-    "platform": "darwin"
-  },
-  "scope": {
+  "render_contract": {
     "render_hook": "0x40077FBA",
-    "values": "final 8.8 A-H, note (16.16), velocity (8.8) and fw_voice_start at the render hook",
-    "ordering": "render-block invocation order"
+    "final_params_8_8": "0x80002794 + 2 * (53 * track + k), k = 0..7",
+    "voice_start": "0x80001228, bit t for track t",
+    "note_16_16": "0x80001F28 + 4 * track (int32)",
+    "velocity_8_8": "0x80001F18 + 2 * track (int16)",
+    "block_order": "one render-hook snapshot per block, in invocation order"
   },
-  "retrigger_semantics": "unresolved: this probe records repeated start bits; it does not establish a distinct Digitakt retrigger event or its hardware timing",
-  "planned_scenarios": [
-    "baseline_manual",
-    "plock_restore",
-    "lfo_modulation",
-    "repeated_starts"
+  "scenarios": {
+    "baseline_manual": {
+      "name": "baseline_manual",
+      "scope": "manual trigger; final render-hook values",
+      "render_blocks": 600,
+      "start_events": 1,
+      "first_start": {
+        "sequence": 3,
+        "block": 4,
+        "emulated_ms": 1526.0,
+        "track": 0,
+        "start_mask": 1,
+        "voice_start": true,
+        "note_16_16": 3932160,
+        "velocity_8_8": 25600,
+        "params_8_8": [
+          15360,
+          16640,
+          10496,
+          15872,
+          23296,
+          11264,
+          14336,
+          14848
+        ]
+      },
+      "last_event": {
+        "sequence": 599,
+        "block": 600,
+        "emulated_ms": 1923.333,
+        "track": 0,
+        "start_mask": 0,
+        "voice_start": false,
+        "note_16_16": 3932160,
+        "velocity_8_8": 25600,
+        "params_8_8": [
+          15360,
+          16640,
+          10496,
+          15872,
+          23296,
+          11264,
+          14336,
+          14848
+        ]
+      },
+      "final_params_8_8": [
+        15360,
+        16640,
+        10496,
+        15872,
+        23296,
+        11264,
+        14336,
+        14848
+      ],
+      "final_note_16_16": 3932160,
+      "final_velocity_8_8": 25600,
+      "block_order_contiguous": true
+    },
+    "plock_restore": {
+      "name": "plock_restore",
+      "scope": "unlocked lead-in step 1, stored PTCH lock on step 2, unlocked step 3; native playback",
+      "native_lock_resolves": [
+        {
+          "step_index": 1,
+          "ptch_8_8": 18432
+        },
+        {
+          "step_index": 2,
+          "ptch_8_8": -1
+        },
+        {
+          "step_index": 0,
+          "ptch_8_8": -1
+        }
+      ],
+      "lead_in_start": {
+        "sequence": 6,
+        "block": 7,
+        "emulated_ms": 1928.0,
+        "track": 0,
+        "start_mask": 113,
+        "voice_start": true,
+        "note_16_16": 3932160,
+        "velocity_8_8": 25600,
+        "params_8_8": [
+          15360,
+          16640,
+          10496,
+          15872,
+          23296,
+          11264,
+          14336,
+          14848
+        ]
+      },
+      "stored_lock_8_8": 18432,
+      "fixture": "three explicit sample-start trigs; slot 17 lock in native 54-word step storage",
+      "pattern": {
+        "pointer": 1083948056,
+        "readable": true,
+        "words": [
+          2177,
+          2177,
+          2177,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "baseline_params_8_8": [
+        15360,
+        16640,
+        10496,
+        15872,
+        23296,
+        11264,
+        14336,
+        14848
+      ],
+      "locked_start": {
+        "sequence": 235,
+        "block": 236,
+        "emulated_ms": 2080.667,
+        "track": 0,
+        "start_mask": 49,
+        "voice_start": true,
+        "note_16_16": 3932160,
+        "velocity_8_8": 25600,
+        "params_8_8": [
+          18432,
+          16640,
+          10496,
+          15872,
+          23296,
+          11264,
+          14336,
+          14848
+        ]
+      },
+      "unlocked_start": {
+        "sequence": 465,
+        "block": 466,
+        "emulated_ms": 2234.0,
+        "track": 0,
+        "start_mask": 57,
+        "voice_start": true,
+        "note_16_16": 3932160,
+        "velocity_8_8": 25600,
+        "params_8_8": [
+          15360,
+          16640,
+          10496,
+          15872,
+          23296,
+          11264,
+          14336,
+          14848
+        ]
+      },
+      "restored_after_block": 466,
+      "sound_unchanged_by_lock_fixture": true,
+      "render_blocks": 2073,
+      "start_events": 3,
+      "final_params_8_8": [
+        15360,
+        16640,
+        10496,
+        15872,
+        23296,
+        11264,
+        14336,
+        14848
+      ],
+      "final_note_16_16": 3932160,
+      "final_velocity_8_8": 25600,
+      "block_order_contiguous": true,
+      "tail_params_8_8": [
+        [
+          15360,
+          16640,
+          10496,
+          15872,
+          23296,
+          11264,
+          14336,
+          14848
+        ],
+        [
+          15360,
+          16640,
+          10496,
+          15872,
+          23296,
+          11264,
+          14336,
+          14848
+        ],
+        [
+          15360,
+          16640,
+          10496,
+          15872,
+          23296,
+          11264,
+          14336,
+          14848
+        ],
+        [
+          15360,
+          16640,
+          10496,
+          15872,
+          23296,
+          11264,
+          14336,
+          14848
+        ],
+        [
+          15360,
+          16640,
+          10496,
+          15872,
+          23296,
+          11264,
+          14336,
+          14848
+        ],
+        [
+          15360,
+          16640,
+          10496,
+          15872,
+          23296,
+          11264,
+          14336,
+          14848
+        ],
+        [
+          15360,
+          16640,
+          10496,
+          15872,
+          23296,
+          11264,
+          14336,
+          14848
+        ],
+        [
+          15360,
+          16640,
+          10496,
+          15872,
+          23296,
+          11264,
+          14336,
+          14848
+        ]
+      ]
+    },
+    "lfo_modulation": {
+      "name": "lfo_modulation",
+      "scope": "documented sound slots seeded before a manual trigger; render-hook values",
+      "seeded_sound_slot_indexes": {
+        "1": 20480,
+        "4": 4352,
+        "5": 512,
+        "6": 16384,
+        "7": 256,
+        "8": 18432,
+        "17": 15360
+      },
+      "ptch_distinct_values": [
+        11264,
+        16384,
+        19455
+      ],
+      "ptch_min": 11264,
+      "ptch_max": 19455,
+      "render_blocks": 826,
+      "start_events": 1,
+      "first_event": {
+        "sequence": 0,
+        "block": 1,
+        "emulated_ms": 1524.0,
+        "track": 0,
+        "start_mask": 0,
+        "voice_start": false,
+        "note_16_16": 0,
+        "velocity_8_8": 0,
+        "params_8_8": [
+          16384,
+          768,
+          0,
+          256,
+          0,
+          30720,
+          0,
+          25600
+        ]
+      },
+      "last_event": {
+        "sequence": 825,
+        "block": 826,
+        "emulated_ms": 2074.0,
+        "track": 0,
+        "start_mask": 0,
+        "voice_start": false,
+        "note_16_16": 3932160,
+        "velocity_8_8": 25600,
+        "params_8_8": [
+          19455,
+          16640,
+          10496,
+          15872,
+          23296,
+          11264,
+          14336,
+          14848
+        ]
+      },
+      "final_params_8_8": [
+        19455,
+        16640,
+        10496,
+        15872,
+        23296,
+        11264,
+        14336,
+        14848
+      ],
+      "final_note_16_16": 3932160,
+      "final_velocity_8_8": 25600,
+      "block_order_contiguous": true,
+      "ptch_change_points": [
+        {
+          "block": 1,
+          "value_8_8": 16384
+        },
+        {
+          "block": 3,
+          "value_8_8": 11264
+        },
+        {
+          "block": 488,
+          "value_8_8": 19455
+        }
+      ]
+    },
+    "repeated_starts": {
+      "name": "repeated_starts",
+      "scope": "three separate manual triggers; every render-hook start bit retained",
+      "trigger_count": 3,
+      "start_events": 3,
+      "start_events_detail": [
+        {
+          "sequence": 3,
+          "block": 4,
+          "emulated_ms": 1526.0,
+          "track": 0,
+          "start_mask": 1,
+          "voice_start": true,
+          "note_16_16": 3932160,
+          "velocity_8_8": 25600,
+          "params_8_8": [
+            15360,
+            16640,
+            10496,
+            15872,
+            23296,
+            11264,
+            14336,
+            14848
+          ]
+        },
+        {
+          "sequence": 440,
+          "block": 441,
+          "emulated_ms": 1817.333,
+          "track": 0,
+          "start_mask": 1,
+          "voice_start": true,
+          "note_16_16": 3932160,
+          "velocity_8_8": 25600,
+          "params_8_8": [
+            15360,
+            16640,
+            10496,
+            15872,
+            23296,
+            11264,
+            14336,
+            14848
+          ]
+        },
+        {
+          "sequence": 874,
+          "block": 875,
+          "emulated_ms": 2106.667,
+          "track": 0,
+          "start_mask": 1,
+          "voice_start": true,
+          "note_16_16": 3932160,
+          "velocity_8_8": 25600,
+          "params_8_8": [
+            15360,
+            16640,
+            10496,
+            15872,
+            23296,
+            11264,
+            14336,
+            14848
+          ]
+        }
+      ],
+      "start_blocks": [
+        4,
+        441,
+        875
+      ],
+      "start_sequences": [
+        3,
+        440,
+        874
+      ],
+      "render_blocks": 1306,
+      "final_params_8_8": [
+        15360,
+        16640,
+        10496,
+        15872,
+        23296,
+        11264,
+        14336,
+        14848
+      ],
+      "final_note_16_16": 3932160,
+      "final_velocity_8_8": 25600,
+      "block_order_contiguous": true,
+      "retrigger_semantics": "unresolved: no claim that a Digitakt retrigger is a distinct sequencer event"
+    }
+  },
+  "verified": [
+    "final A-H values, note, velocity and start bit are observable at the render hook",
+    "a stored p-lock fixture changes PTCH at the render hook and the following unlocked step restores it",
+    "seeded LFO settings change PTCH across render blocks",
+    "every snapshotted repeated manual start bit remains in block order"
   ],
-  "limits": [
-    "Emulator values only; no hardware timing, latency or audio result is claimed.",
-    "The LFO scenario seeds documented sound slots and is not a full panel-edit protocol test.",
-    "A blocked Unicorn preflight produces evidence of the environment failure, not a PASS."
+  "unresolved": [
+    "Retrigger is not established as a distinct Digitakt sequencer event; only repeated start bits were observed.",
+    "No hardware timing, callback latency, USB-MIDI delivery or device audio claim follows from these emulator values.",
+    "Lock and LFO scenarios seed native pattern/sound storage; panel editing is not qualified by these fixtures."
   ],
-  "reproduce": "PYTHONPATH=\"$PWD/private/r03-runtime:$PWD/deps/digiemu\" \"$PY\" tools/i03_dynamic_probe.py --candidate private/i03-final --output evidence/i03/dynamic-154.json",
-  "status": "worker_failed",
   "preflight": {
     "command": "python tools/i03_dynamic_probe.py --worker preflight",
     "returncode": 0,
@@ -67,25 +506,6 @@
       "mem-map-start",
       "mem-map-ok",
       "exec-ok"
-    ]
-  },
-  "verified": [],
-  "worker": {
-    "returncode": 1,
-    "stdout_tail": [],
-    "stderr_tail": [
-      "Traceback (most recent call last):",
-      "  File \"tools/i03_dynamic_probe.py\", line 613, in <module>",
-      "    raise SystemExit(main())",
-      "                     ^^^^^^",
-      "  File \"tools/i03_dynamic_probe.py\", line 511, in main",
-      "    dynamic_worker(args.candidate, args.output)",
-      "  File \"tools/i03_dynamic_probe.py\", line 426, in dynamic_worker",
-      "    'plock_restore': _scenario_plock(candidate, symbols),",
-      "                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-      "  File \"tools/i03_dynamic_probe.py\", line 260, in _scenario_plock",
-      "    raise AssertionError('holding the step changed the sound instead of only its lock')",
-      "AssertionError: holding the step changed the sound instead of only its lock"
     ]
   }
 }

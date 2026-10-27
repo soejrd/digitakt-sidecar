@@ -1,7 +1,7 @@
 # I03 — USB-MIDI transport adapter (Digitakt mk1 OS 1.54)
 
-Status: **adapter delivered and host-qualified; device execution unproven**.
-Nothing flashed; no hardware audio or live USB test. Independent of the
+Status: **adapter verified in host tests and compiled OS 1.54 execution**.
+Nothing flashed; no hardware audio or live USB test. Integrated with the
 handshake work in [I03-src-control-link.md](I03-src-control-link.md): this
 document covers the byte transport, which the session handshake rides on.
 
@@ -40,8 +40,8 @@ control frames belong to [`control/link.*`](I03-src-control-link.md).
 3. **Whole messages only.** A message that does not fit is refused whole and
    counted (`dropped`, `tx_overflow`). No partial frame can ever reach the
    wire, so a truncated START cannot be mistaken for a short one.
-4. **Bounded every step.** 64 staged messages, 96 bytes each, 8 submissions
-   and 512 received bytes per tick, 4096-byte receive ring, 1024-byte frame
+4. **Bounded every step.** 64 staged messages, 96 bytes each, up to 64 submissions
+   and 4096 received bytes per service call, 4096-byte receive ring, 1024-byte frame
    buffer. Any overflow is reported, never silently trimmed.
 5. **Completion is the only drain.** The adapter never advances the firmware's
    queue itself, never writes `0x40610478`, and never re-uses a buffer whose
@@ -86,9 +86,9 @@ Two consequences are easy to get wrong and are handled explicitly:
   a SysEx group's `F0`/`F7` are ordinary payload. The adapter's parser
   follows the same table instead of refusing status-looking data.
 - Because groups are always three data bytes, senders pad the last group with
-  zeroes after `F7`, and a 2-byte message leaves one. The adapter drops at
-  most two zeroes directly after an `F7` on receive and never emits padding
-  itself; anything else is passed on untouched.
+  zeroes after `F7`, and a 2-byte message leaves one. The native CIN decoder removes padding. The adapter receives decoded MIDI
+  bytes and preserves foreign zero bytes; it does not guess at padding after
+  an `F7`.
 
 ## Evidence
 
@@ -111,9 +111,8 @@ Host tests — 11 groups, ASan/UBSan clean, `bash scripts/test_i03_transport.sh`
 - handle-wrap preflight: defers instead of spinning, then succeeds after
   completions.
 
-Device build — `usb-midi 0.1`: `.run 5236`, `.bss 12836`, **0 sites** (it
-subscribes to `ev_tick`; it hooks no stock code), 62 relocations, imports only
-core symbols. Lint passes with core 4.1 enabled.
+Device build — `usb-midi 0.1`: `.run 5480`, `.bss 11828`, **0 sites** (it
+subscribes to `ev_tick`; it hooks no stock code), 75 relocations, has no imports. Lint passes with core 4.1 enabled.
 
 ## Reusable SDK hooks
 
@@ -132,31 +131,45 @@ Both are described here rather than implemented in core: they change another
 project's public surface and are offered upstream, not taken. Until then the
 addresses stay isolated in `mods/usb-midi/usb_midi.c`.
 
-## Known gaps
+## Compiled integration and remaining physical qualification
 
-- **Not executed on the device or in the emulator.** Unicorn cannot map
-  executable memory in this sandbox (`Illegal instruction` in `mem_map`),
-  the same environment block recorded in
-  [evidence/i03/dynamic-154.json](../evidence/i03/dynamic-154.json). So the
-  sender's real DMA timing, the completion cadence, and the stock receive
-  handlers at `0x400D3298`/`0x400D34CC` are modelled or chained but not run.
-- **Drain rate is unmeasured.** Dense modulation at 1,500 snapshots/s is
-  ≈126 kB/s; whether the completion path sustains it, and what happens to the
-  staging ring under that load, needs a live stream.
-- **No physical reconnect.** Link state is derived from the ready/ISR flags.
-  Whether a cable pull actually clears them, and how long that takes, is not
-  measured. A real disconnect may also need a bounded lease from the session
-  layer, which lives in the handshake work.
-- **One cable only.** The adapter owns cable 0 packets and slot
-  `0x4061046C`. Cable 1 (`0x40610470`) is untouched.
-- **No retrigger semantics.** That remains a render-ordering question, not a
-  transport one.
+The final compiled OS 1.54 candidate executes the real native serializer and
+our two-argument RX bridge, worker, snapshot queue and render gate. The
+[compiled exchange](../evidence/i03/integrated-154.json) verifies activation,
+SRC updates, repeated starts, ACK loss, link loss/reconnect, sustained dense
+modulation, stalled-completion congestion and recovery. Sender preflight and
+submission execute in one native critical section. USB descriptor submission,
+completion progress and incoming PCM are modelled at explicit boundaries;
+this does not measure real DMA lifetime or cadence.
 
-Reproduce (host only):
+The native callback is `(bytes, count)`; the adapter supplies its own context
+before calling the portable trampoline. Initially-null slots are retried, USB
+reinitialization captures the new stock handler, and foreign MIDI is chained
+in original order. The sender is `void`; acceptance is checked by the exact
+increase in the encoded-byte queue counter. Capacity reserves the complete
+USB-MIDI encoding, not the input MIDI length. Descriptor exhaustion or partial
+submission latches failure rather than retrying a possibly truncated frame.
+
+Dense unchanged controls no longer flood the queue: the render suppresses
+only identical non-START records, retaining a sample every 64 blocks. Every
+change and native START remains ordered. Continuous changed values still
+require sustained drain; insufficient progress closes the gate. A
+firmware-ready flag alone never activates audio: a fresh session needs its
+matching ACTIVATE, and ACK leases bound undetected transport loss.
+
+Physical USB throughput, cable-pull flag behavior/detection time, real native
+completion cadence and hardware IRQ headroom remain unmeasured. Only cable 0
+and callback slot `0x4061046C` are owned; cable 1 is untouched. Distinct
+retrigger semantics remain a separate render/sequence question.
+
+Reproduce:
 
 ```sh
 bash scripts/test_i03_transport.sh
-# static anchors, needs the private sections and the pinned decoder:
+bash scripts/test_i03_integration.sh
+PYTHONPATH=private/r03-runtime:deps/digiemu "$PY" \
+  tools/i03_integrated_probe.py --candidate private/i03-release3 \
+  --output evidence/i03/integrated-154.json
 PYTHONPATH=tools:private/r03-runtime:deps/digiemu "$PY" \
   tools/i03_transport_anchor.py --sections private/i02-fixture/sections \
   --output evidence/i03/transport-anchors-154.json

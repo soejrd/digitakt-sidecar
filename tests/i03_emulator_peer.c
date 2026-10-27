@@ -39,3 +39,6 @@ unsigned peer_starts(void) { return starts; }
 unsigned peer_allowed(void) { return sc_circle_audio_allowed(&peer); }
 int peer_param(unsigned k) { return k<8 ? installed.params[k] : 0; }
 void peer_lost(void) { sc_circle_transport_lost(&peer,SC_REASON_TRANSPORT); sc_circle_process(&peer,128); }
+
+void peer_advance(uint32_t block) { sc_circle_advance_block(&peer,block); sc_circle_process(&peer,128); }
+unsigned peer_session(void) { return peer.host.session; }

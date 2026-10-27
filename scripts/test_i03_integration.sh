@@ -17,3 +17,11 @@ build/i03/integrated
   tests/i03_output_gate.cpp deps/sidecar-firmware/pi/engine/output.cpp \
   -o build/i03/output_gate
 build/i03/output_gate
+for unit in link host_link circle_link_adapter; do
+  "${CC:-cc}" "${CFLAGS[@]}" -c "control/$unit.c" -o "build/i03/glue_$unit.o"
+done
+"${CXX:-c++}" -std=c++17 -O1 -Wall -Wextra -Werror -fsanitize=address,undefined \
+  -Itests/circle -Icontrol -Ideps/sidecar-firmware/pi/engine -Ideps/sidecar-firmware/core \
+  tests/i03_circle_glue.cpp deps/sidecar-firmware/pi/engine/dt_link.cpp \
+  deps/sidecar-firmware/pi/engine/output.cpp build/i03/glue_*.o -o build/i03/circle_glue
+build/i03/circle_glue

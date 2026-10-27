@@ -1,24 +1,16 @@
 # I03 — host session, activation ACK and silence gate
 
-Status: **portable implementation and simulated-device tests pass; not
-integrated with Digitakt firmware or a live Circle link**. Target: Digitakt
-mk1 OS 1.54 and Pi 4B/Circle. No hardware was flashed; no audio was played.
+Status: **integrated control link verified in compiled OS 1.54 and production
+Circle host harnesses**. Target: Digitakt mk1 OS 1.54 and Pi 4B/Circle. The
+Pi 4 kernel cross-build passes. No hardware firmware, SD deployment or audio
+trial occurred. See [I03 acceptance report](I03-src-control-link.md).
 
-## Interface agreement and ownership
+## Interface and ownership
 
-The wire interface and file ownership were agreed with the two peer I03
-workers before either shared file changed:
-
-| Worker | Owns |
-| --- | --- |
-| host-handshake (this work) | `control/link.*`, `control/host_link.*`, `control/device_link.*`, Circle adapters, handshake tests/docs/evidence |
-| USB-MIDI transport | `control/usbmidi.*`, `control/dt1_*`, transport adapter, framing-agnostic complete-F0..F7 send/receive |
-| SRC/render queue | `mods/usb-track/*`, queue tests, neutral ordered render records |
-
-The transport owner accepted `usbmidi_device_send(const uint8_t*, uint32_t)`
-from `ev_tick`, complete `F0..F7` frames spanning USB-MIDI packets, and fresh
-nonzero sessions after loss. The queue owner kept records transport-neutral.
-Neither peer edits these handshake files.
+The render owns final control capture and the bounded queue. The UI worker
+owns device session state and native USB-MIDI submissions. The Circle task
+owns parameter installation and ACK generation; its USB callback only enqueues
+bytes, while the output consumer reads the published gate.
 
 **Protocol roles are not USB roles.** In this repository:
 
@@ -96,9 +88,13 @@ install copies preallocated TRX-B2 parameters and only then returns 1; clear
 zeros bounded stale parameter/PCM state. Synthesis policy is deliberately not
 implemented here.
 
-The I02 USB-track render hook is not modified. It must gate ready PCM on
-`sc_circle_audio_allowed()` (or an equivalent single-word published gate) and
-must still clear stale USB halves before rearming. That wiring remains open.
+`mods/usb-track/worker.c` publishes the matching ACTIVATE result to the render
+gate. `usb_track_render` checks it and the 750-block ACK lease, closes on
+invalid route/session and clears both stale USB halves before rearming.
+Circle patch 0003 installs control snapshots in `dt_link.cpp` and gates the
+actual Output consumer with FIFO epochs. A late ACK cannot reopen an output
+epoch closed by asynchronous transport loss. Integrated mode remains silent
+until I04 supplies synthesis.
 
 ## Evidence
 
@@ -116,19 +112,22 @@ must still clear stale USB halves before rearming. That wiring remains open.
 Result artifact: [handshake-portable.json](../evidence/i03/handshake-portable.json).
 Current result: three suites pass. This is portable evidence only.
 
-## Limits and release conditions
+## Integrated verification and limits
 
-- No Digitakt firmware, native raw-MIDI sender/receiver, DMA completion or
-  disconnect was exercised.
-- No physical USB-MIDI congestion or reconnect was measured; the receive ring
-  tests only local bounded overflow.
-- No Circle kernel was linked or run; the adapter uses portable C11 atomics
-  and a declarations-only Circle header shim.
-- No PCM or synthesis was rendered. The gate is state only, and synthesis work
-  remains separate.
-- The I03 USB-track render hook is not yet wired to this gate.
+`scripts/test_i03_integration.sh` executes production device render/worker/
+native adapter code with a modelled USB boundary and the portable Circle peer.
+It also executes the actual Circle `dt_link.cpp`, reply queue and Output gate,
+covering installation, activation, loss, reconnect, lease expiry, queue
+congestion, stale ACK rejection and FIFO flushing under ASan/UBSan.
 
-Releasing the hardware/emulator parts requires the transport owner's native
-adapter and a compiled-device exchange, then a separately authorized physical
-test. I03 remains partial until the hook, transport and dynamic p-lock/LFO
-ordering are demonstrated together.
+[Compiled-device evidence](../evidence/i03/integrated-154.json) runs the actual
+OS 1.54 serializer and native RX bridge through the session exchange, SRC
+updates, repeated starts, ACK/link loss, dense modulation and stalled native
+completions. Its USB DMA/completion and incoming PCM boundary is modelled.
+[Integration/build evidence](../evidence/i03/integration.json) records the
+production harnesses and successful Pi 4 kernel build.
+
+Physical DMA lifetime/cadence, cable-pull detection, USB congestion, Circle
+scheduling under hardware load and integrated audio latency remain H02/I04
+qualification. The kernel was built, not deployed. No external synthesis or
+hardware audio result is implied by successful control-state installation.

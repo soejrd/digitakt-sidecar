@@ -4,10 +4,10 @@
 The probe watches the machine-pages render point (0x40077FBA) and records
 what the firmware presents for one audio track: final 8.8 A-H values, note,
 velocity, the fw_voice_start bit and the order of render blocks. It runs four
-scenarios through the panel/pattern path:
+scenarios through the panel and seeded native pattern/sound paths:
 
   baseline_manual   a manual pad trigger, used as the unmodulated reference
-  plock_restore     a held step's p-lock, then the next unlocked step
+  plock_restore     baseline lead-in, stored lock, then an unlocked step
   lfo_modulation    documented LFO sound slots seeded before the trigger
   repeated_starts   three separate manual triggers, every start bit retained
 
@@ -227,13 +227,23 @@ def _scenario_baseline(candidate, symbols):
 
 
 def _scenario_plock(candidate, symbols):
-    import r03_probe as r03
-
     events = []
     state = {'active': False, 'block': 0, 'sequence': 0}
 
+    lock_calls = []
     def on_machine(session):
+        from unicorn import UC_HOOK_CODE
+        from unicorn.m68k_const import UC_M68K_REG_A7
         _render_hook(session, state, events, 0)
+        def lock_hook(uc, address, size, data):
+            if not state['active']: return
+            sp = uc.reg_read(UC_M68K_REG_A7)
+            args = struct.unpack('>7I', bytes(uc.mem_read(sp,28)))
+            source, step = args[2], args[4]
+            if source == _u32(uc, PATTERN_POINTER) + 0x38F0 and len(lock_calls) < 32:
+                lock_calls.append({'step_index': step,
+                    'ptch_8_8': _i16s(uc, source + 108 * step + 34, 1)[0]})
+        session.m.uc.hook_add(UC_HOOK_CODE,lock_hook,begin=0x4006F46E,end=0x4006F46E)
 
     session = _session(candidate, symbols, on_machine)
     try:
@@ -246,42 +256,47 @@ def _scenario_plock(candidate, symbols):
         baseline_params = baseline['params_8_8'][:]
         _stop_capture(state)
 
+        # Isolate the sequencer's native lock path from panel-event timing.
+        # This is a disposable in-memory fixture, never a user project.
         sound_before = _sound_slots(uc, kit, 0)
-        r03.tap(session, session.code('RECORD'))
-        session.press(24)
-        session.run_ms(500)
-        r03.rotate(session, 1, 8)  # PTCH
-        session.release(24)
-        session.run_ms(300)
-        r03.tap(session, 25)       # step 2, no lock
-        r03.tap(session, session.code('RECORD'))
+        pointer = _u32(uc, PATTERN_POINTER)
+        if not 0x40000000 <= pointer < 0x48000000:
+            raise AssertionError('active pattern pointer is not readable')
+        uc.mem_write(pointer, struct.pack('>64H', 0x0881, 0x0881, 0x0881, *([0] * 61)))
+        # Native audio fire at 0x4006F742 supplies pat+0x38F0+6965*track;
+        # resolver 0x4006F46E reads 54 words per step (53 values + padding).
+        locks = pointer + 0x38F0
+        for step in (0, 1, 2):
+            _write_i16s(uc, locks + 108 * step, [-1] * 53 + [0])
+        locked_fixture = 72 << 8
+        _write_i16s(uc, locks + 108 + 2 * 17, [locked_fixture])
+        pattern = _pattern_steps(uc, 0)
         sound_after = _sound_slots(uc, kit, 0)
         if sound_before != sound_after:
-            raise AssertionError('holding the step changed the sound instead of only its lock')
+            raise AssertionError('stored lock fixture changed the base sound')
 
-        pattern = _pattern_steps(uc, 0)
-        if not pattern['readable']:
-            raise AssertionError('active pattern pointer is not readable')
-        if pattern['words'][0] & TRIG_BIT == 0 or pattern['words'][1] & TRIG_BIT == 0:
-            raise AssertionError('grid recording did not create trigs on steps 1 and 2: %r' % pattern)
-
+        lock_calls.clear()
         _start_capture(state, events)
         session.tap(session.code('PLAY'), hold_ms=40, after_ms=1200)
         session.tap(session.code('STOP'), hold_ms=40, after_ms=100)
         if session.halted:
             raise RuntimeError(session.halted)
         starts = _start_events(events)
-        if len(starts) < 2:
-            raise AssertionError('expected at least two sequencer starts, got %d' % len(starts))
+        if len(starts) < 3:
+            raise AssertionError('expected lead-in, locked and unlocked starts, got %d' % len(starts))
         if not _ordered(events):
             raise AssertionError('render blocks are not in contiguous order')
-        first, second = starts[0], starts[1]
+        lead_in, first, second = starts[:3]
+        if lead_in['params_8_8'][0] != baseline_params[0]:
+            raise AssertionError('lead-in was not the unlocked baseline')
         locked_value = first['params_8_8'][0]
         restored = [event for event in events
                     if event['block'] >= second['block'] and
                     event['params_8_8'][0] == baseline_params[0]]
-        if locked_value == baseline_params[0]:
-            raise AssertionError('PTCH p-lock did not change the final render value')
+        if locked_value != locked_fixture:
+            raise AssertionError('stored lock was not installed at its START: %r' % first)
+        if second['params_8_8'][0] != baseline_params[0]:
+            raise AssertionError('next unlocked START did not restore the baseline')
         if not restored:
             raise AssertionError('PTCH did not return to its baseline after the unlocked step')
         tail = events[-8:]
@@ -289,13 +304,17 @@ def _scenario_plock(candidate, symbols):
             raise AssertionError('PTCH was not restored for the tail of the run')
         return {
             'name': 'plock_restore',
-            'scope': 'panel-created p-lock on step 1; unlocked step 2',
+            'scope': 'unlocked lead-in step 1, stored PTCH lock on step 2, unlocked step 3; native playback',
+            'native_lock_resolves': lock_calls,
+            'lead_in_start': lead_in,
+            'stored_lock_8_8': locked_fixture,
+            'fixture': 'three explicit sample-start trigs; slot 17 lock in native 54-word step storage',
             'pattern': pattern,
             'baseline_params_8_8': baseline_params,
             'locked_start': first,
             'unlocked_start': second,
             'restored_after_block': restored[0]['block'],
-            'sound_unchanged_by_lock_edit': True,
+            'sound_unchanged_by_lock_fixture': True,
             'render_blocks': len(events),
             'start_events': len(starts),
             'final_params_8_8': events[-1]['params_8_8'],
@@ -354,7 +373,10 @@ def _scenario_lfo(candidate, symbols):
             'name': 'lfo_modulation',
             'scope': 'documented sound slots seeded before a manual trigger; render-hook values',
             'seeded_sound_slot_indexes': {str(k): v for k, v in seeds.items()},
-            'ptch_values_8_8': values,
+            'ptch_change_points': [
+                {'block': event['block'], 'value_8_8': values[i]}
+                for i, event in enumerate(events) if not i or values[i] != values[i-1]
+            ],
             'ptch_distinct_values': sorted(set(values)),
             'ptch_min': min(values),
             'ptch_max': max(values),
@@ -444,14 +466,14 @@ def dynamic_worker(candidate, output):
         'scenarios': scenarios,
         'verified': [
             'final A-H values, note, velocity and start bit are observable at the render hook',
-            'a panel-created p-lock changes PTCH at the render hook and the unlocked next step restores it',
+            'a stored p-lock fixture changes PTCH at the render hook and the following unlocked step restores it',
             'seeded LFO settings change PTCH across render blocks',
             'every snapshotted repeated manual start bit remains in block order',
         ],
         'unresolved': [
             'Retrigger is not established as a distinct Digitakt sequencer event; only repeated start bits were observed.',
             'No hardware timing, callback latency, USB-MIDI delivery or device audio claim follows from these emulator values.',
-            'The LFO scenario seeds documented sound slots rather than proving a complete panel-only LFO edit.',
+            'Lock and LFO scenarios seed native pattern/sound storage; panel editing is not qualified by these fixtures.',
         ],
     }
     Path(output).write_text(json.dumps(report, indent=2) + '\n')
@@ -545,12 +567,12 @@ def main():
         ],
         'limits': [
             'Emulator values only; no hardware timing, latency or audio result is claimed.',
-            'The LFO scenario seeds documented sound slots and is not a full panel-edit protocol test.',
+            'Lock and LFO scenarios seed native pattern/sound storage; panel editing is not qualified.',
             'A blocked Unicorn preflight produces evidence of the environment failure, not a PASS.',
         ],
         'reproduce': (
             'PYTHONPATH="$PWD/private/r03-runtime:$PWD/deps/digiemu" "$PY" '
-            'tools/i03_dynamic_probe.py --candidate private/i03-final '
+            'tools/i03_dynamic_probe.py --candidate private/i03-release3 '
             '--output evidence/i03/dynamic-154.json'
         ),
     }

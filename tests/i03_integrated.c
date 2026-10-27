@@ -24,6 +24,7 @@ int32_t cm_src_value(int32_t t,int32_t k) { return fw_voice_params[53*t+k]; }
 static struct sc_circle_link host;
 static struct sc_frame installed;
 static unsigned starts,frames,drop_acks,blocked,foreign;
+static unsigned tick_period=50;
 static uint8_t packets[256][DT1_MSG_MAX];
 static uint32_t lengths[256],write_at,read_at;
 static int32_t blocks[256];
@@ -66,7 +67,7 @@ static void step(unsigned n)
         usb_track_render(blocks);
         for(i=32;i<256;++i) assert(blocks[i]==7654321);
         if(!usb_track_gate && fw_render_machine[0]==121) { assert(blocks[0]==0); ++blocked; }
-        if(usb_track_clock%50==0) { usb_track_tick(0); pump(); }
+        if(usb_track_clock%tick_period==0) { usb_track_tick(0); pump(); }
     }
 }
 int main(void)
@@ -83,12 +84,22 @@ int main(void)
     test_rx_slot=(uintptr_t)stock;
     step(499);
     assert(usb_track_gate && sc_circle_audio_allowed(&host));
-    assert(frames>100 && installed.params[3]==4<<8);
+    assert(frames>0 && installed.params[3]==4<<8);
     generation=device.session; was_starts=starts;
     fw_voice_start=1; step(2); fw_voice_start=0; step(198);
     assert(starts==was_starts+2); /* adjacent starts are retained */
     for(i=0;i<1000;++i) { fw_voice_params[0]=(i%127)<<8; step(1); }
     assert(usb_track_gate && !usb_track_control_failed());
+    /* Slow cadence from the prior failure: 300 render blocks between UI ticks.
+     * Unchanged snapshots must not grow backlog over sustained service. */
+    tick_period=300;
+    generation=device.session;
+    step(12000);
+    assert(usb_track_gate && device.session==generation && !usb_track_control_failed());
+    was_starts=starts;
+    fw_voice_start=1; step(2); fw_voice_start=0; step(898);
+    assert(starts==was_starts+2 && usb_track_gate);
+    tick_period=50;
     /* Bad/missing replies cannot hold either gate open indefinitely. */
     drop_acks=1; step(1500); assert(!usb_track_gate);
     drop_acks=0; step(2000); assert(usb_track_gate && device.session!=generation);

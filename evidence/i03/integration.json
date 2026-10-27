@@ -1,0 +1,53 @@
+{
+  "task": "I03",
+  "date_utc": "2026-10-27",
+  "scope": "local host/cross-build and compiled emulator; no hardware flash, deployment or audio",
+  "pass": true,
+  "dependency_base": "6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457",
+  "patch_replay": "all three patches apply in order and tested integration files match",
+  "source_sha256": {
+    "mods/usb-track/usb_track.c": "e098d127e57cf07ee3dd8e41d6c7f188a0b4b828960d063cf96b5a6dab0707fb",
+    "tests/i03_integrated.c": "704176b70fb98282375546ee0bbf0fe19e79cb38f4e4fb868d3de0f22e1361cb",
+    "tests/i03_circle_glue.cpp": "9f6e612723a5e021e5f1120a65b9ee9aa94d9bf9648a88d81c6716c07819c473",
+    "tests/i03_output_gate.cpp": "e8e3e4fe990994391bf5c2a8516dde4eab2c89d7e1bc553f6d89dd5d483858e6",
+    "tests/i03_emulator_peer.c": "a597546d73de40cfbedc8de9476f364105263fcc0e6d4be3e9ef39cd3a8dcbb5",
+    "scripts/test_i03_integration.sh": "63fd429d7c7b12eb4389659b0022264e92ac24ae924e155d13aa0bb7de87aad8",
+    "tools/i03_integrated_probe.py": "d52fa44060cec6bbe559583e3c80259fd4a7875a076614a5a3835d7cb1f0d295",
+    "tools/i03_dynamic_probe.py": "81f2e91edd67eb12f95631e45a792f6f0d6d4781da91d8bfb82aaab2af878292"
+  },
+  "patch_sha256": {
+    "patches/sidecar-firmware/0001-directional-overbridge-layout.patch": "87fecfb46737ddf85bed736cf245caf0976c4d3b671478e26297ef5ff352be39",
+    "patches/sidecar-firmware/0002-static-capture-marker.patch": "455b1c1d08189f2ec5e21e8173176508da46569fe6cd1758a0f5aa9286c97e5e",
+    "patches/sidecar-firmware/0003-dtsc-control-link.patch": "fb6e8de487359ee515f4e6b849674c1982203e3801e557f239fac35cdb6db85c"
+  },
+  "checks": [
+    "all six I03 shell suites pass; dynamic probe separately verified in compiled emulator",
+    "ASan/UBSan production render + worker + native ABI + portable Circle peer",
+    "unchanged values with 300-block worker cadence for 12000 blocks; no failure or session churn",
+    "adjacent identical STARTs retained; every changed final control retained",
+    "actual Circle dt_link + reply queue + Output: activation, state install, loss, reconnect, lease and ACK congestion",
+    "actual Output: stale ACK rejected, FIFO epoch flush, fresh PCM accepted",
+    "ColdFire render/queue objects: no allocation/wait imports; capture has no outbound calls"
+  ],
+  "commands": [
+    "bash scripts/test_i03.sh",
+    "bash scripts/test_i03_queue.sh",
+    "bash scripts/test_i03_transport.sh",
+    "bash scripts/test_i03_handshake.sh",
+    "bash scripts/test_i03_dynamic.sh",
+    "bash scripts/test_i03_integration.sh",
+    "bash scripts/i03_prepare_circle.sh",
+    "bash deps/sidecar-firmware/pi/engine/build.sh"
+  ],
+  "circle_kernel": {
+    "target": "Pi 4 / AArch64",
+    "bytes": 2456088,
+    "sha256": "de53a952bb920e47900dcfae9d7c28cc8bceb5ee5c3a3266d5188053d24fd6b4",
+    "deployed": false
+  },
+  "limits": [
+    "USB DMA/completion progress and incoming PCM are modelled in compiled exchange.",
+    "Real USB cadence, cable detection, Circle runtime load and integrated audio/timing remain H02/I04.",
+    "Native lock/LFO fixtures do not qualify panel editing or distinct retrigger semantics."
+  ]
+}

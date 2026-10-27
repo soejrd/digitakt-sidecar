@@ -96,12 +96,10 @@ report = {
     'candidate_raw_midi_sender': '0x40004990',
     'candidate_receive_callback_slot': '0x4061046c',
     'transport_qualified': False,
-    'missing': ['nonblocking send ownership/completion and failure behavior',
-                'receive callback task/context and safe chaining',
-                'render queue throughput with dense LFO/locks',
-                'device/host activation ACK and reconnect integration'],
+    'qualification_scope': 'anchors/UI only; compiled exchange is evidence/i03/integrated-154.json',
+    'missing': ['physical USB DMA/completion cadence, disconnect detection and hardware timing'],
 }
 if a.candidate:
     report['ui_emulator'] = check_ui(a.candidate)
 a.output.write_text(json.dumps(report, indent=2)+'\n')
-print('I03 anchors/UI: PASS (transport remains unqualified)')
+print('I03 anchors/UI: PASS (compiled transport exchange is a separate probe)')

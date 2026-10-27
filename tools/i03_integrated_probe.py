@@ -32,7 +32,7 @@ def run(candidate, output):
     peer.peer_frame.argtypes=[ctypes.c_void_p,ctypes.c_uint,ctypes.c_uint32]
     peer.peer_reply.argtypes=[ctypes.c_void_p]
     peer.peer_init()
-    state={'up':True,'drop':False,'tx':0,'rx':0,'silent':0,'audible':0,'sends_masked':True}
+    state={'up':True,'drop':False,'tx':0,'rx':0,'silent':0,'audible':0,'sends_masked':True,'stall':False,'dense':False}
     pending=bytearray()
     cin=(0,0,2,3,3,1,2,3,3,3,3,3,2,2,3,1)
     def sym(n): return int(symbols[n],0)
@@ -61,7 +61,11 @@ def run(candidate, output):
             put(u,0x40610474,int(state['up']))
             put(u,0xfc0b01c4,0xc800c8 if state['up'] else 0)
             put(u,0x406104f4,2); put(u,0x4025c294,int(state['up']))
-            put(u,0x40610478,0) # synthetic USB completion between render blocks
+            if not state['stall']:
+                put(u,0x40610478,0) # synthetic USB completion between render blocks
+            if state['dense']:
+                value=u32(u,sym('usb_track_clock'))%128
+                u.mem_write(sym('fw_voice_params'),struct.pack('>h',value<<8))
             s=u32(u,0x4199f134)
             assert s<2
             u.mem_write(0x80001f60+256*s,struct.pack('>ii',123456,-123456)*32)
@@ -80,6 +84,7 @@ def run(candidate, output):
         for _ in range((ms+4)//5):
             s.run_ms(5)
             assert not s.halted,s.halted
+            peer.peer_advance(u32(s.m.uc,sym('usb_track_clock')))
             while (n:=peer.peer_reply(reply)):
                 if state['drop'] or not state['up']: continue
                 u=s.m.uc; slot=u32(u,0x4061046c)
@@ -87,7 +92,11 @@ def run(candidate, output):
                 ctx=u.context_save()
                 try:
                     s.m.ensure(0x30000000); u.mem_write(0x30000000,reply.raw[:n])
+                    # Session's persistent native block budget is exhausted
+                    # after run_ms. Give this isolated callback its own budget.
+                    s.m._fast_stepper_obj.left=100000
                     call(s.m,slot,[0x30000000,n],limit=100000)
+                    assert u.reg_read(UC_M68K_REG_PC)==0xdeadbee0, 'RX callback did not return'
                     state['rx']+=1
                 finally: u.context_restore(ctx)
     try:
@@ -105,13 +114,24 @@ def run(candidate, output):
         starts=peer.peer_starts()
         for _ in range(3): s.tap(24,hold_ms=30,after_ms=30); step(100)
         step(500); assert peer.peer_starts()>=starts+3
-        state['drop']=True; step(450)
+        state['drop']=True; step(650)
         assert not u32(s.m.uc,sym('usb_track_gate')),'lost ACKs left PCM active'
         state['drop']=False; step(1500)
         assert u32(s.m.uc,sym('usb_track_gate')),'ACK recovery failed'
         state['up']=False; peer.peer_lost(); step(150)
         assert not u32(s.m.uc,sym('usb_track_gate'))
         state['up']=True; step(1500)
+        assert u32(s.m.uc,sym('usb_track_gate')) and peer.peer_allowed()
+        # Every-block modulation with native completion progress is sustainable.
+        generation=peer.peer_session(); installs=peer.peer_installs()
+        state['dense']=True; step(1800)
+        assert u32(s.m.uc,sym('usb_track_gate')) and peer.peer_allowed()
+        assert peer.peer_session()==generation, 'dense modulation caused session churn'
+        assert peer.peer_installs()-installs>=2500, 'dense snapshots did not sustain drain'
+        # Stop completions; neither the renderer nor the worker may spin.
+        state['stall']=True; step(900)
+        assert not u32(s.m.uc,sym('usb_track_gate'))
+        state['stall']=state['dense']=False; step(1500)
         assert u32(s.m.uc,sym('usb_track_gate')) and peer.peer_allowed()
         assert state['sends_masked']
         report={'status':'verified','level':'compiled OS 1.54 + native serializer; USB DMA/PCM modelled',
@@ -120,7 +140,9 @@ def run(candidate, output):
                           'silence before ACTIVATE; fresh PCM after stale-half flush',
                           'panel SRC reaches host final 8.8 value','repeated native starts reach host',
                           'ACK loss closes gate; fresh session recovers','link loss/reconnect recovers',
-                          'preflight and sender run in one native critical section'],
+                          'preflight and sender run in one native critical section',
+                          'sustained every-block modulation with completion progress',
+                          'stalled native completions close gate; fresh session recovers'],
                 'counters':state,
                 'limits':['No physical USB/DMA, Circle scheduling or hardware timing measured.',
                           'USB descriptor submission/completion and already-decoded PCM are modelled.']}

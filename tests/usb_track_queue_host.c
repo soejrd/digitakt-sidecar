@@ -81,6 +81,13 @@ int main(void)
     assert(r.sequence == 4 && r.flags == 0);
     assert(!usb_track_control_pop(&r));
 
+    /* A slow worker must not accumulate unchanged render blocks. */
+    for (i = 0; i < 600; ++i) tick();
+    assert(!usb_track_control_failed());
+    i = 0;
+    while (usb_track_control_pop(&r)) ++i;
+    assert(i <= 10);
+
     /* Machine change invalidates without muting the next machine. */
     fw_render_machine[0] = 120;
     tick();
@@ -95,8 +102,10 @@ int main(void)
     /* Fill the bounded ring exactly. Note: capture_control reads A-H before
      * checking queue capacity, so the hook already captured the final values;
      * crossing the bound on the next block must zero current and stale PCM. */
-    for (i = 0; i < UT_QUEUE_CAPACITY; ++i)
+    for (i = 0; i < UT_QUEUE_CAPACITY; ++i) {
+        fw_voice_start = 1; /* every START must survive even identical values */
         tick();
+    }
     assert(!usb_track_control_failed());
     tick();
     assert(usb_track_control_failed());

@@ -1,0 +1,46 @@
+// Execute the actual Circle dt_link glue with its real queues and Output.
+#include "dt_link.h"
+#include "shared.h"
+#include "circle_link_adapter.h"
+#include <cassert>
+#include <cstdio>
+Output g_Output;
+Spsc<uint8_t,8192> g_MidiIn;
+Spsc<uint8_t,kMidiOutBytes> g_MidiOut;
+Spsc<TCmd,16> g_Cmds;
+static uint8_t pop() { uint8_t b; assert(g_MidiOut.pop(&b)); return b; }
+static sc_control reply() {
+  assert(g_MidiOut.size()>=2); unsigned n=pop(); n|=pop()<<8;
+  assert(n==SC_CONTROL_WIRE_SIZE && g_MidiOut.size()>=n);
+  uint8_t b[SC_CONTROL_WIRE_SIZE]; for(unsigned i=0;i<n;++i) b[i]=pop();
+  sc_control c; assert(sc_decode_control(&c,b,n)); return c;
+}
+static void hello(unsigned id,unsigned block) {
+  uint8_t b[SC_CONTROL_WIRE_SIZE]; sc_control c={id,1,block,SC_HELLO};
+  assert(sc_encode_control(b,&c)); assert(dt_link::SysEx(b,sizeof b));
+  do { c=reply(); } while(c.kind==SC_DEACTIVATE);
+  assert(c.kind==SC_HELLO_ACK && c.session==id);
+}
+static void start(unsigned id,unsigned block) {
+  uint8_t b[SC_WIRE_SIZE]; sc_frame f={}; f.session=id; f.sequence=1;
+  f.block=block; f.voice=1; f.flags=SC_START; f.params[0]=60<<8;
+  assert(sc_encode(b,&f)); assert(dt_link::SysEx(b,sizeof b));
+  auto c=reply(); assert(c.kind==SC_ACTIVATE && c.value==block);
+}
+int main() {
+  sc_frame f;
+  assert(!dt_link::Selected()); dt_link::Select(); dt_link::Poll(1);
+  assert(!(g_Output.ControlToken()&1));
+  hello(41,10); assert(!dt_link::State(&f)); start(41,11); dt_link::Poll(2);
+  assert(dt_link::State(&f) && f.params[0]==60<<8 && (g_Output.ControlToken()&1));
+  dt_link::Lost(); assert(!(g_Output.ControlToken()&1)); dt_link::Poll(3);
+  assert(!dt_link::State(&f));
+  hello(42,20); start(42,21); dt_link::Poll(4); assert(dt_link::State(&f));
+  dt_link::Poll(754); assert(!(g_Output.ControlToken()&1) && !dt_link::State(&f));
+  while(g_MidiOut.size()) pop();
+  while(g_MidiOut.size()<kMidiOutBytes-1) g_MidiOut.push(0);
+  uint8_t b[SC_CONTROL_WIRE_SIZE]; sc_control c={43,1,30,SC_HELLO};
+  assert(sc_encode_control(b,&c)); assert(dt_link::SysEx(b,sizeof b)); dt_link::Poll(755);
+  assert(!(g_Output.ControlToken()&1) && !dt_link::State(&f));
+  puts("actual Circle dt_link: handshake, state installation, loss, reconnect, lease, ACK queue congestion: PASS");
+}
