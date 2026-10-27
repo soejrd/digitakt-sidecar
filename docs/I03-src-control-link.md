@@ -59,6 +59,38 @@ firmware flash. I03 is not DONE; I04 remains blocked. The existing I02A 0.1
 hardware candidate is separate; 0.2 builds use label **I03P** and are not a
 hardware-qualified replacement.
 
+## Dynamic render probe
+
+[`tools/i03_dynamic_probe.py`](../tools/i03_dynamic_probe.py) extends the
+compiled-device probes at the render hook (`0x40077FBA`). It records final
+8.8 A-H values, note (16.16), velocity (8.8), and the `fw_voice_start` mask for
+every render block, plus each scenario's final state. Its scenarios are:
+
+- a manual baseline trigger;
+- a panel-created PTCH p-lock on step 1, with an unlocked step 2 for the
+  restore check;
+- documented LFO sound slots seeded before a trigger (PTCH is the
+  destination); and
+- three separate manual triggers, retaining every start bit in block order.
+
+The probe refuses to call a run verified unless the render assertions execute.
+It runs Unicorn in a child process, so a native `mem_map` failure is recorded
+instead of losing the caller. Current evidence:
+[`dynamic-154.json`](../evidence/i03/dynamic-154.json).
+
+**Result in this session: BLOCKED, not dynamic evidence.** The preflight
+constructs Unicorn, then `uc.mem_map` terminates the child with SIGILL
+(return code -4) before any guest code runs with the pinned patched runtime in
+the execution sandbox. The evidence therefore contains no scenario values and
+`verified: []`; it records the environment and candidate revisions only.
+
+The release condition is unchanged: run the same probe in an environment
+where the pinned patched Unicorn can map JIT memory, and use its output to
+replace the blocked evidence. The probe makes no hardware timing claim. Even
+when it runs, repeated `fw_voice_start` bits must not be described as a
+distinct Digitakt retrigger event until a dedicated trace establishes those
+semantics.
+
 ## Reproduce
 
 From the repository root, with the existing private OS fixture and patched
@@ -72,7 +104,14 @@ PYTHONPATH="$PWD/private/r03-runtime:$PWD/deps/digiemu" "$PY" \
 PYTHONPATH="$PWD/private/r03-runtime:$PWD/deps/digiemu" "$PY" \
   tools/i03_probe.py --sections private/i02-fixture/sections \
   --candidate private/i03-final --output evidence/i03/transport-154.json
+PYTHONPATH="$PWD/private/r03-runtime:$PWD/deps/digiemu" "$PY" \
+  tools/i03_dynamic_probe.py --candidate private/i03-final \
+  --output evidence/i03/dynamic-154.json
 ```
+
+`bash scripts/test_i03_dynamic.sh` runs the local helper tests. Setting
+`I03_RUN_DYNAMIC=1` and `PY` runs the emulator probe as above; without that
+environment, expect `status: blocked_environment` rather than a PASS.
 
 Candidate creation requires a fresh output directory. The UI probe checks the
 compiled descriptor, applied defaults and each panel encoder's corresponding

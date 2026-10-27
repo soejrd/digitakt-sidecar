@@ -1,0 +1,56 @@
+{
+  "schema": "i03-dynamic-154/1",
+  "hardware_test": false,
+  "level": "compiled OS 1.54 emulator; no hardware timing",
+  "candidate": {
+    "firmware_label": "I03P",
+    "usb_track_version": "0.2",
+    "syx_sha256": "13a81f4f1e214e64898239ad86ccd96be809ec535e154ac808483d40b167064f",
+    "stock_main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
+    "source_hashes": {
+      "mods/usb-track/usb_track.c": "29b2e9a51548a61521f20492bbdfdcdff07812e993ed6033a36d32ddfe9dcae3",
+      "mods/usb-track/mod.json": "10afbe181dc8518d3a5fd47a58a6d5675e8f5ff4825293438cac469888421ee8"
+    }
+  },
+  "probe": {
+    "path": "tools/i03_dynamic_probe.py",
+    "sha256": "d41b76ffe8e672a172e8edef1e157d1d19136ec359c1fd955929999cb9acd80a"
+  },
+  "runtime": {
+    "python": "3.12.14",
+    "platform": "darwin"
+  },
+  "scope": {
+    "render_hook": "0x40077FBA",
+    "values": "final 8.8 A-H, note (16.16), velocity (8.8) and fw_voice_start at the render hook",
+    "ordering": "render-block invocation order"
+  },
+  "retrigger_semantics": "unresolved: this probe records repeated start bits; it does not establish a distinct Digitakt retrigger event or its hardware timing",
+  "planned_scenarios": [
+    "baseline_manual",
+    "plock_restore",
+    "lfo_modulation",
+    "repeated_starts"
+  ],
+  "limits": [
+    "Emulator values only; no hardware timing, latency or audio result is claimed.",
+    "The LFO scenario seeds documented sound slots and is not a full panel-edit protocol test.",
+    "A blocked Unicorn preflight produces evidence of the environment failure, not a PASS."
+  ],
+  "reproduce": "PYTHONPATH=\"$PWD/private/r03-runtime:$PWD/deps/digiemu\" \"$PY\" tools/i03_dynamic_probe.py --candidate private/i03-final --output evidence/i03/dynamic-154.json",
+  "status": "blocked_environment",
+  "preflight": {
+    "command": "python tools/i03_dynamic_probe.py --worker preflight",
+    "returncode": -4,
+    "passed": false,
+    "output_tail": [
+      "unicorn-import",
+      "unicorn-construct",
+      "mem-map-start"
+    ],
+    "signal": 4,
+    "signal_name": "SIGILL"
+  },
+  "verified": [],
+  "environment_conclusion": "Unicorn cannot map executable memory in this execution sandbox; no firmware scenario ran and no dynamic behavior is claimed."
+}
