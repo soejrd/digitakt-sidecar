@@ -187,5 +187,13 @@ one-trig / five-second sweep. Before trace dumping: zero playout faults and zero
 FIFO underruns; one START consumed, 1,425 snapshots applied, queue peak 81.
 The retained ring had rolled into idle liveness snapshots, so no sweep timing
 or end-to-end latency is inferred. Host I04 regression suite passes again.
-Trace stopped and quiet limited/faded TRX enabled; audible acceptance is pending.
+Trace stopped and quiet limited/faded TRX enabled. Human reports all eight SRC
+controls feel direct and good, with continuous audio and noticeable latency.
+43/43 triggers consumed, zero playout faults. FIFO counter increased 0→53
+across trace dump plus listening; no intervening sample separates their causes.
+Use 53 as the next stability baseline. Local processing listening check also passes in response to filter/AMP/overdrive/
+sends/neighboring-track prompt. 106/106 STARTs consumed, zero faults, FIFO stays
+at 53 across the next 193 seconds. Human observes local envelopes beginning
+before returned sound; total offset is unmeasured and unresolved. Sequenced
+locks/LFO and note/velocity remain pending.
 [Physical evidence](../evidence/i04/i04q-physical.json).

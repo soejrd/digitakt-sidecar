@@ -38,5 +38,38 @@
     "Audible SRC/local processing/locks/LFO/note and velocity checks",
     "Integrated latency, jitter and local-lock alignment",
     "Physical CPU/headroom and sustained modulation capacity"
-  ]
+  ],
+  "audible_src": {
+    "human_reply": "audio continued fine. I tested all the controls, felt direct and good. Lots of latency but we know that",
+    "interpretation": "Human reports all eight SRC controls respond and audio continues; latency noticeable and not accepted",
+    "uptime_seconds": 398,
+    "armed": true,
+    "playout_faults": 0,
+    "starts": 43,
+    "consumed_starts": 43,
+    "applied": 5327,
+    "queue_peak": 81,
+    "fifo_underruns": 53,
+    "fifo_limitation": "Previous reading 0 was before command-context trace dump. No immediate post-dump reading; cannot assign 53 underruns to dump versus audible test. Use 53 as next interval baseline."
+  },
+  "local_processing": {
+    "human_reply": "I tested all the controls. All sound good. I do notice that when I tap the trigger, the envelopes trigger, but the sound triggers a bit later. this is inline with our latency-story I think. Yeah everything sounds good.",
+    "prompt_scope": [
+      "filter cutoff",
+      "AMP volume/decay",
+      "overdrive",
+      "delay send",
+      "reverb send",
+      "neighboring internal track"
+    ],
+    "result": "Human reports all good in response to requested scope",
+    "timing_observation": "Local envelopes visibly trigger before returned sound; integrated offset unmeasured and unresolved",
+    "uptime_seconds": 591,
+    "playout_faults": 0,
+    "starts": 106,
+    "consumed_starts": 106,
+    "applied": 10289,
+    "fifo_underruns": 53,
+    "fifo_delta_since_audible_src_reading": 0
+  }
 }
