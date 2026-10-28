@@ -79,7 +79,7 @@ manifest = {
     "recovery": {name: expected[name] for name in recovery_files},
     "human_gate": "Install only with speakers lowered, disposable project backed up, and the recovery files retained.",
 }
-files = {"Digitakt-V01D-diagnostic.syx": raw, **{name: path.read_bytes() for name, path in recovery_files.items()},
+files = {f"Digitakt-{args.label}-diagnostic.syx": raw, **{name: path.read_bytes() for name, path in recovery_files.items()},
          "manifest.json": (json.dumps(manifest, indent=2) + "\n").encode()}
 
 out = root / args.output

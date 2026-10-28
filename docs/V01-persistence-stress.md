@@ -299,7 +299,7 @@ starvation; a controlled priority/self-wake variant is still needed. The
 diagnostic maxima include startup/page interaction, so they are not a calibrated
 UI latency measurement. V01D remains installed until the human restores I04R.
 
-### Phase 2 isolation variants — prepared
+### Phase 2 isolation variants — V01P rejected
 
 Two diagnostic-only variants keep the protocol and `V01 DIAG` counters constant
 while changing one worker behavior:
@@ -314,13 +314,17 @@ the compiled exchange passed with the same dense stream. A deliberate
 worker-starvation regression also confirms the active queue latches fail-closed
 on overflow, not silent loss. These are emulator results, not hardware timing.
 
-`V01P` is staged at `private/v01/firmware-V01P/` (firmware SHA256
-`21365ad…c6580`) with the same I04R/I04Q/H02F/stock recovery chain. The
-physical comparison is `32/32` control versus `64/64` under V01P, read from
-`V01 DIAG`, with the Pi voice muted. If `UGAP` falls to normal while dense
-records still drain, priority/preemption is implicated; if it remains large,
-lowering priority alone is insufficient. `V01N` follows only if needed to
-separate self-rescheduling from CPU demand.
+**V01P physical result: negative.** The UI was responsive at both `32/32` and
+`64/64`; at `64/64`, `UGAP` stayed `1625 ms` and `FAULT 0`. However, with the Pi
+voice muted, a fresh Pi boot accumulated FIFO underruns `509 -> 793` and playout
+faults `66 -> 101` within seconds, with retained code-3 late events. Lowering
+priority restored UI responsiveness but broke timely control/playout service.
+[Evidence](../evidence/v01/phase2-v01p-result.json). `V01P` is rejected.
+
+The no-self-wake `V01N` variant passed the emulator page and dense-exchange
+checks but was **not physically tested**. The V01P diagnostic remains installed;
+restore I04R from `private/v01/firmware-V01P/Digitakt-I04R-previous.syx` before
+normal use.
 
 ## Phase 3 — fix and qualify a modulation budget
 

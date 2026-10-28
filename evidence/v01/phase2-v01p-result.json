@@ -1,0 +1,63 @@
+{
+  "task": "V01",
+  "phase": "2 priority isolation",
+  "status": "NEGATIVE — UI responsiveness restored, Pi delivery/stability failed",
+  "date_utc": "2026-10-28T19:34:00Z",
+  "scope": "Physical Digitakt OS 1.54 V01P diagnostic (worker priority 5) + Pi 4B 128-frame kernel, USB1 track 1, Pi voice muted",
+  "candidate": {
+    "label": "V01P",
+    "firmware_sha256": "21365ad44b6c7dd859dd58f5bc2afad9f6fa89ec2f307079057caf68694c6580",
+    "change": "USB worker priority 14 -> 5; self-wake and protocol unchanged",
+    "emulator_checks": "UI, native runtime and dense compiled exchange pass"
+  },
+  "human_trials": [
+    {
+      "settings": "SPD 32 / DEP 32, DEST TRX-B2 PTCH",
+      "before_play": {"WGAP_ms": 2781, "BATCH_ms": 31, "UGAP_ms": 1562, "FAULT": 0},
+      "after_play_10s": {"WGAP_ms": 2781, "BATCH_ms": 312, "UGAP_ms": 1594, "FAULT": 0},
+      "observation": "Responsive while setting, saving and playing"
+    },
+    {
+      "settings": "SPD 64 / DEP 64, DEST TRX-B2 PTCH",
+      "before_play": {"WGAP_ms": 1500, "BATCH_ms": 969, "UGAP_ms": 1625, "FAULT": 0},
+      "after_play_10s": {"WGAP_ms": 1500, "BATCH_ms": 969, "UGAP_ms": 1625, "FAULT": 0},
+      "observation": "Super responsive while setting, saving and playing; no UI stall reproduced"
+    }
+  ],
+  "pi_measurement": {
+    "voice_armed": false,
+    "fresh_boot": {
+      "uptime_s": 31,
+      "fifo_underruns": 509,
+      "playout_faults": 66,
+      "queue": 0,
+      "applied": 5,
+      "retained_fault": "code 3 (late), block 253314, delta 64, now 48252, due 48192"
+    },
+    "uptime_46_s": {
+      "fifo_underruns": 793,
+      "playout_faults": 101,
+      "applied": 25,
+      "retained_fault": "code 3 (late), block 273705, delta 64, now 37140, due 36736"
+    },
+    "usb": "no gaps or errors observed",
+    "interpretation": "Lower worker priority restored UI responsiveness but the worker no longer services the control/playout path promptly. FIFO underruns and late parameter faults grow without the voice being armed. This variant is rejected."
+  },
+  "evidence_classes": {
+    "physical_measurement": "V01 DIAG counters, Pi FIFO, playout faults and retained fault",
+    "human_observation": "Settings, Save and Play responsiveness at 32/32 and 64/64",
+    "hypothesis": "Priority inversion/insufficient worker service is the tradeoff; exact native scheduling path remains unproven"
+  },
+  "limitations": [
+    "The human UI readings are approximate and not calibrated.",
+    "The worker priority change affects delivery as well as preemption; this test does not separate them.",
+    "The no-self-wake V01N variant was prepared in the emulator but not physically tested.",
+    "The Pi FIFO counter is cumulative per boot; readings are reported as observed and not normalized across restarts."
+  ],
+  "safe_state": {
+    "installed_firmware": "V01P diagnostic",
+    "pi_voice_muted": true,
+    "required_restore": "private/v01/firmware-V01P/Digitakt-I04R-previous.syx"
+  },
+  "next_action": "Restore I04R. Do not adopt priority 5. Continue with V01N/no-self-wake isolation or another bounded service design, then re-qualify delivery before UI responsiveness."
+}
