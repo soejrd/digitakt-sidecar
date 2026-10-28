@@ -32,19 +32,23 @@ def analyze(text, delay=2048):
     if not rows: raise ValueError('no trace rows')
     summary=[]
     previous=None
+    previous_effective=None
     for row in rows:
         due = (row['clock']+delay) & MASK if row['sequence']==1 else (
             row['previous_due']+delta(row['block'],row['previous_block'])*32) & MASK
-        entry={'index':row['index'], 'accepted':row['accepted'], 'reason':row['reason'],
+        effective=(tuple(min(127,max(0,int(row[f'param{i}']/256))) for i in range(8)),
+                   row['note'],row['velocity'])
+        effective_change=(previous_effective is None or effective!=previous_effective or bool(row['flags']&1))
+        entry={'effective_engine_change':effective_change, 'index':row['index'], 'accepted':row['accepted'], 'reason':row['reason'],
                'slack_frames':signed(due-row['clock']), 'fifo_frames':row['fifo'],
                'queued_events':row['queued']}
         if previous is not None and row['session']==previous['session']:
             entry.update(sender_frames=delta(row['block'],previous['block'])*32,
                          rendered_frames=delta(row['rendered'],previous['rendered']),
                          requested_frames=delta(row['requested'],previous['requested']))
-        summary.append(entry); previous=row
+        summary.append(entry); previous=row; previous_effective=effective
     return {'scope':'timing metadata only; raw snapshots remain private',
-            'retained_rows':len(rows), 'minimum_slack_frames':min(r['slack_frames'] for r in summary),
+            'retained_rows':len(rows), 'effective_engine_updates':sum(r['effective_engine_change'] for r in summary), 'minimum_slack_frames':min(r['slack_frames'] for r in summary),
             'queue_peak_observed':max(r['queued_events'] for r in summary),
             'rows':summary, 'limits':['Generated/requested clocks wrap at 32 bits; interval analysis assumes <2^32 frames between rows',
                                     'A late row alone does not establish worker stall versus clock drift or host pacing cause']}

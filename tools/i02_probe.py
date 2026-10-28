@@ -122,17 +122,17 @@ def candidate_prepare(args):
         run('-m','elekloader.patch','--stock',str(args.stock.resolve()),
             *[v for m in mods for v in ('--mod',str(m))],
             '--out',str(artifacts/'I02.syx'),'--version',
-            'H02F' if args.diagnostic else ('I02A' if version=='0.1' else 'I03P'))
+            getattr(args,'label',None) or ('H02F' if args.diagnostic else ('I02A' if version=='0.1' else 'I03P')))
     p,_=firmware_prepare(str(artifacts/'I02.syx'),str(root/'emulator'))
     shutil.copyfile(args.fixture/'plusdrive.img',p.card)
     os.environ.update(p.env())
     first_run(p,progress=lambda e:print(e.step,e.kind,flush=True) if e.kind in ('start','done') else None)
     assign_project(p,root)
-    write_candidate_metadata(root,p,version,args.diagnostic)
+    write_candidate_metadata(root,p,version,args.diagnostic,getattr(args,'label',None))
     print('CANDIDATE BOOTED AND ASSIGNED',flush=True)
 
 
-def write_candidate_metadata(root,p,version,diagnostic=False):
+def write_candidate_metadata(root,p,version,diagnostic=False,label=None):
     artifacts=root/'artifacts'
     (root/'fixture.json').write_text(json.dumps({
         'firmware_root':str(Path(p.root).relative_to(root)),
@@ -140,7 +140,7 @@ def write_candidate_metadata(root,p,version,diagnostic=False):
         'syx_sha256':r03.sha(artifacts/'I02.syx'),
         'stock_main_sha256':MAIN_SHA,
         'usb_track_version':version,
-        'firmware_label':'H02F' if diagnostic else ('I02A' if version=='0.1' else 'I03P'),
+        'firmware_label':label or ('H02F' if diagnostic else ('I02A' if version=='0.1' else 'I03P')),
         'compiler_defines':['USB_TRACK_DIAGNOSTIC'] if diagnostic else [],
         'source_hashes':{str(f.relative_to(ROOT)):r03.sha(f) for f in
             sorted(set([p for folder in ('mods/usb-track','mods/usb-midi')
@@ -438,6 +438,7 @@ def main():
     p.add_argument('--stock', type=Path, required=True)
     p.add_argument('--fixture', type=Path, required=True)
     p.add_argument('--diagnostic', action='store_true', help='H02F: corrected native mode with SRC diagnostics')
+    p.add_argument('--label', help='explicit private candidate four-character firmware label')
     args = ap.parse_args()
     {'prepare':prepare,'candidate':candidate_prepare,'check':check}[args.command](args)
 

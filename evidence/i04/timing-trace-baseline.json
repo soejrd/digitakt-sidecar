@@ -1,0 +1,11 @@
+{
+  "task": "I04",
+  "scope": "physical trace build baseline before controlled muted sweep",
+  "build": "Oct 28 2026 08:17:23",
+  "uptime_seconds": 51,
+  "streaming": true,
+  "fifo_underruns": 14,
+  "playout_faults": 0,
+  "armed": false,
+  "trace_arm_command": "trxtrace=on accepted; forces mute"
+}

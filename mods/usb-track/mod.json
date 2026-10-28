@@ -1,6 +1,6 @@
 {
   "id": "usb-track",
-  "version": "0.3",
+  "version": "0.4",
   "title": "USB track prototype",
   "license": "GPL-2.0-or-later",
   "device": "digitakt-mk1",

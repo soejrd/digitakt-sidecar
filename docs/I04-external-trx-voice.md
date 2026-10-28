@@ -1,212 +1,173 @@
 # I04 — external TRX-B2 voice
 
-Status: **three physical hits audible; 42.7 ms candidate still fails muted SRC;
-blocked on timing-trace deployment and real-traffic replay** (2026-10-28). Owner: Codex.
-Physical Pi is explicitly muted. I04 is not DONE.
+Status: **three physical hits audible; SRC traffic overruns measured; effective-
+control firmware candidate I04Q checked, awaiting human-approved installation**
+(2026-10-28). Owner: Codex. I04 is not DONE.
 
-## Current implementation
+## What is installed and what is staged
 
-One persistent real mdkit TRX-B2 uses the public C API at
-`96157fe4fbda17bf4cae3168f52437d8232e6570`. Engine arithmetic is unchanged.
-SRC A–H map to PTCH, DEC, RAMP, HOLD, TICK, NOIS, DIRT, DIST; signed 8.8 values
-truncate and clamp to 0–127. Wire `voice` is a **nonzero hit generation**, not
-track ID; the only supported audio track is implicit in the protocol. Every
-START installs all eight values before triggering; parameter-only events keep
-the tail. PTCH owns pitch; note does not transpose this percussion prototype.
-Host velocity gain is unity, leaving Digitakt local AMP velocity behavior to be
-verified physically. Mono channel 0 is returned; channels 1–7 are zero. Fixed
-0.125 gain and ±4095 int16 ceiling limit output to about −18 dBFS before local
-processing; converter overshoot can clip at that ceiling.
+- **Digitakt:** physical H02F OS 1.54 candidate, USB1 on audio track 1. Its sender
+  still publishes every changed fractional 8.8 control snapshot.
+- **Pi:** timing-trace kernel, native-rate real TRX-B2, generation fix and
+  experimental 2,048-frame (42.667 ms) playout / 256 events. Audio is muted;
+  trace is frozen at the first captured SRC failure. No new SD update is needed
+  for I04Q; the 61-byte protocol is unchanged.
+- **Staged only:** `private/i04/firmware-I04Q/` contains verified I04Q firmware,
+  previous H02F and stock OS 1.54 recovery plus a source/hash manifest. Only the
+  main OS section differs from stock; bootstrap/updater/coproc sections stay
+  byte-identical. No hardware firmware installation has occurred this session.
 
-TRX-B2 remains at 44.1 kHz. `audio/src_44148.c` supplies causal 48 kHz output with
-a 128-tap, 160-phase Blackman-windowed sinc, 20 kHz cutoff, exact 160/147 ratio,
-and no native lookahead. Each 48,000 output frames consumes 44,100 native frames.
-History persists through STARTs, resetting on session invalidation. Coefficients
-initialize before activation. Render neither allocates, waits nor calls USB.
-R05's original 32-tap benchmark remains historical and unchanged.
+## Measured diagnosis and targeted change
 
-`audio/playout.c` owns **256 bounded snapshots**. First START anchors sender
-block time to current render time plus **2,048 frames (42.667 ms)**. Subsequent
-deadlines preserve sender block differences at 32 output frames/block, including
-wrap and events falling within Circle's 12-frame render blocks. Admission copies
-an immutable snapshot before ACTIVATE: ACK means the scheduled queue owns it;
-synthesis fires only at its deadline. Late/order/session/capacity/horizon faults
-invalidate and disarm; no silent coalescing, late replay or deadline rebasing.
-The future horizon is one second. Native mdkit trigger boundaries require at
-least 35 output frames; sender granularity makes the supported START minimum
-64 frames / two blocks (1.333 ms). Pending triggers and adjacent-block STARTs
-fail closed instead of merging hits.
+The [physical trace](../evidence/i04/timing-trace.json) retained 128 consecutive
+SRC updates: **4,064 source frames (84.667 ms)** took **5,656 USB-requested frames
+(117.833 ms)** to arrive. Generated frames advanced 5,652, only four fewer than
+requested frames across this interval. Large delivery gaps occur at retained
+indexes **1, 64 and 127**, matching the sender's **63-record worker budget**.
+The final record was 128 frames late; subsequent status showed three faults.
+The human also reported sluggish PTCH control. The trace supports a sustained
+control-delivery deficit, not simply one buffer-size miss. It does not isolate
+all native sender CPU, task-scheduling or USB costs. Raw control snapshots/logs
+remain private; public evidence contains timing and change flags only.
 
-**Timing is unqualified.** The increased buffer covers the modelled normal
-50-block (~33.3 ms) control-worker batching with margin. It does not remove
-initial transport, engine quantization, filter/USB/FIFO delay, clock drift, or
-align the Digitakt's current local locks with delayed audio. Worst-case slower
-workers can still fail. 42.667 ms is an experimental extra buffer, not an
-accepted musical latency or a measured total. A faster firmware worker,
-lookahead/compensation or a revised contract may be needed after measurements.
+**119 of those 128 records changed only fractional bits that the existing TRX
+wrapper discards.** Nine effective state records (including the first retained state) suffice; no START
+occurred in this retained window. I04Q (`usb-track` 0.4) applies the same signed
+8.8 truncation/clamp to 0–127 **before comparison and queue publication**. Every
+effective integer control change, START (including adjacent identical ones),
+note/velocity change and periodic liveness snapshot remains ordered. This is
+normalization for the current integer TRX-B2 API, not arbitrary update-rate
+limiting or a claim to transport full fractional synthesis precision.
 
-## Safety, replay and diagnostics
+The production capture regression was RED before: 128 records instead of nine.
+It is GREEN after: nine records; adjacent START and note/velocity preservation
+and clamp endpoints pass. Real mdkit PCM is bit-identical for all fractional
+updates versus effective-only updates at the same intended intervals, with
+both STARTs consumed. Replaying the retained physical timing through the real
+scheduler reproduces the original 128-frame late failure; retaining the nine
+effective events admits them without rebasing deadlines. This proves the
+retained-window correction and engine equivalence, **not future physical timing**.
+Fast/deep modulation that changes integer values every block may still exceed
+capacity and remains a stress/architecture question.
 
-Apply patches **0001–0009** at sidecar-firmware
-`6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457`, then use the I04 overlay. mdkit
-inputs must match their pin and remain unchanged. NOTICE preserves licences;
-no firmware-derived code/data enters the host overlay. The stock Rytm selection
-path remains separate. Private firmware, captures, kernels and rollback files
-stay ignored. The current fix is in tracked overlay sources, not a dirty-only
-dependency edit. No new Digitakt firmware flash is required; H02F remains.
+[Candidate and regression evidence](../evidence/i04/effective-control-candidate.json).
 
-TRX audio defaults **off**. `:trx=on` requires an active USB1 session, binds to it
-and fades over 200 ms. `:trx=off` silences newly rendered PCM. Loss/reconnect or
-invalidation disarms; enabling never changes timestamp mapping. `:trxstatus`
-reports arm, queue/peak, lifetime fault count, applied/START/consumed counts and
-render frame. Last fault code/block/flags/delta/now/due survives session resets.
-Codes: 1 invalid, 2 order/session, 3 late, 4 horizon, 5 capacity, 6 START spacing,
-7 engine install/pending trigger, 8 missed render deadline. Fixed metadata is
-captured at failure and printed only on status requests. Per-session counters
-reset; they cannot count all taps across invalidations. Pi max-block timing
-includes synthesis work.
+## Current voice/transport contract
 
-## Physical findings and regression evidence
+One persistent real mdkit TRX-B2 at
+`96157fe4fbda17bf4cae3168f52437d8232e6570` uses its public C API; synthesis
+arithmetic is unchanged. SRC A–H map to PTCH, DEC, RAMP, HOLD, TICK, NOIS, DIRT,
+DIST. Wire `voice` is a nonzero **hit generation**, not track ID. Track 1 is
+implicit. PTCH owns pitch; note does not transpose this percussion prototype.
+Host velocity gain is unity; physical local AMP velocity behavior is unverified.
+Parameter-only updates keep the tail. Fixed 0.125 gain and ±4095 int16 ceiling
+limit mono return channel 0 to about −18 dBFS before local processing; channels
+1–7 are zero. Converter overshoot can clip at this ceiling.
 
-| Check | Result and scope |
+TRX stays at 44.1 kHz. The causal 128-tap, 160-phase Blackman-windowed sinc
+(20 kHz cutoff) supplies exact 160/147 conversion to 48 kHz without native
+lookahead: 48,000 output frames consume 44,100 native frames. History persists
+through STARTs and resets on invalidation. Coefficients initialize before
+activation. Render never allocates, waits or calls USB. R05 remains historical.
+
+The bounded scheduler owns immutable complete snapshots before ACTIVATE. ACK
+means the queue owns the validated state; synthesis fires at its due output
+sample. First START anchors sender block time to current render time plus
+2,048 frames; later deadlines preserve sender deltas at 32 output frames/block.
+Late/order/session/capacity/horizon failures close the gate; no silent coalescing,
+late replay or rebasing. Native mdkit boundaries require at least 35 output
+frames between STARTs; sender granularity makes the supported minimum two
+blocks / 64 frames (1.333 ms). Pending/too-close STARTs fail visibly.
+
+**42.667 ms is experimental added buffering, not accepted musical latency.**
+It neither removes initial transport, engine quantization, filter/USB/FIFO delay
+and drift nor aligns current Digitakt local locks with delayed audio. The human
+explicitly noted that this is long and agreed only to testing. Worker/protocol
+improvements or lookahead/compensation may still be needed for acceptable timing.
+
+## Safety, trace and dependency replay
+
+TRX defaults off. `:trx=on` requires an active session and fades over 200 ms;
+loss/invalidation/reconnect disarms. `:trx=off` silences newly generated PCM.
+`:trxstatus` reports queue/fault/START/consumed counters; last-fault metadata
+survives reset. Per-session counts do not count all taps across invalidations.
+
+`:trxtrace=on` forces mute and starts a fixed 128-record ring; enabling voice is
+rejected while capture is enabled. Each install records source frame, generated
+and transport-requested frame clocks, previous sender/deadline, FIFO/queue and
+admission result. It freezes on first rejection and survives reconnect.
+`:trxtrace` dumps oldest-first in command context; `:trxtrace=off` stops capture
+and leaves mute. Output requested-frame counter includes silence/underflows;
+it is not physical returned-audio or USB-completion timing. Clock fields wrap
+at 32 bits. Dumping can stall output; exclude dump time from runtime conclusions.
+Raw payloads stay private; `tools/i04_analyze_trace.py` exports timing/change
+metadata only. Bounds/freeze/reset/mute interlock and analyzer tests pass.
+
+Pi changes replay as patches 0001–0009 at sidecar-firmware
+`6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457`, plus the tracked I04 overlay. mdkit
+is pinned and unchanged; NOTICE retains licences. No firmware-derived code/data
+enters the host overlay. Digitakt changes are tracked under `mods/usb-track/`;
+elekloader remains pinned/unchanged. I04Q adds no hooks or firmware sites, only
+normalization inside the existing render event. Kernels, firmware, full captures
+and original files remain ignored/private. No publishing/push occurred.
+
+## Evidence and executed checks
+
+| Scope | Result |
 | --- | --- |
-| Initial corrected routing candidate | Expected build/USB streaming; human heard no taps, 37 playout faults, underruns rose 8→1,828. [Failure](../evidence/i04/physical-silence.json) |
-| Diagnostic single muted tap | Code 1, START flag; invalid-generation rejection. [Baseline](../evidence/i04/diagnostic-baseline.json), [red/green generation regression](../evidence/i04/generation-regression.json) |
-| Generation fix | Both host layers wrongly required `voice == 1`; real worker increments it each hit. Accepting nonzero generations fixes the host reproduction. Isolated old fixtures used constant 1 and missed the bug. |
-| Corrected physical muted tap | START/consumed 1→2, zero faults, underruns stayed 15. Cable was changed near startup; this is not formal reconnect qualification. [Baseline](../evidence/i04/generation-fix-baseline.json), [tap](../evidence/i04/generation-fix-one-tap.json) |
-| Three audible corrected hits | Human confirmed three hits; START/consumed 2→5, arm 1, zero faults; underruns stayed 15. This proves audible hits only. [Evidence](../evidence/i04/physical-audible.json) |
-| PTCH change | Human reported sound stopped immediately on changing PTCH. Code 3 parameter-only event was 608 frames / 12.667 ms late; faults reached 33. Explicit mute accepted. [Evidence](../evidence/i04/ptch-failure.json) |
-| Bounded control-window monitor | USB kept streaming with no new USB gaps/errors, but FIFO underruns increased. It overlaps failed qualification; no stable audio/headroom proof. Details are in PTCH evidence. |
+| Initial silence | `voice == 1` rejected later hit generations; 37 faults. Fixed in both host layers; real worker regression retains generations 1–4. [Evidence](../evidence/i04/generation-regression.json) |
+| Physical hits after generation fix | One muted tap consumed, then human heard three hits; zero faults, FIFO stayed at 15 startup underruns. [Evidence](../evidence/i04/physical-audible.json) |
+| Initial PTCH failure | Code 3; parameter event 608 frames late; explicit mute. [Evidence](../evidence/i04/ptch-failure.json) |
+| Larger-buffer physical failure | One muted tap + PTCH sweep: five code-3 faults, last event 20 frames late, FIFO 1→365. [Evidence](../evidence/i04/batch-fix-failure.json) |
+| Trace baseline/result | Expected build, zero initial faults, 14 startup underruns; first failure retained privately and sanitized. [Baseline](../evidence/i04/timing-trace-baseline.json), [timing](../evidence/i04/timing-trace.json) |
+| I04Q | Build/lint/patch, protected-section verification, emulator boot/assignment pass. All eight native encoder edits pass, including navigation off the read-only diagnostic page. [UI](../evidence/i04/effective-ui.json) |
+| I04Q compiled exchange | Native serializer/RX bridge/render/worker, ACK/loss/reconnect, dense modulation with modelled completions pass. [Exchange](../evidence/i04/effective-exchange.json) |
+| Host production-source tests | ASan/UBSan engine/queue/native/Circle, integer/fractional PCM equality, nine-record capture, adjacent START preservation and captured-timing replay pass. |
+| Firmware render object | ColdFire compilation; no allocator/wait imports. No complete hardware render/headroom claim. |
+| Filter | Sampled 18 kHz +0.000496 dB; 22 kHz −81.08 dB; impulse 64→139, designed delay 63.5 native samples (~1.440 ms). Finite-grid, host-only. [Evidence](../evidence/i04/filter.json) |
 
-The generation regression executes real firmware render/queue/worker/native
-transport → portable host → scheduled real engine. Before its fix, native hit 2
-reset the session; afterward generations 1–4 were retained and consumed.
-
-The expanded test adds 1,000 per-block SRC edits with both slow initial service
-(50 blocks) and fast startup followed by normal 50-block batches. With the old
-1,024-frame delay it reproduces **code 3** in the fast-start case (now 36672,
-due 36160). Slow startup additionally needs more queue space: a 1,024-delay
-run with enlarged capacity peaked at 132 pending events. With delay 2,048 and
-capacity 256, both cases retain the session and apply 1,008 / 1,007 snapshots
-including periodic snapshots, queue peaks 164 / 66. No scheduling guard was
-removed. This is a host correction to the reproduced batching fault; the new
-buffer/capacity are not yet physically qualified.
-
-## Other executed checks
-
-- ASan/UBSan engine, scheduler, native bridge and actual Circle glue/Output tests
-  pass: PCM block invariance, exact rate, generation handling, native START
-  consumption, timing/order/wrap/capacity/late guards, arm/fade, loss/reconnect,
-  congestion, last-fault preservation and default silence.
-- [Filter](../evidence/i04/filter.json): 18 kHz gain +0.000496 dB, 22 kHz rejection
-  −81.08 dB, worst sampled 22–22.05 kHz rejection −80.15 dB. Finite grids do not
-  prove every frequency or final analog/int16 quality. DC/count checks pass.
-  Input impulse 64 peaks at output 139; designed delay 63.5 native samples
-  (~1.440 ms), excluding engine/transport/device delays.
-- [Current dense host benchmark](../evidence/i04/playout-benchmark.json): optimized
-  desktop ten-second synthesis/queue workload; no USB/Pi worst-case scheduling
-  claim. Pi kernel build and eight-patch replay pass; candidate hashes identify
-  exactly which configuration was built. Older candidate evidence is historical.
+Reproduce from this repository:
 
 ```sh
-bash scripts/i04_prepare_circle.sh
 bash scripts/test_i04.sh
+bash scripts/test_i03_queue.sh
 python3 scripts/test_i04_replay.py
-# Negative control; expected failure with old buffer:
-I04_TEST_FLAGS=-DSC_PLAYOUT_DELAY=1024u bash scripts/test_i04_generation.sh
-bash deps/sidecar-firmware/pi/engine/build.sh kernel
+python3 scripts/i04_prepare_firmware.py
+# Private candidate generation (fresh directory; Unicorn JIT needs executor access):
+PYTHONPATH="$PWD/private/r03-runtime:$PWD/deps/digiemu" \\
+  ../digiemu/.venv/bin/python tools/i02_probe.py candidate \\
+  --root private/i04-effective --stock private/i02-fixture/Digitakt_OS1.54.syx \\
+  --fixture private/i02-fixture --diagnostic --label I04Q
 ```
 
-## Hardware state, release condition and recovery
+The candidate directory already exists; use a fresh directory for rebuilding.
+The preparation script checks candidate source pins, container checksums/layout,
+main in-place expansion and byte-identical stock sections 2/4/5/8. Candidate
+I04Q SHA-256 is `75f5b66ae5db95676eb767ece3239ec81a9281a42966fbca7689b22a8b14bb8b`.
+Verified previous H02F and original stock recovery are staged alongside it.
+No kernel SD swap is needed. Existing SD rollback evidence remains in Git and
+`evidence/i04/*-sd-deployment.json`; settings/prior backups were preserved.
 
-The batch-fix kernel is on the physical Pi, booted but muted after a failed
-controlled PTCH test. The timing-trace diagnostic is staged privately, not deployed. Existing SD updates were read-back verified, safely ejected,
-and preserved settings and previous backups:
-[initial](../evidence/i04/sd-deployment.json),
-[diagnostic](../evidence/i04/diagnostic-sd-deployment.json),
-[generation fix](../evidence/i04/generation-fix-sd-deployment.json).
+## Human installation gate and remaining acceptance
 
-[Batch-fix SD deployment](../evidence/i04/batch-fix-sd-deployment.json) verified
-current/new kernel and manifests with all other files/settings preserved. Fresh
-backup pair is `kernel8-rpi4.before-batch-fix.img` / `SHA256SUMS.before-batch-fix`
-on card and `private/i04/sd-backup-batch-fix/` locally. User notes 43 ms is long
-and agrees to testing first; no timing acceptance is inferred. Next: human
-reinserts card with Pi off and boots muted; capture baseline, test hits and SRC edits muted for faults,
-then explicitly enable limited/faded audio with speakers lowered. Verify actual
-SRC A–H, locks/LFOs/retriggers, note/velocity, local filter/AMP/sends and unaffected
-neighboring track. Identify a usable capture channel before deriving latency;
-H02's failed USB MAIN pulse matching is not a valid timing reference. Analog
-loopback may be needed. Measure latency/jitter/local-lock alignment, queue margin,
-Pi worst-case scheduling, stability and reconnect before timing acceptance.
+Before a firmware trial, obtain the human's confirmation that projects/sounds
+are saved/backed up, the transfer connection/recovery path is available, and the
+concrete I04Q candidate is approved. Follow the existing
+[human recovery procedure](I02-one-track-routing.md#human-hardware-trial-and-recovery-gate):
+stock recovery uses FUNC at power-on, TRIG 4 / OS UPGRADE and Transfer legacy
+upgrade. Keep both previous H02F and stock 1.54 files available. No bootloader or
+internal wiring change. Computer UI access remains prohibited; human handles
+installation. The Pi is currently muted and trace-interlocked.
 
-For rollback, power Pi off and restore a matching backed-up kernel **and full
-manifest** pair. Generation-fix deployment preserved diagnostic-1 as
-`kernel8-rpi4.before-generation-fix.img` / `SHA256SUMS.before-generation-fix`.
-Verified H02 kernel remains `private/h02/trial/kernel8-rpi4-clock.img`; stock
-Digitakt recovery is `private/h02/trial/Digitakt-OS1.54-stock-recovery.syx` under
-the existing human procedure. Do not restore an older full manifest blindly
-with a newer kernel. No bootloader/internal wiring changes.
+After I04Q installation, reconnect Digitakt to Pi. Start a fresh muted trace,
+verify effective-update traffic and no fault during the same PTCH gesture.
+Then stop trace, explicitly enable faded audio with speakers low, and verify
+SRC A–H, locks/LFO/retriggers, local filter/AMP/sends, neighboring track and
+note/velocity policy. Measure integrated latency/jitter/local-lock alignment,
+Pi maximum render/queue margin, stability and reconnect. The old failed USB
+MAIN pulse matching is not a valid latency reference; identify a usable capture
+channel or analog loopback. Reduce/revise timing only against measured evidence.
 
-I04 remains incomplete. V01 depends on it; no independent READY task exists.
-
-## Physical batch-fix failure and timing trace
-
-[Muted batch-fix baseline](../evidence/i04/batch-fix-baseline.json): expected build,
-USB streaming, zero faults, one startup FIFO underrun. Human performed one trig
-and about five seconds PTCH sweep while stopped/muted. [Failure](../evidence/i04/batch-fix-failure.json):
-five late faults; final parameter-only event block 1525558 / delta 1 had due
-54496 and current render 54516, **20 frames (0.417 ms) late**. FIFO underruns
-became 365. No accepted SRC or timing result; increasing the buffer was not a
-physical fix. The existing total/last-fault metrics cannot distinguish actual
-worker gaps from drift between sender, rendered and transport-requested clocks.
-Steady-state logged render/pass work was low, but that is not a complete
-scheduling trace; a long startup pass is separate from this control test.
-
-Patch 0009 provides the next feedback loop. `:trxtrace=on` forces mute and starts
-a fixed 128-record ring. Each admitted/rejected install records the source frame,
-pre-admission clock, absolute generated frames, transport requested frames, FIFO
-level, previous sender block/deadline, queue occupancy and result. It freezes on
-the first rejection; Clear/reconnect does not erase it. Trace enable blocks audio
-enable. `:trxtrace=off` stops capture and leaves audio muted. `:trxtrace` prints
-retained rows oldest-first in command context, not render/install. Requested
-frame count is a 32-bit atomic addition per Output pull, including silence and
-underflows; it is **not** physical returned-audio latency or a USB-completion clock.
-Other trace clocks are low 32 bits; interval analysis must handle wrap.
-
-Raw controls/notes and logs stay ignored/private. `tools/i04_analyze_trace.py`
-exports timing-only rows with signed slack and sender/generated/request deltas,
-rejecting truncated/discontinuous dumps. Do not infer a root cause from one late
-row. Trace printing may stall output, so dump only after freeze while muted and
-exclude dump time from runtime interpretation. Host tests cover accepted/fault
-records, freeze across reset, oldest/newest retention after 200 records, mute
-interlock, requested-frame counting and analyzer arithmetic/privacy checks.
-ASan/UBSan, nine-patch replay and Pi cross-build pass. No live trace or fix result
-is claimed yet.
-
-[Timing-trace candidate](../evidence/i04/timing-trace-candidate.json) is staged in
-`private/i04/timing-trace/`, with the same 2,048-frame delay/256-event policy and
-verified H02 rollback. Stage/recheck with:
-
-```sh
-python3 scripts/i04_prepare_trial.py \
-  --evidence evidence/i04/timing-trace-candidate.json --trial-name timing-trace
-```
-
-Release condition: human returns SD with Pi off; make a fresh current-kernel/full
-manifest backup, install/read-back/eject timing-trace, boot muted, arm capture
-before one stopped trig/PTCH sweep, dump the first frozen failure privately and
-replay its real timing through the scheduler. Choose clock/worker changes from
-that evidence. Do not deploy another buffer-only increase or claim the existing
-42.667 ms is musically accepted. No independent READY task exists.
-
-## Timing-trace SD deployment — 2026-10-28
-
-[Deployment](../evidence/i04/timing-trace-sd-deployment.json): returned SD matched
-the batch-fix kernel; full existing manifest passed. Fresh kernel/full-manifest
-backups stored locally in `private/i04/sd-backup-timing-trace/` and on card with
-`before-timing-trace` names. Timing-trace candidate/new manifest passed read-back;
-all other regular files/settings/earlier backups preserved. Card safely ejected.
-No trace boot or captured timing result yet. Next: human boots with Digitakt
-connected and leaves trigs/SRC untouched until baseline/capture are armed. Audio
-remains muted; trace enable interlocks voice enable. Restore the matching
-before-timing-trace kernel/manifest pair for immediate rollback.
+No physical I04Q result exists yet. Fast/deep integer modulation remains a
+capacity limit to test. I04 is incomplete, V01 depends on it, and there is no
+independent READY task.

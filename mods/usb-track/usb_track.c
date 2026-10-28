@@ -108,11 +108,17 @@ static int capture_control(int32_t track)
     changed = !control_have_machine || (fw_voice_start & 1u) ||
               captured_note != fw_voice_note[0] || captured_velocity != fw_voice_vel[0];
     for (i = 0; i < 8; ++i) {
-        params[i] = (int16_t)cm_src_value(0, (int32_t)i);
+        /* TRX-B2's public API takes integer 0..127 controls. Normalize before
+         * comparison/queueing exactly as the host does; fractional smoothing
+         * changes cannot change engine output and must not flood the worker. */
+        int32_t value = (int16_t)cm_src_value(0, (int32_t)i) / 256;
+        if (value < 0) value = 0;
+        if (value > 127) value = 127;
+        params[i] = (int16_t)(value * 256);
         changed |= params[i] != captured_params[i];
     }
     /* Suppress only identical non-START snapshots; retain a periodic sample
-     * so the existing block lease remains live. Every change and adjacent
+     * so the existing block lease remains live. Every effective integer change and adjacent
      * START keeps its original block and FIFO position. */
     if (!changed && usb_track_clock - captured_at < 64u)
         return 0;

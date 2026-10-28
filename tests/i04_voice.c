@@ -42,6 +42,31 @@ int main(void) {
     assert(sc_trx_install(&a,&f) && sc_trx_install(&b,&f));
     sc_trx_render(&a,whole,48000); sc_trx_render(&b,ragged,48000);
     assert(!memcmp(whole,ragged,sizeof whole));
+    sc_trx_clear(&a); sc_trx_clear(&b);
+    int16_t raw_pcm[32][8], effective_pcm[32][8], previous[8]={0};
+    unsigned generation=0, effective_installs=0;
+    f=frame();
+    for(unsigned n=0;n<128;++n) {
+        f.flags=n%64==0 ? SC_START : 0;
+        if(f.flags) ++generation;
+        f.voice=generation; f.params[0]=(int16_t)(36*256-(int)n*16);
+        struct sc_frame q=f;
+        for(unsigned k=0;k<8;++k) {
+            int value=q.params[k]/256;
+            if(value<0) value=0; if(value>127) value=127;
+            q.params[k]=(int16_t)(value*256);
+        }
+        assert(sc_trx_install(&a,&f));
+        if(n==0 || f.flags || memcmp(q.params,previous,sizeof previous)) {
+            assert(sc_trx_install(&b,&q)); ++effective_installs;
+            memcpy(previous,q.params,sizeof previous);
+        }
+        sc_trx_render(&a,raw_pcm,32); sc_trx_render(&b,effective_pcm,32);
+        assert(!memcmp(raw_pcm,effective_pcm,sizeof raw_pcm));
+    }
+    assert(effective_installs<16 && a.consumed_starts==2 && b.consumed_starts==2);
+    puts("Raw fractional updates vs effective integer-only controls: identical real-engine PCM, both STARTs consumed: PASS");
+    f.flags=0;
     f.voice=2; assert(sc_trx_install(&a,&f));
     f.voice=0; assert(!sc_trx_install(&a,&f));
     puts("I04 real TRX-B2: ragged PCM equality, exact rate, note/velocity policy, retriggers, bounds, reset: PASS");

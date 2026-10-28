@@ -1,0 +1,106 @@
+{
+  "task": "I04",
+  "scope": "physical timing diagnosis and effective-control sender fix; candidate not flashed",
+  "trace_findings": {
+    "retained_records": 128,
+    "source_frames": 4064,
+    "source_ms": 84.66666666666667,
+    "generated_frames": 5652,
+    "requested_frames": 5656,
+    "requested_ms": 117.83333333333333,
+    "minimum_slack_frames": -128,
+    "large_gap_record_indexes": [
+      1,
+      64,
+      127
+    ],
+    "worker_budget_records": 63,
+    "effective_integer_changes": 9,
+    "fractional_only_redundant_changes": 119,
+    "human_observation": "PTCH felt sluggish on Digitakt; observation, not a measured GUI latency"
+  },
+  "change": "usb-track 0.4 normalizes SRC A-H using the existing TRX wrapper integer truncation and clamp before comparison/staging; keep all effective changes, every START, note/velocity changes and periodic lease snapshot",
+  "checks": [
+    {
+      "command": "bash scripts/test_i04_effective.sh",
+      "red": "before fix 128 records vs expected 9 (exit 134)",
+      "green": "9 effective records, adjacent STARTs and note/velocity preserved; captured scheduler timing replay original path rejects 128 frames late while nine effective updates are admitted"
+    },
+    {
+      "command": "bash scripts/test_i04.sh",
+      "result": "PASS",
+      "scope": "ASan/UBSan; bit-identical real-engine PCM for full fractional vs effective-only updates, both triggers consumed; full native/Circle/queue regressions"
+    },
+    {
+      "command": "bash scripts/test_i03_queue.sh",
+      "result": "PASS",
+      "scope": "actual render hook and ColdFire no-allocation/wait import checks"
+    },
+    {
+      "command": "candidate build/lint/patch + emulator boot",
+      "result": "PASS",
+      "label": "I04Q",
+      "usb_track_version": "0.4"
+    },
+    {
+      "command": "tools/i03_probe.py --candidate private/i04-effective",
+      "result": "PASS",
+      "scope": "all eight native panel encoders; probe corrected to leave read-only diagnostic page"
+    },
+    {
+      "command": "tools/i03_integrated_probe.py --candidate private/i04-effective",
+      "result": "PASS",
+      "scope": "compiled native serializer/RX/worker/ACK/loss/reconnect; USB completions modelled"
+    },
+    {
+      "command": "python3 scripts/i04_prepare_firmware.py",
+      "result": "PASS",
+      "scope": "source pins, checksum/container/protected stock sections and H02F/stock recovery, local read-back only"
+    }
+  ],
+  "firmware": {
+    "label": "I04Q",
+    "bytes": 1482272,
+    "sha256": "75f5b66ae5db95676eb767ece3239ec81a9281a42966fbca7689b22a8b14bb8b",
+    "only_changed_section": 3,
+    "stock_sections_verified": [
+      2,
+      4,
+      5,
+      8
+    ],
+    "previous_H02F_sha256": "5acb609a4b409153d2eed7b528becf4ca553d7cce548031f00d4910c4e0ebd33",
+    "stock_recovery_sha256": "f78ba80fa7b1da5fb0e1ff61ad61e9e71aafe79f4364fc49679f3651353e3cf6",
+    "hardware_installed": false
+  },
+  "source_sha256": {
+    "control/device_link.c": "802f7a4ec99634e475b07e0139ebd466a89c77e37d1df03525ea7139e20bd170",
+    "control/device_link.h": "a2cc8967016b7fd5f07ab0efa4ad79a337d811fde86fd574a61b5b1715aefc93",
+    "control/dt1_transport.c": "91383c3c0096fe71dbd83c38615a18593f55ceec6bdeaaeb800bd309f7b67b41",
+    "control/dt1_transport.h": "36605565ed400c442817a64e2782f4d365555ed1e36dd24f714e9e1e18653162",
+    "control/link.c": "62327cdda3c9d30c865c3faad4d8275de00f16142103d8b0e20446ccdb384dac",
+    "control/link.h": "52dd5c5186ab590f1d9fbcfe13ed7a520f293e56a34f85f5d1a1afa8c8e67540",
+    "control/sc_memory.h": "f45d7f79fe37f563581f751f9330709b35d912d9ddc68a42a7453dbbb2ed5ca1",
+    "control/sysex_split.c": "edfcffa64dea00fd50be0f909f27ce8d1a843eceb1888b2fe98a712751b425d4",
+    "control/sysex_split.h": "bdc3f393187f792419b955514e56c6704811ea4e0e64332dab4916276f09580d",
+    "control/usbmidi.c": "1e8d69223b593ca5c6293e5931d617aa2c46806b0a2ff1fcb0b10fb03fbdd93b",
+    "control/usbmidi.h": "1d7479908f0bf4ac186fc37978a758bebf18bc5f16e4296d017ed1973830e82d",
+    "mods/usb-midi/mod.json": "1e96ed0eb373a4de93c2ca9d52095555f5a2d6f929857c867c8ae2b90463f548",
+    "mods/usb-midi/usb_midi.c": "d4c5357a28d245a3d18bd1a60bf58e7c5fa4d629e1be69a2d9e782511b159140",
+    "mods/usb-midi/usb_midi.h": "f0c6ecb797d739ba8fb8e48418fbe968f9b4b3b426b405f0d6fa5246d15eaf5c",
+    "mods/usb-track/mod.json": "c2c058cb9748e197cc5ac524b56a6353cbcb1fb6bd5e7da04ea1d53427150189",
+    "mods/usb-track/src_queue.c": "2de5d0209e05151065d6f9a4af09967b904b95c6b13e9ab7427eb90f5d7a79ab",
+    "mods/usb-track/src_queue.h": "577dbad5a473c637234ce3874b57669e3005b654a353c78ddc64481303e007cf",
+    "mods/usb-track/usb_track.c": "1a5aea77400e71318bb87cae0b0ec7df690db8a8966eee11b6ad7e4b34d843bb",
+    "mods/usb-track/usb_track.h": "617c27cddb0e9552cbc611aca9cc220ef060cc4dfbadebda9b275a2469797df9",
+    "mods/usb-track/worker.c": "9d344913721efa0c5cf3515c9fa87af935b6d4e0c8f5aae6d3218180eb91f4de"
+  },
+  "compatibility": "Same 61-byte snapshot/session protocol, implicit track and generation semantics; current Pi timing-trace kernel retained, audio muted",
+  "limits": [
+    "Fractional suppression is lossless for current integer TRX API, not a general full-resolution transport claim",
+    "Captured replay covers 128 records, not future packet timing or full sweep qualification",
+    "Fast/deep modulation with effective integer changes every frame can still exceed measured path capacity",
+    "No physical I04Q timing/SRC/locks/LFO/local processing qualification; 42.667 ms buffer remains experimental",
+    "Physical firmware installation needs human backup/recovery confirmation and candidate approval"
+  ]
+}

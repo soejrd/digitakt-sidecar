@@ -39,6 +39,11 @@ def check_ui(candidate):
             assert read(u32(knob),len(name)+1)==name.encode()+b'\0'
             assert struct.unpack('>iii',read(knob+20,12))==(0,127<<8,defaults[k]<<8)
         r03.tap(s,20)
+        # Diagnostic candidates have a second read-only SRC page. Return to
+        # the editable synthesis page before rotating its eight encoders.
+        page_count=read(ui+616,1)[0]
+        assert page_count in (1,2), ('unexpected SRC page count',page_count)
+        for _ in range(page_count-1): r03.tap(s,20)
         r03.tap(s,24,after=250)
         params=int(symbols['fw_voice_params'],0)
         initial=list(struct.unpack('>8h',read(params,16)))
@@ -59,7 +64,7 @@ def check_ui(candidate):
                 'level':'compiled OS 1.54 emulator; no physical USB',
                 'booted':True, 'labels_ranges_defaults':True,
                 'panel_knobs_changed':changed, 'final_8_8_before_after':values,
-                'native_defaults_applied':True,
+                'native_defaults_applied':True, 'src_page_count':page_count,
                 'transport_qualified':False}
     finally:
         s.close()
