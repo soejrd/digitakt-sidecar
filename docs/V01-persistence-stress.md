@@ -154,9 +154,10 @@ routing, and reviewed paired candidate/recovery. No hardware action occurred.
 
 Use a disposable USB1 track-1 project and a quiet, limited/faded-in tone. Start
 muted/silent, then raise the monitor level only after the control session is
-healthy. Arm `trxtrace` before the modulation sweep and record status before
-dumping the trace, because printing can stall output. Use analyzer delay 128
-for the installed buffer.
+healthy. The installed `trxtrace` forces mute and retains only 128 admissions;
+run paired audible and trace passes with the same settings instead of treating
+them as one run. Record status before dumping the trace, because printing can
+stall output. Use analyzer delay 128 for the installed buffer.
 
 Pre-register the sweep in device units rather than vague labels. Start from the
 accepted slow/shallow PTCH case and sweep PTCH LFO speed and depth in 0–127
@@ -175,6 +176,13 @@ first failing settings. For every row record:
 Stop a case at the first audio stop, fault or visible UI stall. Preserve the
 trace and exact settings; do not continue into unrelated listening. A failure
 without a frozen trace is a useful lead, not a qualified budget point.
+
+The executable protocol is [V01 Phase 1 runbook](V01-phase1-runbook.md). It
+records the critical installed-trace constraint: `trxtrace=on` forces the voice
+to mute, so audible and trace passes are paired rather than conflated. The runbook
+also defines the numeric grid, required telemetry, stop rules and the physical
+release gate. It is prepared but **not executed** as of
+`2026-10-28T15:59:00Z`.
 
 ## Phase 2 — isolate the bottleneck
 

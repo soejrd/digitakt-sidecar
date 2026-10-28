@@ -1,0 +1,84 @@
+{
+  "task": "V01",
+  "phase": "1 dense-LFO reproduction",
+  "status": "prepared-not-executed",
+  "date_utc": "2026-10-28T16:02:47Z",
+  "scope": "Pre-registered physical sweep protocol; no hardware contact or audio result",
+  "evidence_classes": {
+    "source_fact": "Installed trxtrace=on forces VoiceCommand(false); trace is muted and retains 128 admissions",
+    "physical_measurement": "None yet",
+    "emulator_result": "None in Phase 1",
+    "hypothesis": "Dense-LFO failure cause remains untested"
+  },
+  "installed_pair": {
+    "digitakt_firmware": "I04R",
+    "firmware_sha256": "6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b",
+    "pi_kernel_sha256": "c057f063c24770a520b842e66d4d7e10655bdda3d45de05e1b67edc85d34a0f2",
+    "playout_delay_frames": 128
+  },
+  "release_gate": {
+    "satisfied": false,
+    "required": [
+      "Human confirms Pi and Digitakt availability and known routing",
+      "Speakers or headphones lowered; monitor starts muted or safely low",
+      "Disposable project/pattern and backup of retained user data ready",
+      "I04R/I04Q/H02F/stock recovery assets present and unchanged",
+      "Human reviewed runbook and paired candidate/recovery state",
+      "No agent firmware flash, bootloader/wiring change or computer UI operation"
+    ],
+    "if_missing": "Record the exact missing input and continue offline work; do not substitute simulation for the physical failure"
+  },
+  "pass_pairing": {
+    "audible_pass": "trace off, voice armed after a healthy session; capture counters and human observations",
+    "trace_pass": "same settings, voice muted by design; enable trxtrace, reproduce, read trxstatus before dumping",
+    "rule": "Do not conflate audible and trace passes or infer audible output from a trace run"
+  },
+  "baseline": {
+    "destination": "PTCH",
+    "accepted_numeric_spd": null,
+    "accepted_numeric_dep": null,
+    "note": "Historical acceptance records slow/shallow PTCH but not numeric SPD/DEP; recover the accepted setting before treating the grid as absolute"
+  },
+  "held_constant": ["MULT", "FADE", "WAVE", "SPH", "MODE", "note", "velocity", "track", "routing", "pattern"],
+  "grid": [
+    {"row": "baseline", "spd": "accepted slow value", "dep": "accepted shallow value", "purpose": "clean responsive reference"},
+    {"row": "S1", "spd": 32, "dep": 32, "purpose": "low-speed/reference control"},
+    {"row": "S2", "spd": 64, "dep": 64, "purpose": "mid-speed/mid-depth"},
+    {"row": "S3", "spd": 96, "dep": 96, "purpose": "high-speed/high-depth"},
+    {"row": "S4", "spd": 127, "dep": 127, "purpose": "upper-bound sweep"}
+  ],
+  "protocol": {
+    "minimum_hold_seconds": 10,
+    "stop_on_first_failure": true,
+    "repeat_last_pass_and_first_fail": true,
+    "trace_delay_frames": 128,
+    "status_order": "trxstatus and status before trxtrace dump",
+    "raw_assets": "private only; publish compact timing/status metadata"
+  },
+  "required_fields": [
+    "UTC time and operator",
+    "firmware and kernel hashes, Pi uptime/build",
+    "LFO destination, SPD, DEP, MULT, FADE, WAVE, SPH, MODE, trig mode",
+    "project, pattern, track, sound/lock, note, velocity, routing",
+    "start/end FIFO underruns, queue, peak, faults, applied, starts, consumed",
+    "retained fault code, block, flags, delta, now, due",
+    "USB packet gaps/errors, MIDI bytes/loss/dropped if available",
+    "engine block max, CPU core 3, control-pass max, temperature",
+    "audio continuity/clicks/stale notes/silence and human UI observation",
+    "recovery action: fresh session, reconnect, restart or power cycle"
+  ],
+  "decision_rules": {
+    "pass": "No audio stop, no new FIFO underrun, no fault, no deadline/order/overflow fault, responsive UI, decisive or explicitly non-decisive trace",
+    "fail": "Any audio stop, fault, queue overflow, UI freeze/sluggishness or stale note; stop and preserve counters/trace",
+    "inconclusive": "Missing counters/trace or unmatched audible/trace settings; record missing input and do not assign a supported budget point",
+    "root_cause": "Not claimed until Phase 2 layer isolation"
+  },
+  "exit_record": "evidence/v01/phase1-reproduction.json",
+  "limits": [
+    "No accepted numeric baseline SPD/DEP is recorded yet",
+    "The 128-row trace ring may not cover the full pass/fail interval",
+    "Human observations are listening reports, not calibrated latency or UI timing measurements",
+    "Phase 1 does not establish a supported dense-modulation budget or root cause"
+  ],
+  "next_action": "Recover the accepted numeric PTCH LFO baseline and freeze the release-gate confirmation before executing any physical row"
+}
