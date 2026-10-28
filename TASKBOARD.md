@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Status | Dependencies / first action | Acceptance |
 | --- | --- | --- | --- | --- |
-| V01 | Persistence and stress | IN PROGRESS — Codex 2026-10-28T15:51:11Z (Phase 1 failed; Phase 2 candidate ready) | [Phase 1](evidence/v01/phase1-reproduction.json): `48/35` and `32/32` pass; `64/64` lags with Pi voice muted, 0 Pi faults and FIFO stable. Private V01D `808a512…891a70` adds `V01 DIAG` UI/WORK/WGAP/BATCH/UGAP/FAULT; emulator-verified, **not installed**. Next: human install with muted 64/64 + 32/32 control, read diagnostics, restore I04R. [Plan](docs/V01-persistence-stress.md), [candidate](evidence/v01/phase2-diagnostic-candidate.json). | Document supported dense-modulation budget, responsive UI and no audio/deadline failure; save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and sustained stress regressions. |
+| V01 | Persistence and stress | IN PROGRESS — Codex 2026-10-28T15:51:11Z (Phase 2 measured UI starvation) | [Phase 2](evidence/v01/phase2-device-diagnostic.json): 32/32 no new maxima; 64/64 `UGAP 7781→8469ms`, `WGAP 562ms`, `BATCH 94ms`, `FAULT 0`; Play ~15s, LEDs not visibly updating. Supports UI starvation/CPU contention; exact worker cause unproven. V01D installed, voice muted. Next: restore I04R, then offline controlled self-wake/priority variant. [Plan](docs/V01-persistence-stress.md). | Document supported dense-modulation budget, responsive UI and no audio/deadline failure; save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and sustained stress regressions. |
 
 ## Waiting
 

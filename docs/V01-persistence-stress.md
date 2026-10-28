@@ -280,6 +280,25 @@ Then restore I04R. A large `UGAP` with ordinary `WORK`/`BATCH` supports UI-task
 starvation; a large `WGAP` or near-continuous `WORK` supports worker
 preemption/overload. Compare with `SPD 32 / DEP 32` as the control.
 
+### Phase 2 diagnostic result — UI starvation observed (2026-10-28T16:55:29Z)
+
+[Physical evidence](../evidence/v01/phase2-device-diagnostic.json). With the Pi
+voice muted and V01D installed, the control `SPD 32 / DEP 32` run showed no new
+maxima after Play: `WGAP 375 ms`, `BATCH 31 ms`, `UGAP 1625 ms`, `FAULT 0`.
+At `SPD 64 / DEP 64`, setting SPD above 32 and then DEP, saving, and opening
+the page were already extremely laggy. Before Play the maxima were
+`WGAP 562 ms`, `BATCH 94 ms`, `UGAP 7781 ms`, `FAULT 0`; after Play they were
+`WGAP 562 ms`, `BATCH 94 ms`, `UGAP 8469 ms`, `FAULT 0`. Play took about 15 s
+to start and the playhead LEDs did not visibly update.
+
+This is a physical diagnostic result: the UI task was delayed by seconds while
+the worker-entry gap stayed at 562 ms and worker batches were at most 94 ms.
+It supports UI-task starvation/CPU contention and rules out a Pi playout fault
+for this muted run. It does **not** prove that the priority-14 worker caused the
+starvation; a controlled priority/self-wake variant is still needed. The
+diagnostic maxima include startup/page interaction, so they are not a calibrated
+UI latency measurement. V01D remains installed until the human restores I04R.
+
 ## Phase 3 — fix and qualify a modulation budget
 
 Fix the root cause at the responsible layer while preserving fail-closed

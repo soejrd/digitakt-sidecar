@@ -1,0 +1,90 @@
+{
+  "task": "V01",
+  "phase": "2 device-side service timing",
+  "status": "MEASURED — UI starvation reproduced; exact scheduler cause not proven",
+  "date_utc": "2026-10-28T16:55:29Z",
+  "scope": "Physical Digitakt mk1 OS 1.54 V01D diagnostic + Pi 4B 128-frame kernel, USB1 track 1, Pi voice muted; disposable project",
+  "installed_pair": {
+    "digitakt_firmware": "V01D diagnostic",
+    "firmware_sha256": "808a512de1dd062c6223761bc2714dd29b3b19aaf785b04f52e25f2dac891a70",
+    "pi_kernel_sha256": "c057f063c24770a520b842e66d4d7e10655bdda3d45de05e1b67edc85d34a0f2",
+    "pi_build": "Oct 28 2026 13:38:57",
+    "pi_voice_muted": true
+  },
+  "diagnostic_page": {
+    "title": "V01 DIAG",
+    "fields": ["RCLK", "UI", "WORK", "WGAP", "BATCH", "UGAP", "FAULT"],
+    "units": {
+      "WGAP": "maximum worker-entry gap, ms",
+      "BATCH": "maximum worker batch duration, ms",
+      "UGAP": "maximum UI-task gap, ms",
+      "FAULT": "worker guard faults"
+    },
+    "limitation": "Maxima accumulate since reset; a fresh restart was used for each control/failure pair. The four-digit display saturates at 9999 ms."
+  },
+  "trials": [
+    {
+      "case": "control SPD 32 / DEP 32",
+      "reset": "Digitakt restarted before reading",
+      "before_play": {
+        "WGAP_ms": 375,
+        "BATCH_ms": 31,
+        "UGAP_ms": 1625,
+        "FAULT": 0,
+        "human_observation": "UI counters advancing; no reported lag during page reading"
+      },
+      "after_play_10s": {
+        "WGAP_ms": 375,
+        "BATCH_ms": 31,
+        "UGAP_ms": 1625,
+        "FAULT": 0,
+        "human_observation": "No new maxima reported; Play/Stop did not produce a visible stall"
+      }
+    },
+    {
+      "case": "failure SPD 64 / DEP 64",
+      "reset": "Digitakt restarted before setting the case",
+      "before_play": {
+        "WGAP_ms": 562,
+        "BATCH_ms": 94,
+        "UGAP_ms": 7781,
+        "FAULT": 0,
+        "human_observation": "Setting SPD above 32 and then DEP was extremely laggy; saving took a long time; interface already very laggy before Play. Reading the seven values took a very long time."
+      },
+      "after_play": {
+        "WGAP_ms": 562,
+        "BATCH_ms": 94,
+        "UGAP_ms": 8469,
+        "FAULT": 0,
+        "human_observation": "Play took about 15 seconds to start; playhead LEDs were not visibly updating; reading the values took about 2 minutes."
+      }
+    }
+  ],
+  "derived_observations": {
+    "ui_gap_growth_before_play_ms": 6156,
+    "ui_gap_growth_after_play_ms": 688,
+    "worker_gap_unchanged_after_play_ms": 562,
+    "batch_unchanged_after_play_ms": 94,
+    "fault_count": 0,
+    "interpretation": "The UI task was delayed by seconds while the worker-entry gap remained 562 ms and worker batches were at most 94 ms. This supports UI-task starvation/CPU contention rather than a Pi playout or USB transport failure. It does not yet identify whether the priority-14 worker, a stock UI/save path or another device task caused the starvation."
+  },
+  "evidence_classes": {
+    "physical_measurement": "V01 DIAG counters from installed V01D firmware",
+    "human_observation": "Encoder, Save, Play and UI responsiveness, including approximate delays",
+    "source_fact": "Worker runs at native priority 14; UI task is lower-priority stock task",
+    "hypothesis": "Dense updates keep the high-priority worker/CPU busy enough to starve the UI task; unproven until a controlled priority/self-wake variant is measured"
+  },
+  "limitations": [
+    "Diagnostic maxima accumulate since reset; startup and page interaction are included before the first reading.",
+    "No timestamped device task trace exists; the counters show a gap, not the exact task that held the CPU.",
+    "The human delay estimates are approximate and not calibrated.",
+    "The Pi voice was muted, so this does not attribute the result to Pi audio rendering.",
+    "The control run was not explicitly confirmed as subjectively normal after Play; it showed no new diagnostic maxima."
+  ],
+  "safe_state": {
+    "voice_muted": true,
+    "diagnostic_firmware_still_installed": true,
+    "recommended_restore": "Reinstall private/v01/firmware-V01D/Digitakt-I04R-previous.syx after the diagnostic session, with speakers lowered and the project backed up."
+  },
+  "next_action": "Restore I04R, then prepare a controlled diagnostic variant that separates worker self-wake from worker priority; do not treat the diagnostic result as a fix or a supported budget."
+}
