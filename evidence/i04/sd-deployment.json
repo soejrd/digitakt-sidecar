@@ -1,0 +1,21 @@
+{
+  "task": "I04",
+  "date_utc": "2026-10-28T07:30:50.017616+00:00",
+  "scope": "SD kernel update/read-back; no boot or audio claim",
+  "old_kernel_sha256": "a46476a30ee94c0c32dfe05983626869c198e6522fa0a065e338b0b227228a82",
+  "new_kernel_sha256": "a91a5f7504fce2466dfa1e157dca94c979bc05b6dfa27d135ed764175d071c3a",
+  "new_kernel_bytes": 2474248,
+  "backup_kernel": "kernel8-rpi4.before-i04.img",
+  "backup_manifest": "SHA256SUMS.before-i04",
+  "assertions": {
+    "human_confirmed_pi_off_speakers_lowered": true,
+    "existing_manifest_verified": true,
+    "local_and_card_backup_verified": true,
+    "candidate_readback_verified": true,
+    "updated_manifest_verified": true,
+    "other_files_unchanged": true
+  },
+  "boot_verified": false,
+  "safely_ejected": true,
+  "rollback": "With Pi off restore kernel8-rpi4.before-i04.img as kernel8-rpi4.img and SHA256SUMS.before-i04 as SHA256SUMS."
+}

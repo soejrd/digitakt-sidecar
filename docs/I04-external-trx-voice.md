@@ -2,7 +2,8 @@
 
 Status: **software candidate checked; BLOCKED on physical acceptance** (2026-10-28).
 Owner: Codex; scheduling/filter follow-up claimed 07:11 UTC.
-No hardware accessed, SD written, firmware flashed, or audio played this session.
+The SD candidate is installed/read-back verified and safely ejected; boot and
+audio remain pending. No Digitakt firmware was flashed.
 
 ## Candidate behavior
 
@@ -109,7 +110,7 @@ now includes TRX rendering, so later Pi measurements do not omit its work.
   observed maximum block time are recorded as **host-only** results, not Pi
   worst-case scheduling/thermal/headroom evidence.
 - Pi 4 AArch64 Circle cross-build and seven-patch replay pass. Kernel hash/size
-  and source hashes are recorded. No kernel was deployed.
+  and source hashes are recorded. The kernel was subsequently deployed to the SD as recorded below.
 
 Reproduce from this repository after applying the patches at the pinned base:
 
@@ -161,3 +162,17 @@ I04 is not DONE until this physical behavior and measured acceptable timing pass
 V01 remains dependent; no other independent READY task exists. Persistence,
 calibrated semitone mapping, broad stress/reconnect and production audio quality
 remain outside the host proof.
+
+## SD deployment — 2026-10-28
+
+[Deployment evidence](../evidence/i04/sd-deployment.json): human confirmed Pi off
+and speakers lowered. The card's current kernel matched the physically booted
+H02 rollback. All existing manifest entries passed before replacement. Current
+kernel and manifest were backed up locally in `private/i04/sd-backup/` and on
+card as `kernel8-rpi4.before-i04.img` / `SHA256SUMS.before-i04`. Candidate and
+updated manifest passed read-back; all other regular card files, including
+settings, retained their hashes. The card was safely ejected. Boot and physical
+audio are not yet tested. Restore the pre-I04 card kernel and complete pre-I04
+manifest together for exact rollback. Next: human inserts SD into powered-off
+Pi, connects Digitakt as before and powers up; inspect silent session before
+explicitly enabling audio.
