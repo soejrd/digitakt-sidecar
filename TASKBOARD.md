@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Status | Dependencies / first action | Acceptance |
 | --- | --- | --- | --- | --- |
-| V01 | Persistence and stress | IN PROGRESS — Codex 2026-10-28T15:51:11Z (Phase 0 PASS; Phase 1 reproduced UI failure) | [Phase 1 evidence](evidence/v01/phase1-reproduction.json): `48/35` and `32/32` pass; `64/64` lags with Pi voice muted, 0 Pi faults and FIFO stable. Next: Phase 2 native task/IRQ service-timing isolation, then persistence probe. Do not treat this as a Pi deadline failure or adopt buffering/coalescing first. [Plan](docs/V01-persistence-stress.md), [runbook](docs/V01-phase1-runbook.md). | Document supported dense-modulation budget, responsive UI and no audio/deadline failure; save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and sustained stress regressions. |
+| V01 | Persistence and stress | IN PROGRESS — Codex 2026-10-28T15:51:11Z (Phase 1 failed; Phase 2 candidate ready) | [Phase 1](evidence/v01/phase1-reproduction.json): `48/35` and `32/32` pass; `64/64` lags with Pi voice muted, 0 Pi faults and FIFO stable. Private V01D `808a512…891a70` adds `V01 DIAG` UI/WORK/WGAP/BATCH/UGAP/FAULT; emulator-verified, **not installed**. Next: human install with muted 64/64 + 32/32 control, read diagnostics, restore I04R. [Plan](docs/V01-persistence-stress.md), [candidate](evidence/v01/phase2-diagnostic-candidate.json). | Document supported dense-modulation budget, responsive UI and no audio/deadline failure; save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and sustained stress regressions. |
 
 ## Waiting
 

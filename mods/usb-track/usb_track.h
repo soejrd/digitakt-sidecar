@@ -17,4 +17,10 @@ void usb_track_worker_rx_wake(void);
 void usb_track_control_set_wakeup(void (*fn)(void));
 int usb_track_control_has_wakeup(void);
 void usb_track_control_wake(void);
+#ifdef USB_TRACK_DIAGNOSTIC
+extern volatile uint32_t usb_track_diag_ui_ticks, usb_track_diag_render_wakes;
+extern volatile uint32_t usb_track_diag_worker_entries, usb_track_diag_worker_gap_max;
+extern volatile uint32_t usb_track_diag_batch_max, usb_track_diag_ui_gap_max;
+extern volatile uint32_t usb_track_worker_guard_faults;
+#endif
 #endif

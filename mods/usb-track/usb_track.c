@@ -3,7 +3,6 @@
 #include "usb_track.h"
 #ifdef USB_TRACK_DIAGNOSTIC
 #include "../usb-midi/usb_midi.h"
-extern volatile uint32_t usb_track_worker_ticks;
 #endif
 
 /* OS 1.54 only. Sources: evidence/r07/handoff-facts.json and D01.
@@ -23,6 +22,9 @@ extern volatile uint32_t usb_track_worker_ticks;
 volatile uint32_t usb_track_clock, usb_track_route, usb_track_gate, usb_track_ack_clock;
 static uint32_t armed;
 static void (*volatile control_wakeup)(void);
+#ifdef USB_TRACK_DIAGNOSTIC
+volatile uint32_t usb_track_diag_ui_ticks, usb_track_diag_render_wakes;
+#endif
 void usb_track_control_set_wakeup(void (*fn)(void)) { control_wakeup=fn; }
 int usb_track_control_has_wakeup(void) { return control_wakeup!=0; }
 void usb_track_control_wake(void) { if (control_wakeup) control_wakeup(); }
@@ -149,6 +151,9 @@ void usb_track_render(int32_t *blocks)
     uint32_t i, s = USB_SELECTOR;
     volatile int32_t *pair;
     ++usb_track_clock;
+#ifdef USB_TRACK_DIAGNOSTIC
+    ++usb_track_diag_render_wakes;
+#endif
     usb_track_route = fw_render_machine[0] == MACHINE_ID &&
                       s <= 1 && USB_MODE == USB_NATIVE_OVERBRIDGE_MODE && USB_SYNC == 1;
     if (!usb_track_route || usb_track_clock - usb_track_ack_clock >= USB_TRACK_LEASE)
@@ -205,7 +210,7 @@ static int32_t control_text(char *buf, int32_t value, int32_t ctx, int32_t machi
 static const struct cm_src_page trx_pages[] = {
     {.title = "TRX-B2", .parameter = {0, 1, 2, 3, 4, 5, 6, 7}},
 #ifdef USB_TRACK_DIAGNOSTIC
-    {.title = "H02 DIAG", .parameter = {8, 9, 10, 11, 12, 13, 14, 0}},
+    {.title = "V01 DIAG", .parameter = {8, 9, 10, 11, 12, 13, 14, 0}},
 #endif
 };
 #ifdef USB_TRACK_DIAGNOSTIC
@@ -218,19 +223,21 @@ static int32_t diag_text(char *buf, uint32_t n)
     buf[pos] = 0;
     return 1;
 }
+static uint32_t diag_ms(uint32_t blocks)
+{
+    uint32_t ms=(blocks*1000u+15u)/32u;
+    return ms>9999u ? 9999u : ms; /* UI text is capped; do not wrap a long stall */
+}
 #define DIAG_FORMAT(name, expression) \
 static int32_t name(char *b, int32_t v, int32_t c, int32_t m) \
 { (void)v; (void)c; (void)m; return diag_text(b, (expression)); }
 DIAG_FORMAT(diag_clock, usb_track_clock)
-DIAG_FORMAT(diag_tick, usb_track_worker_ticks)
-/* STATE: route 1, gate 2, USB1 render machine 4, native mode 8, half valid 16. */
-DIAG_FORMAT(diag_state, (usb_track_route ? 1u : 0u) | (usb_track_gate ? 2u : 0u) |
-    (fw_render_machine[0] == MACHINE_ID ? 4u : 0u) |
-    (USB_MODE == USB_NATIVE_OVERBRIDGE_MODE ? 8u : 0u) | (USB_SELECTOR <= 1 ? 16u : 0u))
-DIAG_FORMAT(diag_sync, USB_SYNC)
-DIAG_FORMAT(diag_midi, usbmidi_device_diag(0))
-DIAG_FORMAT(diag_tx, usbmidi_device_diag(1))
-DIAG_FORMAT(diag_rx, usbmidi_device_diag(2))
+DIAG_FORMAT(diag_ui, usb_track_diag_ui_ticks)
+DIAG_FORMAT(diag_worker, usb_track_diag_worker_entries)
+DIAG_FORMAT(diag_wgap, diag_ms(usb_track_diag_worker_gap_max))
+DIAG_FORMAT(diag_batch, diag_ms(usb_track_diag_batch_max))
+DIAG_FORMAT(diag_ugap, usb_track_diag_ui_gap_max)
+DIAG_FORMAT(diag_fault, usb_track_worker_guard_faults)
 #define DIAG_KNOB(label, formatter) {.name = label, .lname = label, .look = 0x86, \
     .flags = CM_RANGE | CM_DEFAULT | CM_NOT_SAMPLE, .max = 127 << 8, .fmt = formatter}
 #endif
@@ -273,9 +280,10 @@ static const struct cm_ui32 usb_page = {
                .min = 0, .max = 127 << 8, .def = 58 << 8},
     }},
 #ifdef USB_TRACK_DIAGNOSTIC
-    .extra = {DIAG_KNOB("RCLK", diag_clock), DIAG_KNOB("TICK", diag_tick),
-              DIAG_KNOB("STATE", diag_state), DIAG_KNOB("SYNC", diag_sync),
-              DIAG_KNOB("MIDI", diag_midi), DIAG_KNOB("TX", diag_tx), DIAG_KNOB("RX", diag_rx)},
+    .extra = {DIAG_KNOB("RCLK", diag_clock), DIAG_KNOB("UI", diag_ui),
+              DIAG_KNOB("WORK", diag_worker), DIAG_KNOB("WGAP", diag_wgap),
+              DIAG_KNOB("BATCH", diag_batch), DIAG_KNOB("UGAP", diag_ugap),
+              DIAG_KNOB("FAULT", diag_fault)},
     .page_count = 2, .pages = trx_pages
 #else
     .extra = {UNUSED_EXTRA, UNUSED_EXTRA, UNUSED_EXTRA, UNUSED_EXTRA,

@@ -241,6 +241,45 @@ Record negative controls: slow LFO with identical audio/UI load, dense
 engine-ineffective changes, dense effective changes, and the same run after a
 fresh reconnect. Exact source revisions and commands belong with each result.
 
+### Phase 2 diagnostic candidate — prepared (2026-10-28T16:20:25Z)
+
+The installed I04R image has no device-side UI/service timing. A private
+diagnostic candidate, `V01D`, adds a read-only `V01 DIAG` page without changing
+the render or control protocol:
+
+| Value | Meaning |
+| --- | --- |
+| `RCLK` | Render blocks, 32 frames each |
+| `UI` | UI tick count |
+| `WORK` | Worker entry count |
+| `WGAP` | Maximum worker-entry gap, ms |
+| `BATCH` | Maximum worker batch duration, ms |
+| `UGAP` | Maximum UI-tick gap, ms |
+| `FAULT` | Worker guard-fault count |
+
+All time-derived values use four-digit saturation (`9999`) rather than wrapping.
+The diagnostic counter updates are compiled out of production builds.
+[Candidate record](../evidence/v01/phase2-diagnostic-candidate.json) validates
+the page in the emulator. [UI](../evidence/v01/phase2-diagnostic-ui.json),
+[native RTOS](../evidence/v01/phase2-diagnostic-runtime.json) and
+[compiled exchange](../evidence/v01/phase2-diagnostic-exchange.json) pass;
+the full I04 host regression also passes. This is emulator evidence, not a
+hardware scheduling or CPU proof.
+
+Private package: `private/v01/firmware-V01D/`. Candidate SHA256
+`808a512de1dd062c6223761bc2714dd29b3b19aaf785b04f52e25f2dac891a70`.
+Recovery files are retained: I04R, I04Q, H02F and stock 1.54. The candidate is
+**not installed**. Installation requires human approval and the existing
+firmware recovery procedure.
+
+**Phase 2 physical protocol:** install V01D with the voice muted; confirm the
+`V01 DIAG` page is present and record all seven values at baseline. Run the same
+`SPD 64 / DEP 64` case that failed Phase 1, with the Pi voice muted, and read the
+page immediately after the stall. Repeat once after a fresh power/session cycle.
+Then restore I04R. A large `UGAP` with ordinary `WORK`/`BATCH` supports UI-task
+starvation; a large `WGAP` or near-continuous `WORK` supports worker
+preemption/overload. Compare with `SPD 32 / DEP 32` as the control.
+
 ## Phase 3 — fix and qualify a modulation budget
 
 Fix the root cause at the responsible layer while preserving fail-closed

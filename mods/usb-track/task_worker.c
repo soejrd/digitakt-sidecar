@@ -10,6 +10,24 @@ static struct {
 } worker_stack __attribute__((aligned(16)));
 static uint8_t started;
 volatile uint32_t usb_track_worker_runs,usb_track_worker_guard_faults;
+#ifdef USB_TRACK_DIAGNOSTIC
+volatile uint32_t usb_track_diag_worker_entries,usb_track_diag_worker_gap_max;
+volatile uint32_t usb_track_diag_batch_max,usb_track_diag_ui_gap_max;
+static uint32_t diag_worker_entered,diag_ui_last;
+static void diag_stamp_entry(void)
+{
+    uint32_t now=usb_track_clock;
+    ++usb_track_diag_worker_entries;
+    if (diag_worker_entered && now-diag_worker_entered>usb_track_diag_worker_gap_max)
+        usb_track_diag_worker_gap_max=now-diag_worker_entered;
+    diag_worker_entered=now;
+}
+static void diag_stamp_exit(void)
+{
+    uint32_t elapsed=usb_track_clock-diag_worker_entered;
+    if (elapsed>usb_track_diag_batch_max) usb_track_diag_batch_max=elapsed;
+}
+#endif
 static void wake(void)
 {
     /* Only this bounded native post may run in render/RX context. All USB and
@@ -28,13 +46,29 @@ static void entry(void)
             }
         }
         if (usb_track_worker_guard_faults) continue;
+#ifdef USB_TRACK_DIAGNOSTIC
+        diag_stamp_entry();
+#endif
         usb_track_tick(0);
+#ifdef USB_TRACK_DIAGNOSTIC
+        diag_stamp_exit();
+#endif
         ++usb_track_worker_runs;
     }
 }
 void usb_track_ui_tick(void *ctrl)
 {
     (void)ctrl;
+#ifdef USB_TRACK_DIAGNOSTIC
+    ++usb_track_diag_ui_ticks;
+    if (diag_ui_last) {
+        uint32_t gap=usb_track_clock-diag_ui_last;
+        uint32_t ms=(gap*1000u+15u)/32u;
+        if (ms>9999u) ms=9999u;
+        if (ms>usb_track_diag_ui_gap_max) usb_track_diag_ui_gap_max=ms;
+    }
+    diag_ui_last=usb_track_clock;
+#endif
     if (!started) {
         for (unsigned i=0;i<8;++i) worker_stack.low[i]=worker_stack.high[i]=GUARD;
         for (unsigned i=0;i<2048;++i) worker_stack.words[i]=0xa5a5a5a5u;
