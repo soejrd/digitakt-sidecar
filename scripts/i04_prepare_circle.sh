@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Apply patches 0001..0008 at sources.json's base first. Offline overlay only.
+# Apply patches 0001..0009 at sources.json's base first. Offline overlay only.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 test "$(git -C deps/mdkit rev-parse HEAD)" = 96157fe4fbda17bf4cae3168f52437d8232e6570

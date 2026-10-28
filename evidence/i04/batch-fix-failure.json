@@ -1,0 +1,27 @@
+{
+  "task": "I04",
+  "scope": "physical muted test of 2048-frame/256-event batching candidate failed; not an accepted fix",
+  "human_action": "one USB1 track-1 tap, stopped sequencer, about five seconds PTCH sweep; silence expected",
+  "fault": {
+    "code": 3,
+    "sender_block": 1525558,
+    "flags": 0,
+    "block_delta": 1,
+    "render_now": 54516,
+    "render_due": 54496
+  },
+  "last_lateness_frames": 20,
+  "last_lateness_ms": 0.4166666666666667,
+  "total_faults": 5,
+  "fifo_underruns_before": 1,
+  "fifo_underruns_after": 365,
+  "armed": false,
+  "known": "Larger buffer passed modelled worker tests but did not qualify actual physical SRC traffic",
+  "hypotheses_not_findings": [
+    "Firmware/UI worker pauses exceed the assumed batch bound",
+    "Sender versus generated/consumed clock mapping diverges",
+    "Host receive processing delays events"
+  ],
+  "negative_evidence": "Steady-state logged render/pass work was low; no proof yet that long DSP render caused failure. Startup had an 8 ms pass spike. Fault-driven FIFO resets can also increase underruns.",
+  "next": "Deploy bounded, muted timing-trace build; preserve first fault and preceding frame/source/queue metadata; replay real trace before selecting another timing fix"
+}

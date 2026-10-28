@@ -131,6 +131,34 @@ int main() {
   assert(!dt_link::VoiceCommand(true));
   hello(45,40); start(45,41); dt_link::Poll(758);
   dt_link::VoiceFault(ft); assert(ft[0]==6); // survives session clear
+  dt_link::TraceEnable(true); assert(!dt_link::VoiceCommand(true));
+  sc_frame traced={}; traced.session=45; traced.sequence=2; traced.block=43;
+  traced.voice=2; traced.flags=SC_START;
+  assert(sc_encode(wire,&traced)); assert(dt_link::SysEx(wire,sizeof wire));
+  assert(reply().kind==SC_ACTIVATE);
+  traced.sequence=3; traced.block=44; traced.voice=3;
+  assert(sc_encode(wire,&traced)); assert(dt_link::SysEx(wire,sizeof wire));
+  assert(reply().kind==SC_DEACTIVATE);
+  assert(dt_link::TraceCount()==2 && dt_link::TraceFrozen());
+  dt_link::TraceRecord tr;
+  assert(dt_link::TraceRead(0,&tr) && tr.accepted==1 && tr.previous_block==41);
+  assert(dt_link::TraceRead(1,&tr) && tr.accepted==0 && tr.reason==6 && tr.frame.voice==3);
+  assert(!dt_link::TraceRead(2,&tr));
+  hello(46,50); start(46,51); dt_link::Poll(759);
+  assert(dt_link::TraceCount()==2 && dt_link::TraceFrozen());
+  dt_link::TraceEnable(true);
+  for(unsigned i=0;i<200;++i) {
+    traced.session=46; traced.sequence=2+i; traced.block=52+i;
+    traced.flags=0; traced.voice=1;
+    assert(sc_encode(wire,&traced)); assert(dt_link::SysEx(wire,sizeof wire));
+    assert(reply().kind==SC_ACTIVATE);
+  }
+  assert(dt_link::TraceCount()==128 && !dt_link::TraceFrozen());
+  assert(dt_link::TraceRead(0,&tr) && tr.frame.sequence==74);
+  assert(dt_link::TraceRead(127,&tr) && tr.frame.sequence==201);
+  dt_link::TraceEnable(false);
+  assert(dt_link::VoiceCommand(true)); dt_link::VoiceCommand(false);
+
   dt_link::RenderVoice(pcm,32);
   for(auto &row:pcm) for(auto x:row) assert(x==0);
 #endif

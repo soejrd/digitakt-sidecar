@@ -14,7 +14,7 @@ with tempfile.TemporaryDirectory(prefix="i04-replay-") as directory:
     for patch in sorted((root / "patches/sidecar-firmware").glob("*.patch")):
         subprocess.run(["git", "apply", str(patch)], cwd=directory, check=True)
     for name in ["pi/engine/Makefile", "pi/engine/dt_link.cpp", "pi/engine/dt_link.h",
-                 "pi/engine/cores.cpp", "NOTICE"]:
+                 "pi/engine/cores.cpp", "pi/engine/output.cpp", "pi/engine/output.h", "NOTICE"]:
         assert (pathlib.Path(directory) / name).read_bytes() == (
             root / "deps/sidecar-firmware" / name).read_bytes(), name
-print("Eight patches replay at pinned base; I04 production files match: PASS")
+print("Nine patches replay at pinned base; I04 production files match: PASS")

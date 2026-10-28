@@ -1,7 +1,7 @@
 # I04 — external TRX-B2 voice
 
-Status: **three physical hits audible; SRC edit failed; batching fix checked on
-host, awaiting SD deployment and physical retest** (2026-10-28). Owner: Codex.
+Status: **three physical hits audible; 42.7 ms candidate still fails muted SRC;
+blocked on timing-trace deployment and real-traffic replay** (2026-10-28). Owner: Codex.
 Physical Pi is explicitly muted. I04 is not DONE.
 
 ## Current implementation
@@ -47,7 +47,7 @@ lookahead/compensation or a revised contract may be needed after measurements.
 
 ## Safety, replay and diagnostics
 
-Apply patches **0001–0008** at sidecar-firmware
+Apply patches **0001–0009** at sidecar-firmware
 `6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457`, then use the I04 overlay. mdkit
 inputs must match their pin and remain unchanged. NOTICE preserves licences;
 no firmware-derived code/data enters the host overlay. The stock Rytm selection
@@ -119,8 +119,8 @@ bash deps/sidecar-firmware/pi/engine/build.sh kernel
 
 ## Hardware state, release condition and recovery
 
-The batch-fix kernel is now installed on the SD and safely ejected; physical
-boot is pending. The prior generation-fix was muted after PTCH failure. Existing SD updates were read-back verified, safely ejected,
+The batch-fix kernel is on the physical Pi, booted but muted after a failed
+controlled PTCH test. The timing-trace diagnostic is staged privately, not deployed. Existing SD updates were read-back verified, safely ejected,
 and preserved settings and previous backups:
 [initial](../evidence/i04/sd-deployment.json),
 [diagnostic](../evidence/i04/diagnostic-sd-deployment.json),
@@ -148,3 +148,53 @@ the existing human procedure. Do not restore an older full manifest blindly
 with a newer kernel. No bootloader/internal wiring changes.
 
 I04 remains incomplete. V01 depends on it; no independent READY task exists.
+
+## Physical batch-fix failure and timing trace
+
+[Muted batch-fix baseline](../evidence/i04/batch-fix-baseline.json): expected build,
+USB streaming, zero faults, one startup FIFO underrun. Human performed one trig
+and about five seconds PTCH sweep while stopped/muted. [Failure](../evidence/i04/batch-fix-failure.json):
+five late faults; final parameter-only event block 1525558 / delta 1 had due
+54496 and current render 54516, **20 frames (0.417 ms) late**. FIFO underruns
+became 365. No accepted SRC or timing result; increasing the buffer was not a
+physical fix. The existing total/last-fault metrics cannot distinguish actual
+worker gaps from drift between sender, rendered and transport-requested clocks.
+Steady-state logged render/pass work was low, but that is not a complete
+scheduling trace; a long startup pass is separate from this control test.
+
+Patch 0009 provides the next feedback loop. `:trxtrace=on` forces mute and starts
+a fixed 128-record ring. Each admitted/rejected install records the source frame,
+pre-admission clock, absolute generated frames, transport requested frames, FIFO
+level, previous sender block/deadline, queue occupancy and result. It freezes on
+the first rejection; Clear/reconnect does not erase it. Trace enable blocks audio
+enable. `:trxtrace=off` stops capture and leaves audio muted. `:trxtrace` prints
+retained rows oldest-first in command context, not render/install. Requested
+frame count is a 32-bit atomic addition per Output pull, including silence and
+underflows; it is **not** physical returned-audio latency or a USB-completion clock.
+Other trace clocks are low 32 bits; interval analysis must handle wrap.
+
+Raw controls/notes and logs stay ignored/private. `tools/i04_analyze_trace.py`
+exports timing-only rows with signed slack and sender/generated/request deltas,
+rejecting truncated/discontinuous dumps. Do not infer a root cause from one late
+row. Trace printing may stall output, so dump only after freeze while muted and
+exclude dump time from runtime interpretation. Host tests cover accepted/fault
+records, freeze across reset, oldest/newest retention after 200 records, mute
+interlock, requested-frame counting and analyzer arithmetic/privacy checks.
+ASan/UBSan, nine-patch replay and Pi cross-build pass. No live trace or fix result
+is claimed yet.
+
+[Timing-trace candidate](../evidence/i04/timing-trace-candidate.json) is staged in
+`private/i04/timing-trace/`, with the same 2,048-frame delay/256-event policy and
+verified H02 rollback. Stage/recheck with:
+
+```sh
+python3 scripts/i04_prepare_trial.py \
+  --evidence evidence/i04/timing-trace-candidate.json --trial-name timing-trace
+```
+
+Release condition: human returns SD with Pi off; make a fresh current-kernel/full
+manifest backup, install/read-back/eject timing-trace, boot muted, arm capture
+before one stopped trig/PTCH sweep, dump the first frozen failure privately and
+replay its real timing through the scheduler. Choose clock/worker changes from
+that evidence. Do not deploy another buffer-only increase or claim the existing
+42.667 ms is musically accepted. No independent READY task exists.

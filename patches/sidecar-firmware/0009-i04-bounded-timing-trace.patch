@@ -1,0 +1,143 @@
+--- a/pi/engine/output.h
++++ b/pi/engine/output.h
+@@ -31,6 +31,7 @@
+   void ControlSet(uint32_t token, bool allowed);
+   void Reset();                                         // transport (consumer) side only: a new stream drops the
+                                                         // frames left from the last one and fades in again
++  uint32_t RequestedFrames() const { return __atomic_load_n(&requested_, __ATOMIC_RELAXED); }
+   uint32_t Level() const { return fifo_.size(); }
+   uint32_t Push(const int16_t (*frames)[kVoices], uint32_t n);   // control core: frames taken (FIFO room)
+   // transport: n frames; voices (if given): each frame's 8 voices as rendered (int16, before the map, the fade and
+@@ -48,5 +49,6 @@
+   Mode mode_ = kMain;
+   core::MainOut main_;                                  // the fade (both modes), MAIN's sum and limit
+   uint32_t under_ = 0;
++  uint32_t requested_ = 0; // transport frame clock, includes silence/underflows
+   float peak_ = 0.0f;
+ };
+--- a/pi/engine/output.cpp
++++ b/pi/engine/output.cpp
+@@ -36,6 +36,7 @@
+ }
+ 
+ void Output::Pull(int32_t (*out)[kChannels], uint32_t n, int16_t (*voices)[kVoices]) {
++  __atomic_fetch_add(&requested_, n, __ATOMIC_RELAXED);
+   uint32_t policy = ControlToken();
+   if (policy != consumed_control_) { Reset(); consumed_control_ = policy; }
+   for (uint32_t i = 0; i < n; ++i) {
+--- a/pi/engine/dt_link.h
++++ b/pi/engine/dt_link.h
+@@ -26,3 +26,15 @@
+ namespace dt_link { void VoiceStatus(unsigned out[8]); } // core 3: bounded diagnostics
+ 
+ namespace dt_link { void VoiceFault(unsigned out[6]); } // last fault survives session reset
++
++namespace dt_link {
++struct TraceRecord {
++  sc_frame frame;
++  uint32_t clock, rendered, requested, fifo, previous_block, previous_due;
++  uint32_t queued, accepted, reason;
++};
++void TraceEnable(bool on); // core 3; enabling forces mute
++unsigned TraceCount();
++bool TraceFrozen();
++bool TraceRead(unsigned index, TraceRecord *out); // oldest retained record first
++}
+--- a/pi/engine/dt_link.cpp
++++ b/pi/engine/dt_link.cpp
+@@ -15,6 +15,9 @@
+ static uint32_t selected, losses, seen_loss;
+ static bool initialized, installed;
+ static uint32_t clock_block, clock_remainder;
++static TraceRecord trace[128];
++static uint32_t trace_write;
++static bool trace_enabled, trace_frozen;
+ 
+ void Select() {
+   __atomic_add_fetch(&losses, 1u, __ATOMIC_RELEASE);
+@@ -34,7 +37,21 @@
+   return 1; // complete record is owned by core 0's existing USB sender
+ }
+ static int Install(void *, const sc_frame *f) {
+-  if (!sc_playout_enqueue(&playout, f)) { ++playout_faults; last_failure=playout.failure; return 0; }
++  TraceRecord r={};
++  if (trace_enabled && !trace_frozen) {
++    r.frame=*f; r.clock=(uint32_t)playout.clock;
++    r.rendered=clock_block*32u+clock_remainder;
++    r.requested=g_Output.RequestedFrames(); r.fifo=g_Output.Level();
++    r.previous_block=playout.last_block; r.previous_due=(uint32_t)playout.last_due;
++    r.queued=playout.write-playout.read;
++  }
++  const bool accepted=sc_playout_enqueue(&playout,f)!=0;
++  if (trace_enabled && !trace_frozen) {
++    r.accepted=accepted; r.reason=accepted ? 0 : playout.failure.code;
++    trace[trace_write++ % 128]=r;
++    if (!accepted) trace_frozen=true;
++  }
++  if (!accepted) { ++playout_faults; last_failure=playout.failure; return 0; }
+   snapshot = *f; installed = true; return 1;
+ }
+ static void Clear(void *) {
+@@ -102,6 +119,7 @@
+   if (!State(&f)) { memset(out, 0, frames * sizeof *out); return; }
+   if (!sc_playout_render(&playout, out, frames)) {
+     ++playout_faults; last_failure=playout.failure;
++    if (trace_enabled) trace_frozen=true;
+     armed_session = faded = 0;
+     sc_circle_transport_lost(&link, SC_REASON_SEQUENCE);
+     g_Output.ControlClose();
+@@ -122,7 +140,7 @@
+   sc_frame f;
+   armed_session = faded = 0;
+   if (!on) return true;
+-  if (!State(&f)) return false;
++  if (trace_enabled || !State(&f)) return false;
+   armed_session = f.session;
+   return true;
+ }
+@@ -144,3 +162,18 @@
+   out[4]=(unsigned)last_failure.clock; out[5]=(unsigned)last_failure.due;
+ }
+ }
++
++namespace dt_link {
++void TraceEnable(bool on) {
++  VoiceCommand(false);
++  trace_enabled=on;
++  if (on) { trace_write=0; trace_frozen=false; }
++}
++unsigned TraceCount() { return trace_write<128u ? trace_write : 128u; }
++bool TraceFrozen() { return trace_frozen; }
++bool TraceRead(unsigned index, TraceRecord *out) {
++  if (!out || index>=TraceCount()) return false;
++  const unsigned oldest=trace_write>128u ? trace_write-128u : 0;
++  *out=trace[(oldest+index)%128u]; return true;
++}
++}
+--- a/pi/engine/cores.cpp
++++ b/pi/engine/cores.cpp
+@@ -326,6 +326,24 @@
+ 		L->Write(From, LogNotice, "I04 fault code %u block %u flags %u delta %u now %u due %u",
+ 		         ft[0],ft[1],ft[2],ft[3],ft[4],ft[5]);
+ 	}
++	else if (strcmp(p, "trxtrace=on") == 0 || strcmp(p, "trxtrace=off") == 0)
++	{
++		dt_link::TraceEnable(strcmp(p,"trxtrace=on")==0);
++		L->Write(From,LogNotice,"I04TRACE control %s (voice muted)",p);
++	}
++	else if (strcmp(p,"trxtrace")==0)
++	{
++		L->Write(From,LogNotice,"I04TRACE count %u frozen %u",dt_link::TraceCount(),dt_link::TraceFrozen());
++		for (unsigned i=0;i<dt_link::TraceCount();++i) {
++			dt_link::TraceRecord r; if (!dt_link::TraceRead(i,&r)) break;
++			L->Write(From,LogNotice,"I04TRACE row %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %d %d %d %d %d %d %d %d %d %d",
++			         i,r.frame.session,r.frame.sequence,r.frame.block,r.frame.voice,r.frame.flags,
++			         r.clock,r.rendered,r.requested,r.fifo,r.previous_block,r.previous_due,
++			         r.queued,r.accepted,r.reason,(int)r.frame.note,(int)r.frame.velocity,
++			         r.frame.params[0],r.frame.params[1],r.frame.params[2],r.frame.params[3],
++			         r.frame.params[4],r.frame.params[5],r.frame.params[6],r.frame.params[7]);
++		}
++	}
+ 	else if (strcmp(p, "trx=on") == 0 || strcmp(p, "trx=off") == 0)
+ 	{
+ 		bool on = strcmp(p, "trx=on") == 0;

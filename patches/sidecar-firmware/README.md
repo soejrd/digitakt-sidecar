@@ -80,3 +80,12 @@ it with `:trxstatus`, without logging in render/install. Apply after 0001–0007
 and use the current I04 overlay. Host tests assert reason/reset behavior; eight
 patches replay and Pi kernel build pass. This is instrumentation, not a root-cause
 fix or an audio acceptance result. Diagnostic-1 remains to be deployed.
+
+## 0009-i04-bounded-timing-trace.patch
+
+Physical 42.667 ms candidate still fails PTCH timing. Add a bounded 128-record
+ring frozen on first rejection, requested-frame counter in Output, muted-only
+capture and explicit command-context dump. Retain metadata across reset. Raw
+payloads remain private; analyzer emits timing-only fields. Core/native/ASan
+trace bounds/freeze/reset tests, nine-patch replay and Pi build pass. This is
+diagnostic instrumentation, not a qualified timing fix; buffer stays unchanged.

@@ -1,0 +1,28 @@
+{
+  "task": "I04",
+  "scope": "physical batch-fix boot baseline; muted before controlled SRC test",
+  "build": "Oct 28 2026 08:02:28",
+  "uptime_seconds": 31,
+  "streaming": true,
+  "link": "usb",
+  "fifo_underruns": 1,
+  "playout": {
+    "armed": 0,
+    "queue": 2,
+    "peak": 3,
+    "faults": 0,
+    "applied": 648,
+    "starts": 1,
+    "consumed": 1,
+    "frame": 1328172
+  },
+  "configuration": {
+    "delay_frames": 2048,
+    "delay_ms": 42.666666666666664,
+    "event_capacity": 256
+  },
+  "limits": [
+    "Startup FIFO underrun count is 1, not a zero-underrun boot",
+    "No tested control or audio/timing acceptance yet for this build"
+  ]
+}

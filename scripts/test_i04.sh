@@ -25,3 +25,5 @@ build/i04/circle_glue
 build/i04/bench evidence/i04/playout-benchmark.json
 
 bash scripts/test_i04_generation.sh
+
+python3 tests/i04_trace.py

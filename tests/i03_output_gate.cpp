@@ -14,5 +14,6 @@ int main() {
   o.Push(frames,32); o.Pull(out,32); assert(out[31][0]!=0);
   o.ControlClose(); o.Push(frames,32); o.Pull(out,32);
   for(auto &f:out) for(auto x:f) assert(x==0);
+  assert(o.RequestedFrames()==128);
   puts("Circle Output: closed gate, stale ACK rejection, FIFO epoch/fade, fresh PCM: PASS");
 }

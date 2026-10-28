@@ -1,0 +1,75 @@
+{
+  "task": "I04",
+  "scope": "muted bounded source/render/transport timing capture; not a physical SRC fix",
+  "configuration": {
+    "delay_frames": 2048,
+    "event_capacity": 256,
+    "trace_capacity": 128,
+    "freeze_on_first_failure": true,
+    "trace_forces_mute": true
+  },
+  "checks": [
+    {
+      "command": "bash scripts/test_i04.sh",
+      "result": "PASS",
+      "scope": "ASan/UBSan native/Circle/engine suite, trace accepted/rejected snapshots, freeze, reconnect preservation and oldest/newest retention after 200 records"
+    },
+    {
+      "command": "python3 tests/i04_trace.py",
+      "result": "PASS",
+      "scope": "known -20-frame slack, timestamp deltas, truncated row rejection, raw parameter omission"
+    },
+    {
+      "command": "python3 scripts/test_i04_replay.py",
+      "result": "PASS",
+      "scope": "nine patches match dependency including Output counter changes"
+    },
+    {
+      "command": "bash deps/sidecar-firmware/pi/engine/build.sh kernel",
+      "result": "PASS",
+      "target": "Pi 4 AArch64 Circle",
+      "kernel_sha256": "f62d2a2ffb33aa7a0785488235bb0669cb151cab6a3780c56f5ec8c8b26a7290",
+      "kernel_bytes": 2474600,
+      "deployment": "pending"
+    }
+  ],
+  "source_sha256": {
+    "audio/playout.c": "91419d01ed0015ad8b288cb87754cbe6f74513cab840045a7f2de0a43a5abd4b",
+    "audio/playout.h": "8d6a7c1265e6bf0386b82d269141a0a78f9a426ae78b44d83914e3ba300a4966",
+    "audio/src_44148.c": "17e34f1a05ab474336837fe85b1c75d6a56859de9780b2bb0f0bb15d592070b7",
+    "audio/src_44148.h": "23ae3ecde4ab9b059209b2266301e5df18eb700a7cace29e4cabf2e5899b5f97",
+    "audio/trx_voice.c": "7c7da4f2be5442de5a0c2c686228f0bd692c057ae7b3f4d85ff72bc86abb1d60",
+    "audio/trx_voice.h": "6e32ed345d6a418e58821fe013bf91410066518176392bcd12c3d6cc6b8a6c99",
+    "control/link.h": "52dd5c5186ab590f1d9fbcfe13ed7a520f293e56a34f85f5d1a1afa8c8e67540",
+    "patches/sidecar-firmware/0001-directional-overbridge-layout.patch": "87fecfb46737ddf85bed736cf245caf0976c4d3b671478e26297ef5ff352be39",
+    "patches/sidecar-firmware/0002-static-capture-marker.patch": "455b1c1d08189f2ec5e21e8173176508da46569fe6cd1758a0f5aa9286c97e5e",
+    "patches/sidecar-firmware/0003-dtsc-control-link.patch": "fb6e8de487359ee515f4e6b849674c1982203e3801e557f239fac35cdb6db85c",
+    "patches/sidecar-firmware/0004-h02-gated-test-tone.patch": "42f3c9df1a41d0ec42d9005324924b780c48f4e87583c747a40b688d145f936c",
+    "patches/sidecar-firmware/0005-monotonic-control-clock.patch": "fb478754766b1975f14b57a43d1aaf709e07360bfe186e7f791089bf14236afc",
+    "patches/sidecar-firmware/0006-i04-trx-voice.patch": "b9c12b1190e3f154e64184c89685744a383e0e7fd903383900b4fc9c732fcaa2",
+    "patches/sidecar-firmware/0007-i04-scheduled-playout.patch": "e998f473d360e3beb8eed6f04aa13aea55858245f7be971622cf69f700569a1b",
+    "patches/sidecar-firmware/0008-i04-playout-fault-reason.patch": "f86f9d316705a097c485a5e2c31372a3ef70f5a544d66ba06fe8b842c30969ae",
+    "patches/sidecar-firmware/0009-i04-bounded-timing-trace.patch": "99477a884adbff823b2282099636e1f762e58445aead92263cf24b99bead8a4b",
+    "scripts/i04_prepare_circle.sh": "8a782d08940dd72a38af2658bde1dcd31309e20b28f8d784c5967212dff18c5d",
+    "scripts/i04_prepare_trial.py": "09441dfd88926f3f59cc9ae87317296bc97744b8bf1e310e85dd4c3676e8d83e",
+    "scripts/test_i04.sh": "466c8a8005fc201cde96fd2022af21327bea24098b6d511f28af3510f9afbbd6",
+    "scripts/test_i04_replay.py": "16f6ca1a12e42346e446d96c64474c6ec542c5e62e626ef4f664c53e4bef3ea2",
+    "tests/i03_circle_glue.cpp": "7fd78324a7d1ac9818b08d8c196301f1e3edde7c6f7d306281f2e499b42b38b1",
+    "tests/i03_output_gate.cpp": "cd40f43094b3b1f28590b776ebad09839d2b23006e4662d86ff053a942ce5516",
+    "tests/i04_trace.py": "9664f15765a1119b84391bf422433162df130ff3f89a5954cbf4fca9118c0bf5",
+    "tools/i04_analyze_trace.py": "4e59d88893258f58c17a8c773ba9a5313a071f4eac5f87ea3176535f073a9a38"
+  },
+  "clock_definitions": {
+    "clock": "session playout generated frame",
+    "rendered": "absolute generated 48 kHz frame modulo 2^32",
+    "requested": "Output::Pull frame requests modulo 2^32, includes silence/underflow; not returned-audio latency",
+    "sender": "device control render block, 32 assumed frames/block"
+  },
+  "privacy": "Raw snapshot/control trace stays in ignored private storage; analyzer exports timing-only rows",
+  "limits": [
+    "Clock relationship and physical worker gaps not measured yet",
+    "One atomic 32-bit addition per output pull; logging only on explicit muted trace dump",
+    "Dump may itself stall output; exclude dump interval from runtime timing interpretation",
+    "No buffer increase or failure-policy relaxation; current physical Pi remains muted"
+  ]
+}
