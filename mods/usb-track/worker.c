@@ -6,10 +6,21 @@
 #include "../../control/device_link.h"
 static struct sc_device_link device;
 static uint32_t epoch, voice, keepalive_at;
-static uint8_t initialized, running, first;
+static uint8_t initialized, first;
+static volatile uint8_t running;
 #ifdef USB_TRACK_DIAGNOSTIC
 volatile uint32_t usb_track_worker_ticks;
 #endif
+
+void usb_track_worker_rx_wake(void)
+{
+    /* Once active, ACKs are serviced with the next source event or UI watchdog.
+     * Waking a second high-priority task pass for every ACK wastes render
+     * margin under dense modulation. Handshake replies still wake immediately.
+     * The raw RX queue owns the bytes before this callback runs. */
+    if (!running || ((volatile struct sc_device_link *)&device)->state!=SC_DEVICE_ACTIVE)
+        usb_track_control_wake();
+}
 
 static int send_bytes(const uint8_t *p, uint32_t n)
 {
@@ -46,7 +57,7 @@ void usb_track_tick(void *ctrl)
 #endif
     struct ut_record r;
     uint8_t out[SC_WIRE_SIZE];
-    unsigned budget=63, k; /* reserve one transport slot for liveness/close */
+    unsigned budget=usb_track_control_has_wakeup() ? 4 : 63, k;
     uint32_t now=usb_track_clock;
     if (!initialized) {
         usbmidi_device_init(receive,0);
@@ -83,7 +94,10 @@ void usb_track_tick(void *ctrl)
         }
         running=first=1; voice=0; keepalive_at=now;
     }
-    if (device.state==SC_DEVICE_WAIT_HELLO_ACK) return;
+    if (device.state==SC_DEVICE_WAIT_HELLO_ACK) {
+        usbmidi_tick(ctrl); /* HELLO must leave in this pass, not a later UI tick */
+        return;
+    }
     while (budget-- && usb_track_control_peek(&r)) {
         if (device.state==SC_DEVICE_WAIT_ACTIVATE && device.count) break;
         struct sc_frame f;
@@ -108,4 +122,8 @@ void usb_track_tick(void *ctrl)
         keepalive_at=now;
     }
     usbmidi_tick(ctrl);
+    /* Continue a bounded batch only when records can progress. Never spin on
+     * WAIT_ACTIVATE: the USB reply or the UI watchdog will wake us. */
+    if (device.state==SC_DEVICE_ACTIVE && usb_track_control_peek(&r))
+        usb_track_control_wake();
 }

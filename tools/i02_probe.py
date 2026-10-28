@@ -106,7 +106,7 @@ def candidate_prepare(args):
             (overlay/'control').symlink_to(ROOT/'control', target_is_directory=True)
             (overlay/'mods/usb-midi').symlink_to(ROOT/'mods/usb-midi', target_is_directory=True)
             for source in (ROOT/'mods/usb-track').iterdir():
-                if source.suffix in ('.c', '.h'):
+                if source.suffix in ('.c', '.h', '.s'):
                     shutil.copyfile(source, overlay/'mods/usb-track'/source.name)
             manifest = json.loads((ROOT/'mods/usb-track/mod.json').read_text())
             manifest['cflags'] = manifest.get('cflags', []) + ['-DUSB_TRACK_DIAGNOSTIC']
@@ -145,7 +145,7 @@ def write_candidate_metadata(root,p,version,diagnostic=False,label=None):
         'source_hashes':{str(f.relative_to(ROOT)):r03.sha(f) for f in
             sorted(set([p for folder in ('mods/usb-track','mods/usb-midi')
                         for p in (ROOT/folder).glob('*')
-                        if p.suffix in ('.c','.h','.json')] +
+                        if p.suffix in ('.c','.h','.s','.json')] +
                        [ROOT/'control'/name for name in
                         ('link.c','link.h','device_link.c','device_link.h',
                          'sc_memory.h','dt1_transport.c','dt1_transport.h',

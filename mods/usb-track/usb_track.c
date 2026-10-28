@@ -22,6 +22,10 @@ extern volatile uint32_t usb_track_worker_ticks;
 
 volatile uint32_t usb_track_clock, usb_track_route, usb_track_gate, usb_track_ack_clock;
 static uint32_t armed;
+static void (*volatile control_wakeup)(void);
+void usb_track_control_set_wakeup(void (*fn)(void)) { control_wakeup=fn; }
+int usb_track_control_has_wakeup(void) { return control_wakeup!=0; }
+void usb_track_control_wake(void) { if (control_wakeup) control_wakeup(); }
 static struct ut_session control;
 static uint8_t control_machine;
 static uint8_t control_have_machine;
@@ -136,6 +140,7 @@ static int capture_control(int32_t track)
         captured_at = usb_track_clock;
         control_have_machine = 1;
     }
+    if (result == UT_CAPTURE_OK || result == UT_CAPTURE_FAILED) usb_track_control_wake();
     return result == UT_CAPTURE_FAILED;
 }
 

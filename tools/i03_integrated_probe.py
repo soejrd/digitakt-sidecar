@@ -39,7 +39,17 @@ def run(candidate, output):
     def u32(u,a): return struct.unpack('>I',u.mem_read(a,4))[0]
     def put(u,a,n): u.mem_write(a,struct.pack('>I',n))
     def hook(u,addr,size,data):
-        if addr==0x40004832: # boundary of real native serializer / USB DMA
+        if 'worker_sem' in symbols and addr==sym('usb_track_tick'):
+            level=(u.reg_read(UC_M68K_REG_SR)>>8)&7
+            assert level==0, 'USB worker entered at interrupt level'
+            state['task_context_entries']=state.get('task_context_entries',0)+1
+        elif 'worker_sem' in symbols and addr==sym('fw_rtos_sem_signal'):
+            sp=u.reg_read(UC_M68K_REG_A7)
+            if u32(u,sp+4)==sym('worker_sem'):
+                level=(u.reg_read(UC_M68K_REG_SR)>>8)&7
+                contexts=state.setdefault('signal_interrupt_levels',{})
+                contexts[str(level)]=contexts.get(str(level),0)+1
+        elif addr==0x40004832: # boundary of real native serializer / USB DMA
             sp=u.reg_read(UC_M68K_REG_A7)
             ret,n,p,wait=struct.unpack('>4I',u.mem_read(sp,16))
             assert wait==0 and n%4==0 and n<=132
@@ -76,7 +86,17 @@ def run(candidate, output):
                 state['silent']+=1
             elif pcm!=bytes(128): state['audible']+=1
     def machine(s):
-        for a in (0x40004832,0x40077fba,0x40077fc0):
+        if 'worker_sem' in symbols:
+            from emu import intfrc
+            sem=sym('worker_sem')
+            assert sem in s.ev['unblock_skip'], 'worker semaphore must not be faked'
+            irq=intfrc.ForcedInterrupts(s.m,sources=(13,),base=0xfc050000,first_vector=192)
+            if u32(s.m.uc,0xfc050014)&(1<<13):irq.asserted.add(13)
+            s.sources+=(irq,)
+            state['native_event_task']=True
+        sites=[0x40004832,0x40077fba,0x40077fc0]
+        if 'worker_sem' in symbols:sites += [sym('usb_track_tick'),sym('fw_rtos_sem_signal')]
+        for a in sites:
             s.m.uc.hook_add(UC_HOOK_CODE,hook,begin=a,end=a)
     s=Session(str(candidate/'assigned.snap'),audio=True,on_machine=machine)
     reply=ctypes.create_string_buffer(64)
@@ -134,6 +154,18 @@ def run(candidate, output):
         state['stall']=state['dense']=False; step(1500)
         assert u32(s.m.uc,sym('usb_track_gate')) and peer.peer_allowed()
         assert state['sends_masked']
+        if 'worker_sem' in symbols:
+            assert u32(s.m.uc,sym('usb_track_worker_guard_faults'))==0
+            stack=sym('worker_stack')
+            guards=struct.pack('>8I',*([0x574f524b]*8))
+            assert bytes(s.m.uc.mem_read(stack,32))==guards
+            assert bytes(s.m.uc.mem_read(stack+8224,32))==guards
+            words=struct.unpack('>2048I',bytes(s.m.uc.mem_read(stack+32,8192)))
+            unused=next((i*4 for i,x in enumerate(words) if x!=0xa5a5a5a5),8192)
+            state['native_stack_used_bytes']=8192-unused
+            state['artificial_worker_waits']=s.ev.get('satisfied_by_sem',{}).get(sym('worker_sem'),0)
+            assert state['artificial_worker_waits']==0
+            assert state.get('signal_interrupt_levels',{}).get('5',0)>0,'render never signalled worker'
         report={'status':'verified','level':'compiled OS 1.54 + native serializer; USB DMA/PCM modelled',
                 'hardware_test':False,'candidate':dynamic._candidate_summary(meta),
                 'checks':['native serializer and two-argument compiled RX bridge',

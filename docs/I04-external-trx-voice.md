@@ -132,10 +132,67 @@ python3 scripts/test_i04_replay.py
   --capture private/i04/live/seq-end.json --output evidence/i04/physical-sequence-timing.json
 ```
 
+## Checked I04R timing candidate — not installed
+
+I04R (`usb-track`0.5) moves USB/control service into one native RTOS task,
+priority14, with an aligned8KB stack and guards. Render publishes immutable
+snapshots and issues only the bounded native semaphore post. RX capture signals
+handshake replies immediately; active ACKs are processed on the next source/UI
+watchdog wake. Four-record batches continue only when queue records can progress;
+WAIT_ACTIVATE never busy-spins. HELLO flushes in the same pass. UI remains a
+30Hz link/reconnect watchdog, not the normal control service clock. No hardware
+timer, IRQ vector, bootloader or new code hook changes.
+
+Generic RTOS exports are isolated in `core_candidate_rtos.*` for a future core
+proposal. Native primitive ABI/addresses are OS1.54-specific and source-audited;
+no dependency source change. IRQ/task publication is volatile. Standalone MIDI
+traffic latency outside the integrated control path is not qualified.
+
+Production-model negative control retains a48-block-old initial snapshot under
+UI service and fails the age≤2 assertion; event service admits it0–1blocks old.
+With128-frame scheduling,1000 dense integer updates,64STARTs and ACK loss/recovery
+pass with1- and3-block worker-service cadence. Initial compiled native stress
+failed with source queue full256/overflow1; removing redundant active-ACK wakeups
+makes the unchanged every-block stress/recovery assertions pass.
+
+Frozen I04R SHA256:
+`6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b`.
+Build/lint/link/protected sections, boot/assignment, all8encoders, native exchange,
+loss/reconnect/congestion and genuine semaphore sleep/wake pass. Exchange observes
+worker entries only at task IPL0;4441+ render signals at IPL5 in the optimized
+prototype,4403 in the frozen final run; zero artificial semaphore satisfactions,
+intact guards,1176/8192 bytes observed stack use. This is emulator scope, not a
+hardware scheduling/CPU guarantee. Probes explicitly add the otherwise-missing
+INTC2 source13 reschedule through the emulator's existing generic model.
+
+Matching Pi kernel is privately staged with **128frames/2.667ms** added playout,
+using replayable patch0010. Compiled first-anchor addition128 is verified in the
+ELF; portable header default2048 remains for historical/legacy host regressions.
+ASan/UBSan suite, ColdFire render no allocator/wait imports and ten-patch replay
+pass. Current working I04Q kernel, previous I04Q firmware, H02F and stock1.54
+recovery are retained. **Neither new firmware nor new SD kernel is installed.**
+
+[Candidate/configuration/checks](../evidence/i04/event-worker-candidate.json),
+[task runtime](../evidence/i04/event-worker-runtime.json),
+[native exchange](../evidence/i04/event-worker-exchange.json),
+[UI](../evidence/i04/event-worker-ui.json).
+
+```sh
+bash scripts/test_i04_event_worker.sh
+# Expected failure control: UI timing still ages the initial snapshot.
+bash scripts/test_i04_event_worker.sh legacy
+# Exact private staged candidates (no hardware writes):
+python3 scripts/i04_prepare_firmware.py --candidate private/i04-event-worker-final --label I04R
+python3 scripts/i04_prepare_trial.py --evidence evidence/i04/event-worker-candidate.json --trial-name event-worker-final
+```
+
 ## Remaining release conditions
 
-Resolve and physically measure acceptable integrated latency/jitter and local
-lock/envelope alignment; measure Pi render/queue margin. Verify that the working
-controls remain correct after timing changes. Persistence/reconnect/dense stress
-qualification belongs to V01 after I04; do not mark I04 done on listening alone.
+Human installs the checked I04R/128-frame pair under the existing backup/recovery
+gate. Start muted and inspect faults, then retest native controls and local
+processing; repeat the same native-click/analog timing capture. Establish
+acceptable measured latency/jitter and envelope alignment, and collect existing
+Pi render/pass/CPU statistics. **2.667ms is a buffer configuration, not a measured
+end-to-end result.** Preserve the working pair for rollback if deadlines fail.
+Persistence/reconnect/dense stress qualification belongs to V01 after I04.
 No other independent READY task currently exists.

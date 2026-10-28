@@ -1,0 +1,153 @@
+{
+  "task": "I04",
+  "scope": "verified event-driven firmware and 128-frame Pi candidate; NOT physically installed",
+  "digitakt_firmware": "I04R",
+  "firmware_sha256": "6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b",
+  "configuration": {
+    "pi_delay_frames": 128,
+    "pi_delay_ms": 2.6666666666666665,
+    "event_capacity": 256,
+    "native_worker_priority": 14,
+    "native_stack_bytes": 8192,
+    "worker_batch_records": 4,
+    "handshake_rx_wakes": "immediate",
+    "active_ack_rx": "next source event or 30Hz fallback",
+    "audio_render": "capture plus bounded native semaphore post only; no USB/alloc/wait"
+  },
+  "regression": {
+    "negative_ui_model": {
+      "first_snapshot_age_blocks": 48,
+      "first_snapshot_age_ms": 32.0,
+      "result": "RED: age <=2 assertion fails"
+    },
+    "event_model": {
+      "first_snapshot_age_blocks": [
+        0,
+        1
+      ],
+      "delayed_worker_service_blocks": [
+        1,
+        3
+      ],
+      "dense_integer_updates": 1000,
+      "starts_consumed": 64,
+      "ack_loss_recovery": "PASS",
+      "delay_frames": 128
+    },
+    "initial_native_dense_failure": {
+      "source_queue_overflow": 1,
+      "source_queue_full": 256,
+      "dense_installs_before_failure": 1640,
+      "stack_guard_faults": 0,
+      "cause_and_change": "Redundant task wake for each active ACK increases service overhead. Batch active ACK processing with next source/watchdog wake; keep handshake wake immediate. Identical dense exchange checks then pass."
+    }
+  },
+  "checks": [
+    {
+      "command": "bash scripts/test_i04.sh",
+      "result": "PASS",
+      "scope": "ASan/UBSan engine/scheduler/native/Circle/effective controls/velocity/trace/captured timing replay; event model with128-frame queue deadline"
+    },
+    {
+      "command": "bash scripts/test_i03_queue.sh",
+      "result": "PASS",
+      "scope": "production render/queue and ColdFire no allocator/wait imports"
+    },
+    {
+      "command": "python3 scripts/test_i04_replay.py",
+      "result": "PASS",
+      "scope": "ten patches apply at pinned base and dependency matches"
+    },
+    {
+      "command": "tools/i02_probe.py candidate --root private/i04-event-worker-final --label I04R (existing stock/fixture args)",
+      "result": "PASS",
+      "scope": "build/lint/link/protected sections, emulator boot and assignment"
+    },
+    {
+      "command": "tools/i04_worker_runtime_probe.py --candidate private/i04-event-worker-final",
+      "result": "PASS",
+      "evidence": "evidence/i04/event-worker-runtime.json"
+    },
+    {
+      "command": "tools/i03_probe.py --candidate private/i04-event-worker-final",
+      "result": "PASS",
+      "evidence": "evidence/i04/event-worker-ui.json",
+      "scope": "all eight native SRC encoder edits, labels/ranges/defaults and page navigation"
+    },
+    {
+      "command": "tools/i03_integrated_probe.py --candidate private/i04-event-worker-final",
+      "result": "PASS",
+      "evidence": "evidence/i04/event-worker-exchange.json",
+      "scope": "native task/IRQ-only signalling, real semaphore waits, dense native transport, ACK loss/reconnect/congestion and stack guards"
+    },
+    {
+      "command": "bash deps/sidecar-firmware/pi/engine/build.sh kernel",
+      "result": "PASS",
+      "target": "Pi 4 AArch64 Circle",
+      "kernel_sha256": "c057f063c24770a520b842e66d4d7e10655bdda3d45de05e1b67edc85d34a0f2",
+      "kernel_bytes": 2474600,
+      "compiled_first_anchor_delay_frames": 128,
+      "deployment": "pending"
+    }
+  ],
+  "source_sha256": {
+    "audio/playout.c": "91419d01ed0015ad8b288cb87754cbe6f74513cab840045a7f2de0a43a5abd4b",
+    "audio/playout.h": "8d6a7c1265e6bf0386b82d269141a0a78f9a426ae78b44d83914e3ba300a4966",
+    "audio/src_44148.c": "17e34f1a05ab474336837fe85b1c75d6a56859de9780b2bb0f0bb15d592070b7",
+    "audio/src_44148.h": "23ae3ecde4ab9b059209b2266301e5df18eb700a7cace29e4cabf2e5899b5f97",
+    "audio/trx_voice.c": "e86949e162945251e9c0d6934562e61ae53703071e5c65b88a1b5c325be1544c",
+    "audio/trx_voice.h": "d76b61ef5eb3012b20978d2c6d5377c59e76f8e00febd31d34969de6e07c3549",
+    "control/link.h": "52dd5c5186ab590f1d9fbcfe13ed7a520f293e56a34f85f5d1a1afa8c8e67540",
+    "mods/usb-midi/mod.json": "42237ba9db973bb9de4aafcb426b0effd881800a39e611c13a0a8ab6a835ea1c",
+    "mods/usb-midi/usb_midi.c": "e2e6cb486259310f8ffec0ed7c0c48f959f173ae859745175bc9890c84a8dfe4",
+    "mods/usb-midi/usb_midi.h": "12db1c576ba6802319589615bae93c4a2a1ef473938cef30e118bc7187709e8f",
+    "mods/usb-track/core_candidate_rtos.h": "60714763f69eb908aa63b360729182176a0f96c3a9b0cc087f19026ccb27a7bd",
+    "mods/usb-track/core_candidate_rtos.s": "a85a8ed629996aa4ef674ef7ac278d5fcd8fc2e0dace20d3f5e9bc6e590c9e65",
+    "mods/usb-track/mod.json": "c3674d72e22e18c74ab6f5b33fa218145e3c87f8e9fb6cc2740cf555e3044f6e",
+    "mods/usb-track/src_queue.c": "2de5d0209e05151065d6f9a4af09967b904b95c6b13e9ab7427eb90f5d7a79ab",
+    "mods/usb-track/src_queue.h": "577dbad5a473c637234ce3874b57669e3005b654a353c78ddc64481303e007cf",
+    "mods/usb-track/task_worker.c": "4d1ba41730eb7131aba82a84db465be8809da8aede0031b6635bdce4030e87c9",
+    "mods/usb-track/usb_track.c": "f182c9bc25c910430ec0560d35e4fe260dd148841181197cc51a4949e6bc0792",
+    "mods/usb-track/usb_track.h": "ddd9f290d1e536396870f6f59a9cca1f94a6fdea4b0171ed19cc38f2c598af98",
+    "mods/usb-track/worker.c": "fd8ce78f952cb03e64e47b31e561e59b20e6d162cef4c1aee34450e91cabca3a",
+    "patches/sidecar-firmware/0001-directional-overbridge-layout.patch": "87fecfb46737ddf85bed736cf245caf0976c4d3b671478e26297ef5ff352be39",
+    "patches/sidecar-firmware/0002-static-capture-marker.patch": "455b1c1d08189f2ec5e21e8173176508da46569fe6cd1758a0f5aa9286c97e5e",
+    "patches/sidecar-firmware/0003-dtsc-control-link.patch": "fb6e8de487359ee515f4e6b849674c1982203e3801e557f239fac35cdb6db85c",
+    "patches/sidecar-firmware/0004-h02-gated-test-tone.patch": "42f3c9df1a41d0ec42d9005324924b780c48f4e87583c747a40b688d145f936c",
+    "patches/sidecar-firmware/0005-monotonic-control-clock.patch": "fb478754766b1975f14b57a43d1aaf709e07360bfe186e7f791089bf14236afc",
+    "patches/sidecar-firmware/0006-i04-trx-voice.patch": "b9c12b1190e3f154e64184c89685744a383e0e7fd903383900b4fc9c732fcaa2",
+    "patches/sidecar-firmware/0007-i04-scheduled-playout.patch": "e998f473d360e3beb8eed6f04aa13aea55858245f7be971622cf69f700569a1b",
+    "patches/sidecar-firmware/0008-i04-playout-fault-reason.patch": "f86f9d316705a097c485a5e2c31372a3ef70f5a544d66ba06fe8b842c30969ae",
+    "patches/sidecar-firmware/0009-i04-bounded-timing-trace.patch": "99477a884adbff823b2282099636e1f762e58445aead92263cf24b99bead8a4b",
+    "patches/sidecar-firmware/0010-i04-event-worker-playout.patch": "97481205bc8a479d4cf4f9e26ad78636c36633b8bf1d128074153748d7983869",
+    "scripts/i04_prepare_circle.sh": "4758b59c991cb83ef37307b668dd37a57192b0f17f45bdf661b82039810acedd",
+    "scripts/i04_prepare_firmware.py": "9c5daa285001a8dcd0f3ab261b8928b1babf557d19ca6dbc5aa72e089a1a3b1d",
+    "scripts/i04_prepare_trial.py": "b61c4b348a377f5686a08d683e9e92767f61fecb49de8ea344272d97c4f5b83c",
+    "scripts/test_i03_integration.sh": "dd99dbd07689d39b84a4e698e5a6d9aa9c6fd9f423a320b7f1b71c43e1f03b5e",
+    "scripts/test_i04.sh": "1cc7e426c6e3f5a19f26d13c186980c43231b2a31fc32651365cdb0e84cd1969",
+    "scripts/test_i04_event_worker.sh": "333e348294d2d1a0c51863a49b3e4e4eecc512b60a4cd2572fd46ed221f155bc",
+    "scripts/test_i04_replay.py": "595f23bb2f123353f13a5897a97034e951bd6ecccee1f76c220a7d112d1b7ca8",
+    "tests/i03_circle_glue.cpp": "9cf1997b126643d40c0077c6c8aeb8922767ba9a43c3edbba9a75ebecc27cd35",
+    "tests/i03_integrated.c": "269130f83e24febb1d7903497a76e6b18989a32b824df1548a674205aace1f71",
+    "tests/i03_output_gate.cpp": "cd40f43094b3b1f28590b776ebad09839d2b23006e4662d86ff053a942ce5516",
+    "tests/i04_event_worker.c": "abc79644e6e06b2c710815c9352deeed88a3ca208d7355d68ca94dce6cc2bc94",
+    "tests/i04_final_controls.c": "425e7d9da452d799f6f3fa372cf7aa080b83f9d192221e4f21ea4cb153d07b67",
+    "tests/i04_playout.c": "bd59bdbcd2a71c51a049da96ff9e4e46eb301201b441ddf1c668d209a4452eee",
+    "tests/i04_trace.py": "9664f15765a1119b84391bf422433162df130ff3f89a5954cbf4fca9118c0bf5",
+    "tests/i04_velocity.c": "13a0d4fa2fd56c83ffcdb5f9d47cd6e4f81d855ca867b6df72efde9ce2ce7866",
+    "tests/i04_voice.c": "b4c4a3fd00694e9114d1867f973fb9414c09014434af189afe85b0cfcc1cb6df",
+    "tools/i02_probe.py": "79fd3b23c223d463162ba8d212ce5135e9be6b7e3fed68ede05274c918cf5197",
+    "tools/i03_integrated_probe.py": "7aba24df684fc13fb8d9b94830f63b189a530d44f075373baccf44a4a01ac571",
+    "tools/i04_analyze_trace.py": "f8a879dc441e0290f6871456b5d079259f30700ca88c035e8e4d91565317eb7c",
+    "tools/i04_bench.c": "250cddaf63365019f9628695a32fa35f0aa2d408c8f7e111762e383dc70c6af1",
+    "tools/i04_worker_runtime_probe.py": "6ac2cabff27496f787eb489873ec75ca6abf80f8e66bc4e3339aba571a5b1c86"
+  },
+  "limits": [
+    "No hardware latency, envelope alignment or native CPU worst-case guarantee for this pair yet",
+    "128-frame candidate requires I04R event worker; do not use it as a qualified I04Q configuration",
+    "Active non-handshake RX is processed with source/watchdog wakes; arbitrary external MIDI latency not qualified",
+    "Emulator default lacks INTC2 software reschedules; probes add existing generic model source13 explicitly and reject artificial semaphore waits",
+    "Native stack1176 bytes observed in compiled exchange of8192, not a proof of every native stack path",
+    "Previous kernel and I04Q/H02F/stock recovery retained; human flash/SD step required; audio defaults muted"
+  ]
+}

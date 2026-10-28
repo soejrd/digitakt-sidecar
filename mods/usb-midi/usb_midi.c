@@ -32,11 +32,14 @@ static void (*rx_handler)(void *, const uint8_t *, uint32_t);
 static void *rx_context;
 static void (*stock_rx)(const uint8_t *, uint32_t);
 static uint8_t opened, failed;
+static void (*volatile device_wakeup)(void);
+void usbmidi_device_set_wakeup(void (*fn)(void)) { device_wakeup=fn; }
 
 /* Native calls exactly (pointer, length), with no context argument. */
 static void native_rx(const uint8_t *bytes, uint32_t n)
 {
     if (rx_handler) rx_handler(rx_context, bytes, n);
+    if (device_wakeup) device_wakeup();
 }
 
 static int fw_link_up(void *ctx)

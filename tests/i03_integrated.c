@@ -30,6 +30,10 @@ static struct sc_circle_link host;
 static struct sc_frame installed;
 static unsigned starts,frames,drop_acks,blocked,foreign;
 static unsigned tick_period=50;
+#ifdef I04_EVENT_WORKER_TEST
+static unsigned event_worker=1,worker_pending,first_install_age=~0u,worker_cadence=1;
+static void wake_worker(void) { worker_pending=1; }
+#endif
 static uint8_t packets[256][DT1_MSG_MAX];
 static uint32_t lengths[256],write_at,read_at;
 static int32_t blocks[256];
@@ -52,6 +56,9 @@ static int install(void *ctx,const struct sc_frame *f)
                (unsigned long long)playout.failure.due,f->voice);
         return 0;
     }
+#endif
+#ifdef I04_EVENT_WORKER_TEST
+    if (first_install_age==~0u) first_install_age=usb_track_clock-f->block;
 #endif
     installed=*f; ++frames; if(f->flags&SC_START) ++starts; return 1;
 }
@@ -87,6 +94,16 @@ static void step(unsigned n)
         usb_track_render(blocks);
         for(i=32;i<256;++i) assert(blocks[i]==7654321);
         if(!usb_track_gate && fw_render_machine[0]==121) { assert(blocks[0]==0); ++blocked; }
+#ifdef I04_EVENT_WORKER_TEST
+        if (event_worker) {
+            if (usb_track_clock%50==0) usb_track_control_wake();
+            unsigned passes=0;
+            while (worker_pending && usb_track_clock%worker_cadence==0) {
+                assert(++passes<16); worker_pending=0;
+                usb_track_tick(0); pump();
+            }
+        } else
+#endif
         if(usb_track_clock%tick_period==0) { usb_track_tick(0); pump(); }
 #ifdef I04_ENGINE_PEER
         if(sc_circle_audio_allowed(&host)) assert(sc_playout_render(&playout,rendered,32));

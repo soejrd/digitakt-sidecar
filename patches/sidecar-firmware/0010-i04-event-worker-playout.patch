@@ -1,0 +1,13 @@
+--- a/pi/engine/Makefile
++++ b/pi/engine/Makefile
+@@ -68,6 +68,10 @@
+ 	-fno-math-errno -ffp-contract=fast -ffunction-sections -fdata-sections -g -MMD -MP -I. -I$(CORE) -I$(RMPSRC) -DRMP_HOST_A64 $(ENG_INC) $(ENG_FLAGS)
+ HOSTED_CFLAGS = $(ARCH) -O2 -std=c99 -fno-math-errno -ffp-contract=fast -g -MMD -MP -w $(ENG_INC)
+ 
++# I04R event-driven device worker: candidate buffer 128 frames (2.667 ms).
++# Only playout.c consumes this constant; the shared state layout is unchanged.
++hosted/dt_control/playout.c.o: HOSTED_CFLAGS += -DSC_PLAYOUT_DELAY=128u
++
+ hosted/core/%.o: $(CORE)/%
+ 	@mkdir -p $(dir $@)
+ 	@echo "  CPP   $@ (hosted)"

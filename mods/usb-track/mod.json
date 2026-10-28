@@ -1,6 +1,6 @@
 {
   "id": "usb-track",
-  "version": "0.4",
+  "version": "0.5",
   "title": "USB track prototype",
   "license": "GPL-2.0-or-later",
   "device": "digitakt-mk1",
@@ -11,7 +11,9 @@
     "src_queue.c",
     "worker.c",
     "../../control/link.c",
-    "../../control/device_link.c"
+    "../../control/device_link.c",
+    "task_worker.c",
+    "core_candidate_rtos.s"
   ],
   "machines": [
     {
@@ -27,7 +29,7 @@
     },
     {
       "event": "ev_tick",
-      "fn": "usb_track_tick",
+      "fn": "usb_track_ui_tick",
       "order": 40
     }
   ],
@@ -38,5 +40,12 @@
   ],
   "resources": {
     "core": "3.0"
+  },
+  "defsym": {
+    "CORE_RTOS_TASK_CREATE": "0x400015ac",
+    "CORE_RTOS_TASK_START": "0x400015f8",
+    "CORE_RTOS_SEM_INIT": "0x4000167c",
+    "CORE_RTOS_SEM_WAIT": "0x400016fe",
+    "CORE_RTOS_SEM_SIGNAL": "0x40001770"
   }
 }

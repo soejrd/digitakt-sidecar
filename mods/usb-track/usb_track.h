@@ -12,4 +12,9 @@ int usb_track_control_invalidated(void);
 int usb_track_control_peek(struct ut_record *r);
 int usb_track_control_pop(struct ut_record *r);
 void usb_track_tick(void *ctrl);
+void usb_track_ui_tick(void *ctrl);
+void usb_track_worker_rx_wake(void);
+void usb_track_control_set_wakeup(void (*fn)(void));
+int usb_track_control_has_wakeup(void);
+void usb_track_control_wake(void);
 #endif

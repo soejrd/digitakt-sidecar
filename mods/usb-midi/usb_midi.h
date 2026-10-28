@@ -9,6 +9,7 @@ int usbmidi_device_send(const uint8_t *bytes, uint32_t n);
 int usbmidi_device_link(void);
 int usbmidi_device_failed(void);
 void usbmidi_tick(void *ctrl);
+void usbmidi_device_set_wakeup(void (*fn)(void));
 /* Read-only diagnostics; no firmware calls, transmission or queue changes. */
 uint32_t usbmidi_device_diag(unsigned field);
 #endif
