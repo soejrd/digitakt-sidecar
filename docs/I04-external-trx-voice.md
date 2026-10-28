@@ -278,3 +278,16 @@ for the physical retest; it is bounded operational fault evidence, not temporary
 per-render logging. Next: corrected SD installation/read-back with fresh backup,
 muted boot and controlled taps, then explicitly enable faded audio and confirm
 human listening and modulation/local processing before any acceptance claim.
+
+## Corrected-kernel SD deployment — 2026-10-28
+
+[Generation-fix deployment](../evidence/i04/generation-fix-sd-deployment.json):
+returned card's kernel matched diagnostic-1; full existing manifest passed.
+Current diagnostic kernel/full manifest backed up locally under
+`private/i04/sd-backup-generation-fix/` and on card with `before-generation-fix`
+names. Corrected kernel and updated manifest read-back verified; all other
+regular files/settings/prior backups unchanged. Card safely ejected. No corrected
+physical boot/audio result yet. Next: boot muted with no manual taps, inspect
+baseline, then repeat controlled native hits before faded audio enable. Restore
+the matching before-generation-fix kernel/manifest pair for immediate rollback;
+older H02 verified rollback remains available separately.
