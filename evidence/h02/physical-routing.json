@@ -1,0 +1,23 @@
+{
+  "task": "H02",
+  "status": "DONE by explicit user acceptance",
+  "firmware": "H02F",
+  "kernel_build": "Oct 27 2026 21:27:35",
+  "gate_observation": "Live h02tone=on accepted after corrected USB1 handshake; subsequent human heard tone.",
+  "tone": "3 kHz, <= -42 dBFS MAIN before Digitakt processing, 200 ms fade, session-gated",
+  "human_listening_pass": [
+    "USB1 on audio track 1 and eight engine SRC controls visible",
+    "tone audible after trigger",
+    "filter cutoff affects tone",
+    "AMP volume and decay affect tone",
+    "overdrive affects tone",
+    "reverb tail after short tone",
+    "delay repeats after short tone",
+    "neighboring internal track audible while USB1 AMP VOL is zero"
+  ],
+  "stability_evidence": "evidence/h02/physical-stability.json",
+  "timing_evidence": "evidence/h02/timing.json",
+  "timing_result": "No returned pulse train in USB MAIN capture; latency remains unmeasured. No analog loopback trial performed.",
+  "acceptance_change": "User declined further testing, explicitly accepted ~8 minutes in place of 10, and directed completion/commit/push. Completion records accepted scope, not a measured latency or full 600-second proof.",
+  "final_hardware_state": "Pi powered off by human; runtime tone ended. Both H02 firmware and corrected Circle kernel installed."
+}

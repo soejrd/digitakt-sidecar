@@ -1,7 +1,7 @@
 {
   "task": "H02",
   "date_utc": "2026-10-27T21:31:13.902955+00:00",
-  "scope": "Sidecar monotonic session-clock kernel installed; physical boot pending; no Digitakt firmware modified by this deployment",
+  "scope": "Corrected Circle kernel installed/read-back verified and physically booted; accepted USB1 handshake observed",
   "old_kernel_sha256": "1514f996a9c63e0d82bad5091cc3075c3dac52827273d701ae21494c89d07721",
   "new_kernel_sha256": "a46476a30ee94c0c32dfe05983626869c198e6522fa0a065e338b0b227228a82",
   "new_kernel_bytes": 2456232,
@@ -19,6 +19,7 @@
     "card_safely_ejected": true
   },
   "pass": true,
-  "boot_verified": false,
-  "rollback": "With Pi off and card mounted, replace kernel8-rpi4.img with kernel8-rpi4.before-clock.img and restore SHA256SUMS.before-clock as SHA256SUMS."
+  "boot_verified": true,
+  "rollback": "With Pi off and card mounted, replace kernel8-rpi4.img with kernel8-rpi4.before-clock.img and restore SHA256SUMS.before-clock as SHA256SUMS.",
+  "boot_build": "Oct 27 2026 21:27:35"
 }

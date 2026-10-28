@@ -1,0 +1,59 @@
+{
+  "task": "H02",
+  "hardware_test": true,
+  "pass": false,
+  "scope": "attempted recorder-relative Pi source -> USB -> Digitakt track -> USB MAIN return; dry steady amp, filter off, sends/overdrive off",
+  "sample_rate_hz": 48000,
+  "frames": 701967,
+  "pulse_count": 12,
+  "ignored_initial_frames": 24000,
+  "source_falling_edge_frames": [
+    51423,
+    101355,
+    151287,
+    201784,
+    251548,
+    301552,
+    351520,
+    401212,
+    451059,
+    500884,
+    550671,
+    601239
+  ],
+  "channels": {
+    "01_MAIN_L.wav": {
+      "falling_edge_frames": [],
+      "pulse_count": 0,
+      "measurement_available": false,
+      "peak_after_warmup": 11,
+      "reason": "No matching returned pulse train in digital USB MAIN; latency cannot be measured from this take."
+    },
+    "02_MAIN_R.wav": {
+      "falling_edge_frames": [],
+      "pulse_count": 0,
+      "measurement_available": false,
+      "peak_after_warmup": 11,
+      "reason": "No matching returned pulse train in digital USB MAIN; latency cannot be measured from this take."
+    }
+  },
+  "capture_sha256": {
+    "13_VOICE1.wav": "3530f316cbecb98155d6a6c860aac048af6c3ed886b7f3f5393a2723009c0974",
+    "01_MAIN_L.wav": "05e07e1b5f0d32ec6d1e6471d0363d85f4eaa1523d28b8956f2a07e0f87cb54e",
+    "02_MAIN_R.wav": "e6eb28d3f6b16bf3eaf3c9bf95841f91ac4f82f40978ff6dc688db74d14089a5"
+  },
+  "recorder": {
+    "frames": 701967,
+    "drops": 0,
+    "outShort": 14,
+    "error": ""
+  },
+  "source_alignment_bound_ms": 2.3333333333333335,
+  "missing_reference_frames_total": 14,
+  "limits": [
+    "OUT voice reference uses the recorder side FIFO; documented possible 16-packet lead is 112 frames (2.333 ms). Values are recorder-relative, not a calibrated USB-bus timestamp.",
+    "Recorder inserted zero reference samples for outShort frames; no card-ring drops. This is separate from engine FIFO underruns.",
+    "Threshold is half of one-period power, at one-sample steps; up to one-sample edge quantization per channel.",
+    "Measures returned PCM path, not note-to-synthesis latency, ColdFire render headroom or analog-output latency."
+  ]
+}

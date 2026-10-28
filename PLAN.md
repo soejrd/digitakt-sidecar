@@ -22,7 +22,7 @@ The creator's [Digitakt guide](https://github.com/trigcondition/sidecar-expander
 | Persist and qualify | Save/load, copy/paste, undo, mutes, sound locks, reconnect and dense-pattern regressions | V01 |
 | Expand | Demonstrated transport capacity and CPU headroom before more voices or Teensy | X01, X02 |
 
-D01 records a [conditional GO for native USB copy/clear](docs/adr/0001-usb-return-to-track.md). I02 now passes OS 1.54 emulator checks and [H01 qualifies stock physical streaming](docs/H01-stock-usb-stream.md); H02 retains physical track integration and full timing qualification. The prototype consumes the whole stereo USB return to feed one mono track; additional independent returns are not assumed.
+D01 records a [conditional GO for native USB copy/clear](docs/adr/0001-usb-return-to-track.md). I02 passes OS 1.54 emulator checks, [H01 qualifies stock physical streaming](docs/H01-stock-usb-stream.md), and [H02 is complete under user-accepted physical routing/stability scope](docs/H02-real-track-pipeline.md); integrated timing remains unmeasured. The prototype consumes the whole stereo USB return to feed one mono track; additional independent returns are not assumed.
 
 ## Design requirements
 

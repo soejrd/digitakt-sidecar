@@ -1,7 +1,7 @@
 {
   "task": "H02",
   "pass": true,
-  "scope": "Software correction verified; Circle kernel installed/read-back verified, boot pending; human H02F firmware install unconfirmed",
+  "scope": "Software correction verified and physically installed/booted; routing passes human listening, stability accepted at shortened duration; timing unmeasured",
   "cause": "mode-2 guard rejected physical native Overbridge mode 6; prior emulator fixtures forced mode 2",
   "mode_evidence": "evidence/h02/usb-mode-154.json",
   "regression": {
@@ -20,13 +20,14 @@
   "firmware": {
     "label": "H02F",
     "sha256": "5acb609a4b409153d2eed7b528becf4ca553d7cce548031f00d4910c4e0ebd33",
-    "flashed": false
+    "flashed": true
   },
   "circle_kernel": {
     "sha256": "a46476a30ee94c0c32dfe05983626869c198e6522fa0a065e338b0b227228a82",
     "bytes": 2456232,
     "deployed": true,
-    "deployment_evidence": "evidence/h02/sd-clock-deployment.json"
+    "deployment_evidence": "evidence/h02/sd-clock-deployment.json",
+    "boot_verified": true
   },
   "source_sha256": {
     "mods/usb-track/usb_track.c": "dcfaffcaf0fb8af5b32478d43792365b9f11eb83fec9bec60a4ff6e67a4b9578",
@@ -42,5 +43,6 @@
   "limits": [
     "Physical mode-6 activation, audio routing, timing and ten-minute stability still need qualification.",
     "The source correction does not establish the cause of the separate H01 USB stall."
-  ]
+  ],
+  "physical_evidence": "evidence/h02/physical-routing.json"
 }

@@ -1,0 +1,70 @@
+{
+  "task": "H02",
+  "hardware_test": true,
+  "scope": "successful live observation until human-powered shutdown; original 600-second observer did not complete online",
+  "successful_observation_seconds": 506.7583975419984,
+  "status_samples": 101,
+  "baseline": {
+    "stream_ms": 96726,
+    "in_blocks": 663254,
+    "gaps": 0,
+    "lost": 0,
+    "odd_gaps": 0,
+    "short": 0,
+    "bad_headers": 0,
+    "in_errors": 0,
+    "out_blocks": 663247,
+    "out_errors": 0,
+    "credit_drops": 0,
+    "in_submit_fail": 0,
+    "out_submit_fail": 0
+  },
+  "final": {
+    "stream_ms": 603746,
+    "in_blocks": 4139893,
+    "gaps": 0,
+    "lost": 0,
+    "odd_gaps": 0,
+    "short": 0,
+    "bad_headers": 0,
+    "in_errors": 0,
+    "out_blocks": 4139889,
+    "out_errors": 0,
+    "credit_drops": 0,
+    "in_submit_fail": 0,
+    "out_submit_fail": 0
+  },
+  "delta": {
+    "stream_ms": 507020,
+    "in_blocks": 3476639,
+    "gaps": 0,
+    "lost": 0,
+    "odd_gaps": 0,
+    "short": 0,
+    "bad_headers": 0,
+    "in_errors": 0,
+    "out_blocks": 3476642,
+    "out_errors": 0,
+    "credit_drops": 0,
+    "in_submit_fail": 0,
+    "out_submit_fail": 0
+  },
+  "initial_fifo_underruns": 10,
+  "final_fifo_underruns": 10,
+  "new_fifo_underruns": 0,
+  "max_temperature_c": 39,
+  "checks": {
+    "packet_progress": true,
+    "no_new_usb_errors_or_gaps": true,
+    "no_new_fifo_underruns": true,
+    "streaming_at_all_successful_reads": true
+  },
+  "end_reason": "Human confirmed switching Pi off and requested no further tests; subsequent HTTP timeouts are expected shutdown, not evidence of transport failure.",
+  "acceptance": "User explicitly accepted the approximately eight-minute run instead of ten and requested H02 marked complete.",
+  "full_600_second_live_observation": false,
+  "pass_for_user_accepted_window": true,
+  "limits": [
+    "Ten FIFO underruns predate this observation; their origin was not isolated.",
+    "No calibrated latency, full Digitakt render-headroom or physical reconnect-stress qualification."
+  ]
+}

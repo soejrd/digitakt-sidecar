@@ -1,92 +1,82 @@
 # H02 — Real track pipeline
 
-Status: **IN PROGRESS — route guard diagnosed; corrected Circle kernel installed; H02F/boot trial pending**
-(2026-10-27). H02D firmware boots on hardware and USB1 appears on audio
-track 1 with engine SRC parameters. No test tone has played. Use the one
-existing Sidecar/Circle SD card; computer UI access is prohibited by the user.
+**DONE by explicit user acceptance (2026-10-28).** The user accepted the
+approximately 8½-minute run in place of ten minutes, ended further testing,
+and requested completion. This accepts the physical routing milestone;
+latency, full render headroom and physical reconnect stress remain unmeasured.
 
-## Diagnosis and prepared updates
+## Physical result
 
-Human diagnostic readout: **STATE 20, SYNC 1, MIDI 125, TX 0**; RCLK
-advances at ~1500/s, TICK ~30/s, RX rises ~13 bytes every 6 s. USB1 and half
-selection are valid, but the route rejects the USB mode. Port settings are
-MIDI+USB in/out and TRIG KEY DEST INT. The [clock check](../evidence/h02/midi-clock-check.json)
-proves ordinary USB MIDI reaches Pi while USB1 activation remains closed.
+H02F firmware and the corrected Circle kernel booted on Digitakt mk1 OS 1.54
+and Pi 4B. USB1 appeared on audio track 1 with eight SRC engine parameters.
+The live host accepted `h02tone=on` after the control handshake; the human
+heard the quiet 3 kHz tone and verified:
 
-[OS mode-table/physical-descriptor comparison](../evidence/h02/usb-mode-154.json)
-identifies native Overbridge as **mode 6**, PID `0x0b2c`, with EP3 IN/OUT
-368/88-byte packets. The old guard required mode 2 (MIDI-only PID `0x000d`),
-and earlier emulator fixtures forced that wrong mode. [Fix evidence](../evidence/h02/mode6-fix.json)
-records the production render regression failing before and passing after
-the correction, with modes 0–5 and 7 rejected.
+- Filter cutoff, AMP volume/decay and overdrive affect the tone.
+- Reverb tails and delay repeats work through the track sends.
+- The neighboring internal track remains audible with USB1 AMP VOL at zero.
 
-The tested pair is prepared; Circle is installed and H02F installation is unconfirmed:
+These are human listening observations, not calibrated attenuation or complete
+output-identity measurements. [Routing evidence](../evidence/h02/physical-routing.json).
 
-- `private/h02/trial/Digitakt-H02F-mode6.syx`: mode-6 route guard plus the
-  diagnostic SRC page. [Compiled page](../evidence/h02/mode6-diagnostic-page.json)
-  and [activation/loss/reconnect exchange](../evidence/h02/mode6-exchange.json) pass.
-- `private/h02/trial/kernel8-rpi4-clock.img`: Circle patch 0005 advances a
-  separate 32-frame lease clock from rendered sample counts. Previously it
-  reused the statistics counter, which resets every second. Actual-glue
-  tests check 12+20-frame conversion and exact lease expiry. Pi cross-build
-  and all five dependency patches replay/match. This is a separate source
-  finding, not a physically observed activation failure.
+[Stability evidence](../evidence/h02/physical-stability.json): **506.758 s**,
+101 successful reads, 3,476,639 IN and 3,476,642 OUT packets advanced. No new
+USB gaps/errors or FIFO underruns; the FIFO counter remained 10 throughout.
+Those accumulated underruns predate the observation and were not isolated.
+The human then powered Pi off; subsequent HTTP timeouts are expected shutdown,
+not proof of a transport failure. A full 600-second live run is not claimed.
 
-Artifact/source hashes are in the fix evidence. The human performs firmware
-installation using the [verified recovery procedure](I02-one-track-routing.md#human-hardware-trial-and-recovery-gate).
-Stock recovery: `private/h02/trial/Digitakt-OS1.54-stock-recovery.syx`, SHA-256
-`f78ba80fa7b1da5fb0e1ff61ad61e9e71aafe79f4364fc49679f3651353e3cf6`.
-The [clock-kernel deployment](../evidence/h02/sd-clock-deployment.json) is
-read-back verified and safely ejected. Previous H02 kernel backups are card
-`kernel8-rpi4.before-clock.img` and local `private/h02/sd-backup-clock/`;
-original H01 backups remain. All other existing files, including settings
-and credentials, are unchanged. Boot and human H02F install confirmation
-remain pending.
+The [timing attempt](../evidence/h02/timing.json) captured twelve source pulses,
+but USB MAIN had no matching returned pulse train after startup. No valid
+latency was extracted. Analog loopback was not performed. Firmware-derived
+instruction counts and Pi CPU logs do not qualify full Digitakt render headroom.
+These limits remain explicit despite user acceptance; I04 is now released.
 
-## Reproduction and current card recovery
+## Corrections and reproducible checks
 
-Use the existing private runtime and a fresh candidate root:
+H02D showed STATE 20, SYNC 1, MIDI 125, TX 0, with render/worker clocks active.
+[Mode-table/physical-descriptor comparison](../evidence/h02/usb-mode-154.json)
+identified native Overbridge as mode **6**, PID `0x0b2c`, EP3 IN/OUT 368/88 B.
+The old mode-2 guard rejected it; old emulator fixtures hid that error by
+forcing mode 2. H02F fixes the guard. The production regression fails before
+and passes after, rejecting other modes.
+
+Circle patch 0005 separates the lease clock from per-second reset statistics,
+advancing in 32-frame units from actual samples. Actual-glue tests cover
+12+20-frame conversion and exact expiry. Host/ColdFire regression, compiled
+boot/page/exchange, Pi build and five-patch replay pass. Artifact/source hashes
+and commands: [fix evidence](../evidence/h02/mode6-fix.json),
+[page](../evidence/h02/mode6-diagnostic-page.json),
+[exchange](../evidence/h02/mode6-exchange.json).
 
 ```sh
+bash scripts/test_i03_queue.sh
+bash scripts/test_i03_integration.sh
 python3 tools/h02_usb_mode.py --sections private/i02-fixture/sections \
   --output evidence/h02/usb-mode-154.json
-bash scripts/test_i03_queue.sh
-"$PY" tools/i02_probe.py candidate --root private/h02-mode6 \
-  --stock private/i02-fixture/Digitakt_OS1.54.syx --fixture private/i02-fixture --diagnostic
-"$PY" tools/h02_diag_probe.py --candidate private/h02-mode6 \
-  --output evidence/h02/mode6-diagnostic-page.json
-"$PY" tools/i03_integrated_probe.py --candidate private/h02-mode6 \
-  --output evidence/h02/mode6-exchange.json
-# Sidecar patches 0001–0005 applied on the pinned base:
-bash scripts/i03_prepare_circle.sh
-bash scripts/test_i03_integration.sh
-bash deps/sidecar-firmware/pi/engine/build.sh kernel
+python3 tools/h02_analyze_timing.py --folder private/h02/timing-wav \
+  --capture private/h02/timing-capture.json --output evidence/h02/timing.json
 ```
 
-The [first SD update](../evidence/h02/sd-deployment.json) is physically booted;
-its [15-second silence check](../evidence/h02/new-kernel-boot.json) passed.
-Original H01 kernel backups: card `kernel8-rpi4.before-h02.img` and local
-`private/h02/sd-backup/kernel8-rpi4.img`. With Pi off, restore that backup as
-`kernel8-rpi4.img` and `SHA256SUMS.before-h02` as `SHA256SUMS`, then eject.
-Wi-Fi configuration/credentials and other existing files are preserved.
-A separate earlier [USB stall](../evidence/h02/preflight-circle.json) recovered
-by [Pi restart](../evidence/h02/after-pi-restart.json), not Digitakt restart;
-its cause and automatic reconnect remain unqualified.
+The final command records the useful negative timing result; it does not
+claim a successful latency measurement. Private firmware/captures stay ignored.
 
-## Physical trial and acceptance
+## Installed state and recovery
 
-After both updates, reconnect Digitakt USB and boot Pi with Digitakt on.
-Select/trigger USB1 on audio track 1, and recheck activation before tone.
-SRC switches between engine and diagnostic pages; RCLK/TICK wrap at 10000.
-Expected pre-gate STATE 29, active STATE 31; native MIDI ready is 125.
-Flip SRC pages to refresh. Restore CLOCK SEND to its pre-test setting.
+Pi is off, ending the runtime tone. One Sidecar/Circle SD card is used;
+settings/credentials are unchanged. Installed firmware:
+`private/h02/trial/Digitakt-H02F-mode6.syx`. Kernel deployment/read-back/boot:
+[record](../evidence/h02/sd-clock-deployment.json).
 
-`h02tone=on|off` defaults off and rejects enable before the handshake.
-Explicit enable produces 3 kHz at <= −42 dBFS on MAIN with a 200 ms fade and
-limiter. Loss/expiry disarms it; reconnect requires a fresh explicit enable.
-Keep headphones down, speakers off, analog loopback removed and monitoring
-off for listening. Verify filter, AMP, sends, no dry bypass and a neighboring
-internal track. Use the analog loopback only for timing capture, monitoring
-off. Measure latency/jitter, render headroom and reconnect freshness; agree
-the musical timing limit. Complete a ten-minute zero-gap/underrun run before
-marking H02 DONE. Host/emulator checks do not replace this physical evidence.
+Previous H02 backups: card `kernel8-rpi4.before-clock.img` and local
+`private/h02/sd-backup-clock/kernel8-rpi4.img`. With Pi off and card mounted,
+restore that image as `kernel8-rpi4.img` and `SHA256SUMS.before-clock` as
+`SHA256SUMS`, then eject. Original H01 backups remain separately available.
+Digitakt stock recovery is `private/h02/trial/Digitakt-OS1.54-stock-recovery.syx`;
+use the [human recovery procedure](I02-one-track-routing.md#human-hardware-trial-and-recovery-gate).
+No bootloader/internal wiring changes. Computer UI access is prohibited by user.
+
+The tone defaults off on boot and requires explicit enable after handshake;
+it is faded, limited and <= −42 dBFS on MAIN before Digitakt processing.
+This fixed-tone proof is not TRX-B2 synthesis: that is I04. Startup underruns,
+latency, render headroom and reconnect qualification remain follow-up limits.
