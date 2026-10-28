@@ -64,8 +64,8 @@ def run(candidate, output):
             s.m.uc.mem_write(0x30000000, bytes(32))
             invoke(u32(knob + 32), [0x30000000, 0, 0, 121])
             values[label] = int(bytes(s.m.uc.mem_read(0x30000000, 32)).split(b"\0")[0])
-        assert values == {"RCLK": 2345, "UI": 234, "WORK": 345, "WGAP": 9999,
-                          "BATCH": 4000, "UGAP": 7000, "FAULT": 0}
+        assert values == {"RCLK": 2345, "UI": 234, "WORK": 345, "WGAP": 299,
+                          "BATCH": 85, "UGAP": 7000, "FAULT": 0}
         record = {
             "task": "V01",
             "phase": "2 device-side service timing",
@@ -79,7 +79,8 @@ def run(candidate, output):
                 "seeded_formatter_values": values,
                 "units": {"RCLK": "blocks", "UI": "ticks", "WORK": "entries",
                           "WGAP": "ms", "BATCH": "ms", "UGAP": "ms", "FAULT": "count"},
-                "saturation": "four-digit display saturates at 9999, never wraps",
+                "saturation": "time fields saturate at 9999 ms; count fields show modulo 10000",
+                "clock": "1500 render blocks/s at 48 kHz; nearest-ms conversion",
             },
             "emulator_tasks": tasks,
             "worker_priority": 14,

@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Status | Dependencies / first action | Acceptance |
 | --- | --- | --- | --- | --- |
-| V01 | Persistence and stress | IN PROGRESS — Codex 2026-10-28T15:51:11Z (Phase 2: V01P rejected) | [Phase 2](evidence/v01/phase2-device-diagnostic.json) localized UI starvation. [V01P](evidence/v01/phase2-v01p-result.json): UI responsive at 64/64, but Pi playout faults `66→101` and FIFO `509→793` with voice muted; rejected. V01N/no-self-wake emulator-ready, not physically tested. Restore I04R from `private/v01/firmware-V01P/Digitakt-I04R-previous.syx`. [Plan](docs/V01-persistence-stress.md). | Document supported dense-modulation budget, responsive UI and no audio/deadline failure; save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and sustained stress regressions. |
+| V01 | Persistence and stress | IN PROGRESS — Codex 2026-10-28T18:41:42Z (plan reviewed; diagnostic units corrected) | Phase 1 lag reproduced; Phase 2 unresolved. [Clock correction](evidence/v01/diagnostic-clock-correction.json): prior displayed ms inflated 46.875×; multi-second UI starvation not established. V01P rejected; V01N physically untested and needs rebuild. Next: interval-scoped diagnostic baseline and controlled comparison. [Plan](docs/V01-persistence-stress.md). Last installed V01P; human restore I04R before normal use. | Numeric supported workload with responsive UI and no audio/deadline failure; native persistence/edit semantics; reconnect and combined soak; explicit listening acceptance. |
 
 ## Waiting
 

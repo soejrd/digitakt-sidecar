@@ -225,8 +225,7 @@ static int32_t diag_text(char *buf, uint32_t n)
 }
 static uint32_t diag_ms(uint32_t blocks)
 {
-    uint32_t ms=(blocks*1000u+15u)/32u;
-    return ms>9999u ? 9999u : ms; /* UI text is capped; do not wrap a long stall */
+    return usb_track_diag_ms(blocks);
 }
 #define DIAG_FORMAT(name, expression) \
 static int32_t name(char *b, int32_t v, int32_t c, int32_t m) \

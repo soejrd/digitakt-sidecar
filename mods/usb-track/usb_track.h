@@ -18,6 +18,12 @@ void usb_track_control_set_wakeup(void (*fn)(void));
 int usb_track_control_has_wakeup(void);
 void usb_track_control_wake(void);
 #ifdef USB_TRACK_DIAGNOSTIC
+/* usb_track_clock advances once per 32-frame render at 48 kHz: 1500 Hz.
+ * Round to nearest ms and cap BEFORE multiplication to avoid overflow. */
+static inline uint32_t usb_track_diag_ms(uint32_t blocks)
+{
+    return blocks >= 15000u ? 9999u : (blocks * 2u + 1u) / 3u;
+}
 extern volatile uint32_t usb_track_diag_ui_ticks, usb_track_diag_render_wakes;
 extern volatile uint32_t usb_track_diag_worker_entries, usb_track_diag_worker_gap_max;
 extern volatile uint32_t usb_track_diag_batch_max, usb_track_diag_ui_gap_max;

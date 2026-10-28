@@ -10,19 +10,44 @@ Task status/claims: [TASKBOARD.md](TASKBOARD.md). Pins: sources.json. Read AGENT
 
 **Known failure explicitly deferred to V01:** increasing LFO speed/amount (e.g. PTCH) can stop TRX audio and make Digitakt sluggish. Captured code3 late parameter event **260frames/5.417ms late**; host disarmed. Retained fault 1, FIFO later 29 versus clean 3; interval includes later listening/high modulation, no precise boundary. No OS crash dump; sender CPU/transport/host scheduling cause unisolated. [Failure/reproduction lead](evidence/i04/v01-dense-lfo-handoff.json).
 
+## V01 — current owner and next step
+
+Codex renewed ownership `2026-10-28T18:41:42Z`. V01 remains IN PROGRESS.
+[Revised three-gate plan](docs/V01-persistence-stress.md): scheduling diagnosis,
+native persistence/edit semantics, then recovery and one combined soak.
+Phase 0 passed; Phase 1 reproduced 64/64 lag; Phase 2 is incomplete.
+
+**Diagnostic correction:** V01D/N/P converted 1500-Hz render blocks as 32-Hz
+ticks, inflating displayed milliseconds by 46.875×. UGAP 8469 is approximately
+181 ms, not 8.469 s. Human-reported seconds-long lag remains valid; multi-second
+UI starvation is not established by these counters. [Correction/test evidence](evidence/v01/diagnostic-clock-correction.json).
+Actual C UI/worker producer/formatter regression failed before the fix and passes
+afterward; dense event-worker/START/ACK/overflow checks pass. No new firmware
+build or hardware test yet. Old candidate source manifests are stale after the
+correction; rebuild rather than reusing V01N artifacts.
+
+V01P priority 5 remains rejected: responsive UI but growing Pi late faults and
+FIFO underruns, even muted. No-self-wake remains physically untested. Next:
+prepare corrected interval-scoped diagnostics and verified baseline/recovery,
+then compare baseline vs no-self-wake at 32/32 and 64/64. Existing model tests
+cannot reproduce the exact hardware UI failure; do not treat them as proof.
+
 ## Hardware / recovery
 
-- User disconnected Pi and Digitakt for shutdown; do not contact hardware until available. Before disconnection Pi explicitly muted, recorder idle and original channel/bit-depth/prefix settings restored.
-- Installed Digitakt I04R SHA256 `6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b`; private `private/i04/firmware-I04R/` includes previous I04Q, H02F and stock1.54 recovery. Only MAIN changed; protected sections verified. Human handles Transfer; no computer UI access.
-- Installed Pi build `Oct 28 2026 13:38:57`, SHA256 `c057f063c24770a520b842e66d4d7e10655bdda3d45de05e1b67edc85d34a0f2`. Card rollback `kernel8-rpi4.before-event-worker.img` / `SHA256SUMS.before-event-worker`; local `private/i04/sd-backup-event-worker/`. [Deployment](evidence/i04/event-worker-sd-deployment.json).
-- Last timing setup: right output→left input cable, input monitoring off, disposable pattern USB1 right/native track2 left. User may change routing after closure. Raw WAVs/logs/projects/firmware stay ignored/private.
+- Last recorded installation: **V01P diagnostic**, Pi muted. No live contact in
+  this session. Restore I04R before normal use from
+  `private/v01/firmware-V01P/Digitakt-I04R-previous.syx`; I04Q/H02F/stock also
+  retained. I04R SHA256 `6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b`.
+- Pi kernel SHA256 `c057f063c24770a520b842e66d4d7e10655bdda3d45de05e1b67edc85d34a0f2`,
+  128-frame playout. Rollback: `private/i04/sd-backup-event-worker/`.
+- Fresh Pi reboot required for clean counter baselines. `trxtrace=on` forces
+  mute; read status before dumping (printing caused underruns). Analyzer delay
+  is **128**, not historical 2048. Preserve deadline/order/START behavior.
+- Human handles flash; confirm availability/lowered speakers/disposable backups
+  before new audio tests. Original user project and recorder settings preserved.
 
-## Next: V01 IN PROGRESS — V01P rejected
-
-Claimed by Codex `2026-10-28T15:51:11Z`. [Phase 0](evidence/v01/phase0-preflight.json) passes. **Phase 1** reproduced device-side UI/transport lag at `64/64` with the Pi voice muted, stable FIFO and zero Pi faults. [Evidence](evidence/v01/phase1-reproduction.json). **Phase 2 V01D** localized it to UI-task starvation: `UGAP 7781→8469ms`, `WGAP 562ms`, `BATCH 94ms`, `FAULT 0`. [Evidence](evidence/v01/phase2-device-diagnostic.json). **V01P (worker priority 5) is rejected:** UI stayed responsive at `64/64`, but the Pi accumulated late playout faults and FIFO underruns even with the voice muted. [Evidence](evidence/v01/phase2-v01p-result.json). V01N/no-self-wake is untested physically; V01P remains installed. Restore I04R from `private/v01/firmware-V01P/Digitakt-I04R-previous.syx`.
-
-`trxtrace=on` forces mute; collect status before `trxtrace` dump (printing can stall output). For installed buffer use analyzer **`--delay 128`**, not historical2048 default. Preserve fail-closed deadlines/order/STARTs; do not mask overload with coalescing or rebasing.
-
-Implementation: I04R native event-driven RTOS task, bounded render semaphore signal, task-only USB, immediate handshake RX and batched active ACKs. Duplicate mdkit target smoothing removed for final Digitakt values; per-hit velocity after limiter. [Candidate/checks](evidence/i04/event-worker-candidate.json). ASan/UBSan suite, ColdFire render imports, compiled UI/native exchange and genuine task/stack checks pass; patches 0001–0010 replay at sidecar-firmware `6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457`, tracked overlay retains unchanged mdkit `96157fe4fbda17bf4cae3168f52437d8232e6570`.
-
-Established foundations: [H01 transport](docs/H01-stock-usb-stream.md), [H02 routing](docs/H02-real-track-pipeline.md), [I03 controls](docs/I03-src-control-link.md), [R04 ordering](docs/R04-control-ordering.md). More voices/Teensy remain deferred pending V01/capacity. Unrelated user PLAN.md edits remain local and excluded from commits. No push/publishing.
+Implementation foundations and reproducible checks are in
+[the I04 report](docs/I04-external-trx-voice.md). Ten replayable patches target
+sidecar-firmware `6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457`; mdkit is unchanged.
+Keep firmware/raw captures private. Local user `PLAN.md` edit is excluded from
+commits. No push/publishing.

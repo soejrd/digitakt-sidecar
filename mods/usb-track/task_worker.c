@@ -63,8 +63,7 @@ void usb_track_ui_tick(void *ctrl)
     ++usb_track_diag_ui_ticks;
     if (diag_ui_last) {
         uint32_t gap=usb_track_clock-diag_ui_last;
-        uint32_t ms=(gap*1000u+15u)/32u;
-        if (ms>9999u) ms=9999u;
+        uint32_t ms=usb_track_diag_ms(gap);
         if (ms>usb_track_diag_ui_gap_max) usb_track_diag_ui_gap_max=ms;
     }
     diag_ui_last=usb_track_clock;

@@ -1,0 +1,100 @@
+{
+  "task": "V01",
+  "date_utc": "2026-10-28T18:41:42Z",
+  "scope": "Source audit and host-executed diagnostic regression; no hardware contact or firmware build/installation",
+  "finding": {
+    "clock_source": "usb_track_render increments usb_track_clock once per 32-frame block",
+    "sample_rate_hz": 48000,
+    "render_blocks_per_second": 1500,
+    "old_conversion": "(blocks * 1000 + 15) / 32",
+    "old_display_inflation_factor": 46.875,
+    "corrected_conversion": "min(9999, round(blocks * 2 / 3)); saturation before multiplication",
+    "provenance": "Old formula also confirmed in private/v01-diag-noself/source/mods/usb-track/{usb_track.c,task_worker.c}"
+  },
+  "reinterpretation": [
+    {
+      "displayed_as_ms": 1625,
+      "approximate_ms_at_48k": 34.667
+    },
+    {
+      "displayed_as_ms": 7781,
+      "approximate_ms_at_48k": 165.995
+    },
+    {
+      "displayed_as_ms": 8469,
+      "approximate_ms_at_48k": 180.672
+    },
+    {
+      "displayed_as_ms": 562,
+      "approximate_ms_at_48k": 11.989
+    },
+    {
+      "displayed_as_ms": 94,
+      "approximate_ms_at_48k": 2.005
+    },
+    {
+      "displayed_as_ms": 969,
+      "approximate_ms_at_48k": 20.672
+    }
+  ],
+  "regression": {
+    "command": "bash scripts/test_v01_diag.sh",
+    "before": {
+      "exit_code": 134,
+      "output": "1500 render blocks: diagnostic reports 9999 ms; expected 1000 ms; assertion diag_ms(1500) == 1000 failed"
+    },
+    "after": {
+      "exit_code": 0,
+      "output": "1500 render blocks: diagnostic reports 1000 ms; expected 1000 ms; V01 diagnostic units, saturation, UI/worker producers and wrap: PASS"
+    },
+    "seam": "Actual usb_track.c and task_worker.c included by host harness; only native RTOS operations stubbed",
+    "checks": [
+      "1500 blocks = 1000 ms",
+      "1- and 3-block rounding",
+      "long interval and UINT32_MAX saturation without multiplication overflow",
+      "actual UI producer to UGAP formatter",
+      "unsigned clock-wrap delta",
+      "actual worker stamps to BATCH/WGAP formatters"
+    ]
+  },
+  "other_checks": [
+    {
+      "command": "bash scripts/test_i04_event_worker.sh",
+      "result": "PASS: cadence 1/3, dense integer SRC, 64 STARTs, ACK loss/recovery, overflow fail-closed"
+    },
+    {
+      "command": "bash scripts/test_i03_integration.sh",
+      "result": "PASS: native ABI, render/worker/Circle activation and ordering, congestion/reconnect, output epoch/fade gates"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "recovery": {
+    "path": "private/v01/firmware-V01P/Digitakt-I04R-previous.syx",
+    "sha256": "6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b",
+    "verified_present": true,
+    "installed_state": "Last recorded V01P; not inspected live"
+  },
+  "limits": [
+    "Physical readings in earlier JSON retained unchanged; their time labels and multi-second-counter interpretations are superseded",
+    "Approximate converted readings assume rendering continuously at the established 48 kHz rate; not independent wall-clock measurements",
+    "Human-observed multi-second Play/Stop lag remains valid",
+    "Elapsed worker batch includes time preempted; not CPU usage",
+    "Render clock cannot observe a wall-time pause when rendering stops",
+    "Historical maxima include startup and cannot attribute an interval",
+    "No corrected compiled candidate, scheduling fix or V01 acceptance is claimed",
+    "Existing old candidate manifests no longer match current source; rebuild required",
+    "Exact hardware UI failure is not reproducible in current model tests"
+  ],
+  "source_sha256": {
+    "mods/usb-track/usb_track.c": "68c47097e96cad1bc060bf8052a473afa717f3e4a0770182e516a3b4b8d0066d",
+    "mods/usb-track/task_worker.c": "a382b2e8e013c3232792d396d122e84d586fe51d9b3fdb1caa4ca1300c0d221b",
+    "mods/usb-track/usb_track.h": "8996f7193239ae27a0aca10bb24df88e46bb111bd9710e8a136ecc1bc4e888b6",
+    "tools/v01_diag_probe.py": "a5bd2c08d4a0d83af0ca17488c113e5066c5339c8c808632c2876c540b4241bd",
+    "tests/v01_diag_time.c": "c1e5034708559ef9554a0f4928b24e5496e104b2d3cc3425b1cc7f314f67d0f8",
+    "scripts/test_v01_diag.sh": "3dc144a188df6187a4c6f8406acc14b7485abcf9f4906a60f5f5bd13b985d2ef"
+  },
+  "next_action": "Prepare corrected interval-scoped diagnostic baseline and verified recovery, then human-controlled baseline/no-self-wake comparison at 32/32 and 64/64"
+}

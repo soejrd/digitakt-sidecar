@@ -1,440 +1,204 @@
-# V01 — persistence and stress qualification plan
+# V01 — one-voice qualification
 
-Status: **IN PROGRESS — Phase 0 PASS; Phase 1 reproduced failure**, claimed by
-Codex at `2026-10-28T15:51:11Z`. Phase 1 physical testing is recorded below;
-the root cause and supported budget remain unresolved. Acceptance is not claimed.
+**IN PROGRESS.** Ownership renewed by Codex at `2026-10-28T18:41:42Z`.
+Phase 0 preservation passed; Phase 1 reproduced the dense-LFO failure.
+Phase 2 is incomplete. V01P is rejected; V01N is physically untested.
+No V01 acceptance or new hardware installation is claimed.
 
-Target: Digitakt mk1 OS 1.54, Raspberry Pi 4B/Circle, one USB1 voice. The scope
-is the existing I04R one-voice prototype: dense modulation, persistence and
-copy/undo semantics, mutes/sound locks, restart/reconnect, and sustained stress.
-More voices and the Teensy remain deferred.
+Target remains Digitakt mk1 OS 1.54 + Pi 4B/Circle, one USB1 voice on track 1.
+More voices, Teensy and a separate persistence database remain outside scope.
+The user's local `PLAN.md` edits are preserved.
 
-## Acceptance boundary
+## Plan review and correction
 
-V01 is DONE only when all of the following are evidenced:
+The acceptance areas were appropriate, but the old six-phase sequence mixed
+investigation with qualification and repeated candidate/hardware gates. It also
+had stale next actions and unnecessary requirements for a full knob grid,
+ten-minute testing at every point, and a deliberately failing above-budget
+setting. Use the three gates below instead. Keep short controls for diagnosis;
+reserve the long run for the final supported configuration.
 
-1. Dense modulation has a numeric supported budget with responsive UI, no
-   audio stop, no deadline/order/overflow fault, and no new FIFO underrun.
-2. Save/load, copy/paste, undo, track/trig mutes, and sound locks preserve the
-   intended device state and rebuild the host state without stale audio.
-3. Digitakt restart, Pi restart, USB reconnect and power-cycle cases either
-   recover cleanly or fail closed to silence and require a fresh session.
-4. A sustained stress profile passes without unbounded queues, stack/guard
-   faults, CPU contention, or silent state loss.
-5. The installed candidate, recovery path and reproducible commands are
-   recorded; required human listening acceptance is explicit.
+**Critical diagnostic correction:** V01D/N/P time displays use
+`(blocks * 1000 + 15) / 32`. But `usb_track_clock` increments once per
+32-frame audio render, not once per 32 Hz UI tick. At 48 kHz it runs at
+1500 blocks/s. The old displayed milliseconds are inflated by 46.875×.
+[Correction and regression](../evidence/v01/diagnostic-clock-correction.json).
 
-Passing host/emulator tests alone do not satisfy the physical cases. Human
-listening alone does not replace the instrumentation required to explain a
-failure. Unsupported cases must be stated rather than hidden by buffering or
-coalescing.
-
-## Evidence classes
-
-| Class | Meaning in this task | Examples |
-| --- | --- | --- |
-| Physical measurement | Captured from the Digitakt/Pi pair under stated routing and settings | Fault counters, timing traces, USB/FIFO telemetry, recorded audio |
-| Emulator result | Compiled or portable code exercised with a model; not a hardware guarantee | Dense queue tests, native worker exchange, persistence fixtures |
-| Source fact | Static 1.54 or pinned-source behavior with a revision/address | Render hook order, storage/copy call sites |
-| Hypothesis | A proposed cause to test; never acceptance evidence | Worker starvation, buffer underrun, engine overload |
-
-## Established evidence and limits
-
-**Physical measurement:** after the I04 acceptance run, raising LFO speed/amount
-(reported for PTCH) stopped TRX-B2 audio and made the Digitakt feel sluggish.
-The retained status was fault code 3 (`SC_PF_LATE`) at source block 762393,
-260 frames/5.417 ms late; the host disarmed. FIFO underruns later rose from 3
-to 29, but that interval also included ordinary listening, so it does not
-attribute all 26 new underruns to dense modulation. No OS crash dump exists.
-Exact LFO speed, depth, destination values and the failure threshold were not
-captured. See [the I04 handoff](../evidence/i04/v01-dense-lfo-handoff.json).
-
-**Physical measurement:** the accepted clean I04 path had zero new playout
-faults and zero new FIFO underruns in its timing take. Native-click-to-analog
-onset was median 11.417 ms (19 hits), and observed core 3 busy time was at most
-3.5% during that short run. This is a baseline, not dense worst-case headroom.
-See [I04 timing](../evidence/i04/event-worker-physical-timing.json).
-
-**Emulator result:** the 128-frame event-worker model passed 1000 dense integer
-updates and 64 STARTs with ACK loss/recovery. The earlier native stress run hit
-source-queue full/overflow once; batching active ACKs made the unchanged test
-pass. This proves the modelled queue/cadence, not hardware USB or scheduling.
-See [I04 candidate evidence](../evidence/i04/event-worker-candidate.json).
-
-**Emulator/measurement lead:** an earlier fractional-SRC overload showed 128
-records covering 84.667 ms of source time but 117.833 ms of requested time,
-with worker gaps every 63 records; suppressing engine-ineffective fractional
-changes removed that observed physical sluggishness. Dense LFO events must be
-checked for a similar rate/backpressure mismatch rather than assumed identical.
-See [I04 report](I04-external-trx-voice.md).
-
-**Source fact:** final SRC values are captured at `ev_render_voices`, after
-native lock restore/apply, smoothing and LFO. The device clock uses 32-frame
-blocks, and the host playout anchor is currently 128 frames/2.667 ms. A late
-event is rejected by design; it must not be rebased or silently merged.
-See [R04 ordering](R04-control-ordering.md) and
-[I03 control link](I03-src-control-link.md).
-
-**Unresolved:** the cause of the dense-LFO failure is not isolated. Candidate
-causes remain device render/capture cost, native worker/queue starvation, USB
-transport/ACK pacing, Pi scheduling/playout deadline, and engine DSP cost. No
-persistence claim yet exists for the USB1 machine's eight SRC values or for
-LFO/lock state across the requested edit and restart operations.
-
-## Hypotheses to falsify
-
-- **H1 — device capture is too dense:** each LFO-driven effective change
-  produces more records than the device can transmit, filling the queue or
-  delaying the worker.
-- **H2 — native worker contention:** the worker or USB/receive servicing steals
-  enough time from the Digitakt UI/render path to cause the reported
-  sluggishness, independently of Pi capacity.
-- **H3 — host deadline is too tight:** dense parameter bursts reach the Pi too
-  close to the 128-frame playout due time, producing `SC_PF_LATE` even though
-  the control path is otherwise correct.
-- **H4 — USB transport/ACK pacing:** packet completion, ACK batching or a
-  saturated USB-MIDI path delays records before they reach playout.
-- **H5 — engine overload:** the TRX-B2 engine plus resampling cannot sustain the
-  requested effective update rate on core 3 within the realtime budget.
-- **H6 — source-rate artifact:** LFO updates are changing effective engine
-  values at a cadence the control contract assumes is slower, rather than
-  merely changing the requested LFO settings.
-
-Each hypothesis must be disproved by an experiment that changes one layer while
-holding the effective parameter stream and routing constant. A workaround that
-only enlarges buffers is diagnostic, not a qualified fix.
-
-## Phase 0 — preflight and preservation
-
-1. Freeze the exact firmware, kernel, patch set and source hashes under test.
-   Keep firmware, raw traces, WAVs, projects and snapshots in ignored private
-   storage; commit only compact, shareable evidence.
-2. Preserve `PLAN.md` and any other agents' edits. Do not rewrite existing I04
-   evidence to make V01 look complete.
-3. Confirm the recovery assets from I04 remain present: installed I04R, previous
-   I04Q/H02F, stock 1.54 firmware, and the card rollback image/manifest. A new
-   candidate gets a fresh directory and its own verified recovery record.
-4. Do not modify `deps/` without a replayable patch under `patches/` at the
-   pinned base revision. Do not commit private firmware or user data.
-
-**Hardware release condition:** the human must confirm the Pi and Digitakt are
-powered/available, speakers or headphones are lowered, a disposable project and
-backups are ready, routing is known, and a paired candidate/recovery has been
-reviewed. Until then V01 continues with independent source, host and emulator
-work only.
-
-### Phase 0 result — PASS (2026-10-28T15:57:51Z)
-
-[Preflight record](../evidence/v01/phase0-preflight.json), reproducible with
-`python3 tools/v01_phase0.py --output evidence/v01/phase0-preflight.json`.
-
-| Check | Result |
+| Original display | Approximate duration at 48 kHz |
 | --- | --- |
-| Installed Digitakt firmware | I04R SHA256 `6a04ae9…f7fa2b`, corroborated by the separate human-installation and SD-deployment records |
-| Installed Pi kernel | SHA256 `c057f06…4a0f2`, 2474600 bytes, 128-frame playout |
-| Frozen implementation sources | 50/50 hashes match `evidence/i04/event-worker-candidate.json` |
-| Dependency patches | Ten patches replay at `sidecar-firmware` `6cff67b…a0457`; replay script passes |
-| Dependency pins | All five `sources.json` revisions match; only the expected `sidecar-firmware` overlay is dirty |
-| Firmware recovery | I04R, I04Q, H02F and stock 1.54 `.syx` files present and hash-verified |
-| Pi recovery | Installed rollback `0c544fb…070ed` and pre-I04 `a46476a…28a82` images present and hash-verified; rollback `SHA256SUMS` present |
-| Private assets | Firmware/kernel artifacts ignored; zero private or firmware/audio binaries tracked |
+| V01D control UGAP 1625 | 34.7 ms |
+| V01D dense UGAP 7781 / 8469 | 166.0 / 180.7 ms |
+| V01D dense WGAP 562 | 12.0 ms |
+| V01D dense BATCH 94 | 2.0 ms |
+| V01P dense BATCH 969 | 20.7 ms elapsed, including preemption |
 
-**Limits recorded by Phase 0:** the local full-SD backup is represented by its
-rollback kernel and manifest, not an enumerated card image. The private I04R
-manifest's `scope` still says “not installed”; installation is established by
-the separate human-installation/deployment evidence, not that stale label.
-Phase 0 did not resolve the dense-LFO bottleneck, persistence locations or
-supported modulation budget.
+These are reinterpretations of rounded display values, not new measurements.
+The original JSON observations are retained unchanged; their `_ms` fields and
+multi-second-counter interpretations are superseded by this correction.
+The human-reported multi-second Save/Play/Stop lag remains evidence of a real
+failure. A render-clock metric cannot measure wall time while rendering itself
+stops; worker batch elapsed time is not worker CPU consumption. Maxima since
+boot include startup and cannot locate a stall within a trial.
 
-**Release still required:** human confirmation of Pi/Digitakt availability,
-lowered speakers or headphones, a disposable project with backups, known
-routing, and reviewed paired candidate/recovery. No hardware action occurred.
+The diagnosis is therefore **device-side responsiveness failure with scheduling
+contention suspected**, not proven multi-second UI-task starvation. V01P's
+responsive UI and growing late-event/FIFO counters remain a valid negative
+result. Pi faults were absent in the particular muted V01D trial; this does not
+rule out transport or Pi scheduling in other trials.
 
-## Phase 1 — reproduce the dense-LFO failure
+## Evidence retained
 
-Use a disposable USB1 track-1 project and a quiet, limited/faded-in tone. Start
-muted/silent, then raise the monitor level only after the control session is
-healthy. The installed `trxtrace` forces mute and retains only 128 admissions;
-run paired audible and trace passes with the same settings instead of treating
-them as one run. Record status before dumping the trace, because printing can
-stall output. Use analyzer delay 128 for the installed buffer.
-
-Pre-register the sweep in device units rather than vague labels. Start from the
-accepted slow/shallow PTCH case and sweep PTCH LFO speed and depth in 0–127
-steps (at least four speeds by four depths), then repeat the worst passing and
-first failing settings. For every row record:
-
-- Digitakt LFO destination, speed, depth, waveform, trigger mode and track;
-- exact firmware/kernel hashes, routing, pattern, source note and velocity;
-- effective parameter changes per second, blocks between records, queue depth,
-  worker/service cadence, ACKs, FIFO, fault code and retained fault fields;
-- Pi requested/rendered frame clocks, playout queue and minimum slack, control
-  pass time, core 3 CPU, dropped blocks and audio continuity;
-- human observation of audio and UI responsiveness, with the moment of failure;
-- whether recovery required a fresh session or power cycle.
-
-Stop a case at the first audio stop, fault or visible UI stall. Preserve the
-trace and exact settings; do not continue into unrelated listening. A failure
-without a frozen trace is a useful lead, not a qualified budget point.
-
-The executable protocol is [V01 Phase 1 runbook](V01-phase1-runbook.md). It
-records the critical installed-trace constraint: `trxtrace=on` forces the voice
-to mute, so audible and trace passes are paired rather than conflated. The runbook
-also defines the numeric grid, required telemetry, stop rules and the physical
-release gate. It is prepared but **not executed** as of
-`2026-10-28T15:59:00Z`.
-
-### Phase 1 result — FAILED, reproduced (2026-10-28T16:20:25Z)
-
-[Physical evidence](../evidence/v01/phase1-reproduction.json). The accepted
-baseline (`SPD 48`, `DEP 35`, `BPM16`, triangle, free, C5/100) and `SPD 32 /
-DEP 32` passed with no new FIFO underruns, faults or USB gaps. At `SPD 64 /
-DEP 64`, the human reported DEP control becoming very sluggish above roughly
-32 regardless of speed, a several-second Play delay and an approximately
-8-second Stop delay.
-
-The same UI/transport stall reproduced with the voice muted and the diagnostic
-trace enabled. The Pi recorded **0 playout faults**, FIFO stayed **12 -> 12**
-through the stall, queue peak `5`, and USB gaps/errors `0`. The retained
-128-row trace had **128/128 accepted** events, minimum slack `80` frames, queue
-peak `2`, and did not freeze on a rejection. The ring covers only about 133 ms
-(~965 updates/s), so it explains the admission path but not the multi-second UI
-stall.
-
-**Measured conclusion:** this is a device-side control/UI-service failure, not
-a Pi audio deadline failure. It supports the human's CPU/service-overtasking
-hypothesis, but does not yet prove which native task or path is starved. The
-FIFO rise from 12 to 63 occurred only when the 128-row trace was dumped (engine
-pass `3003 us`), after the stall interval; it is recorded as an instrumentation
-side effect, not as part of the failure.
-
-The sweep stopped at the first failure; no S3/S4 rows ran. The Pi voice and
-trace are off, the recorder is idle, and no restart was required. Phase 2 must
-capture native task/IRQ service timing across a multi-second stall before any
-fix, buffer increase or coalescing change is considered.
-
-## Phase 2 — isolate the bottleneck
-
-Build a timeline where device block timestamps, worker writes/ACKs, USB events
-and Pi enqueue/render deadlines can be compared without treating unrelated
-clocks as synchronized. Then test the layers independently:
-
-1. **Device capture:** compare effective changes with captured records. Check
-   whether the source queue fills, whether capture cadence changes with LFO
-   settings, and whether the worker stops or merely delivers late.
-2. **Device UI/service:** measure UI tick continuity, worker service gaps,
-   stack guards and native completion progress under the same effective stream.
-   This separates H2 from H4.
-3. **Host playout:** calculate due-frame slack and queue peak for every event;
-   vary delay and worker batch cadence only as diagnostic controls to identify
-   where lateness is introduced. Do not adopt a larger delay as the fix until
-   the cause is known.
-4. **Transport:** compare USB packet/completion progress, MIDI RX/TX and ACK
-   cadence with the effective update stream. Repeat with a synthetic dense
-   control stream of known cadence to distinguish USB pacing from LFO capture.
-5. **Engine:** feed the same effective parameter cadence directly to the
-   production TRX-B2 path on the Pi, bypassing USB/control, and measure render
-   time and deadline margin. If this fails alone, H5 is supported; if it passes,
-   the fault is upstream or in scheduling.
-
-Record negative controls: slow LFO with identical audio/UI load, dense
-engine-ineffective changes, dense effective changes, and the same run after a
-fresh reconnect. Exact source revisions and commands belong with each result.
-
-### Phase 2 diagnostic candidate — prepared (2026-10-28T16:20:25Z)
-
-The installed I04R image has no device-side UI/service timing. A private
-diagnostic candidate, `V01D`, adds a read-only `V01 DIAG` page without changing
-the render or control protocol:
-
-| Value | Meaning |
+| Evidence | What it establishes |
 | --- | --- |
-| `RCLK` | Render blocks, 32 frames each |
-| `UI` | UI tick count |
-| `WORK` | Worker entry count |
-| `WGAP` | Maximum worker-entry gap, ms |
-| `BATCH` | Maximum worker batch duration, ms |
-| `UGAP` | Maximum UI-tick gap, ms |
-| `FAULT` | Worker guard-fault count |
+| [Phase 0](../evidence/v01/phase0-preflight.json) | Original source/pin/recovery preservation passed; historical inventory, not current installed-state verification |
+| [Phase 1](../evidence/v01/phase1-reproduction.json) | 48/35 and 32/32 short controls passed; 64/64 lagged even muted; no Pi faults during that interval |
+| [Phase 1 trace](../evidence/v01/phase1-s2-64-64-trace.json) | 128 accepted rows over ~133 ms; cannot explain the entire stall |
+| [V01D trial](../evidence/v01/phase2-device-diagnostic.json) | Human observations and raw display readings; time labels corrected above |
+| [V01P trial](../evidence/v01/phase2-v01p-result.json) | Priority 5 restores perceived UI response but fails timely playout; rejected |
+| [V01N model](../evidence/v01/phase2-exchange-noself.json) | No-self-wake compiled exchange passes; no physical scheduling guarantee |
 
-All time-derived values use four-digit saturation (`9999`) rather than wrapping.
-The diagnostic counter updates are compiled out of production builds.
-[Candidate record](../evidence/v01/phase2-diagnostic-candidate.json) validates
-the page in the emulator. [UI](../evidence/v01/phase2-diagnostic-ui.json),
-[native RTOS](../evidence/v01/phase2-diagnostic-runtime.json) and
-[compiled exchange](../evidence/v01/phase2-diagnostic-exchange.json) pass;
-the full I04 host regression also passes. This is emulator evidence, not a
-hardware scheduling or CPU proof.
+Physical observations, emulator results, source facts and hypotheses must stay
+separate. Do not overwrite old evidence to make a new candidate look tested.
 
-Private package: `private/v01/firmware-V01D/`. Candidate SHA256
-`808a512de1dd062c6223761bc2714dd29b3b19aaf785b04f52e25f2dac891a70`.
-Recovery files are retained: I04R, I04Q, H02F and stock 1.54. The candidate is
-**not installed**. Installation requires human approval and the existing
-firmware recovery procedure.
+## Gate A — resolve dense-modulation failure
 
-**Phase 2 physical protocol:** install V01D with the voice muted; confirm the
-`V01 DIAG` page is present and record all seven values at baseline. Run the same
-`SPD 64 / DEP 64` case that failed Phase 1, with the Pi voice muted, and read the
-page immediately after the stall. Repeat once after a fresh power/session cycle.
-Then restore I04R. A large `UGAP` with ordinary `WORK`/`BATCH` supports UI-task
-starvation; a large `WGAP` or near-continuous `WORK` supports worker
-preemption/overload. Compare with `SPD 32 / DEP 32` as the control.
+**Immediate offline work:** correct and regression-test the diagnostic clock
+conversion. This has now passed the actual C UI/worker producer and formatter
+paths, including wrap and saturation. The corrected compiled firmware has not
+been built/installed. Old V01N artifacts contain the old conversion and their
+source manifests no longer match the corrected source; rebuild rather than
+silently reusing them. Do not call this instrumentation fix a scheduling fix.
 
-### Phase 2 diagnostic result — UI starvation observed (2026-10-28T16:55:29Z)
+Before another physical candidate, prepare a corrected priority-14/self-wake
+baseline and recovery package with protected-section, boot/UI, native-task,
+compiled-exchange and current host regression checks. Record exact hashes.
+Add trial-scoped/resettable maxima and an independent wall-time observation or
+clock; check a known interval before interpreting numbers. Do not print a trace
+while measuring: `trxtrace` dumps previously caused FIFO growth.
 
-[Physical evidence](../evidence/v01/phase2-device-diagnostic.json). With the Pi
-voice muted and V01D installed, the control `SPD 32 / DEP 32` run showed no new
-maxima after Play: `WGAP 375 ms`, `BATCH 31 ms`, `UGAP 1625 ms`, `FAULT 0`.
-At `SPD 64 / DEP 64`, setting SPD above 32 and then DEP, saving, and opening
-the page were already extremely laggy. Before Play the maxima were
-`WGAP 562 ms`, `BATCH 94 ms`, `UGAP 7781 ms`, `FAULT 0`; after Play they were
-`WGAP 562 ms`, `BATCH 94 ms`, `UGAP 8469 ms`, `FAULT 0`. Play took about 15 s
-to start and the playhead LEDs did not visibly update.
+Ranked hypotheses for the next controlled investigation (not findings):
 
-This is a physical diagnostic result: the UI task was delayed by seconds while
-the worker-entry gap stayed at 562 ms and worker batches were at most 94 ms.
-It supports UI-task starvation/CPU contention and rules out a Pi playout fault
-for this muted run. It does **not** prove that the priority-14 worker caused the
-starvation; a controlled priority/self-wake variant is still needed. The
-diagnostic maxima include startup/page interaction, so they are not a calibrated
-UI latency measurement. V01D remains installed until the human restores I04R.
+1. **High-priority readiness/worker contention.** If repeated self-posts or
+   accumulated semaphore credits starve stock work, removing self-posts at the
+   same priority should improve UI service while preserving delivery slack.
+   Check native semaphore behavior before assuming V01N guarantees a sleep.
+2. **Native serializer/USB critical-section pressure.** If interrupt-masked
+   sends or USB backpressure dominate, capture-to-submit/completion age should
+   grow with dense effective changes even when self-posts are removed.
+3. **Stock UI/save/render interaction.** If the UI's own processing or disrupted
+   render cadence dominates, wall-time stalls will persist despite bounded
+   worker readiness; render-block timing may under-report them.
+4. **Host scheduling/deadline margin.** If events arrive promptly but are applied
+   late, compare arrival and due-frame slack with Pi control/render cost. V01P
+   makes this relevant, but does not isolate it.
 
-### Phase 2 isolation variants — V01P rejected
+Use the existing 32/32 control and 64/64 failing case with all other LFO settings,
+note/velocity, routing, project and kernel held constant. Start muted. Compare
+corrected baseline with corrected no-self-wake, changing only that behavior.
+Read counters before/after a short interval; stop on lag, fault or audio failure.
+Do not repeat a broad sweep while this known failure is unexplained. A failed
+V01N result ends that hypothesis trial; choose the next probe from its evidence.
+Do not cycle arbitrary priorities or enlarge latency buffers to obtain a pass.
 
-Two diagnostic-only variants keep the protocol and `V01 DIAG` counters constant
-while changing one worker behavior:
+The current emulator tests can catch ordering, protocol and queue failures.
+They **cannot reproduce the exact hardware responsiveness failure**: native
+exchange synthesizes USB completions and has no dense-run UI latency assertion;
+the host test models worker wake as a boolean, not native semaphore scheduling.
+A hardware trial is presently the red-capable loop for that symptom. Add an
+emulator regression only where it exercises the mechanism actually found.
 
-| Variant | Change | Emulator checks |
-| --- | --- | --- |
-| `V01N` | Worker no longer self-reschedules when its queue remains non-empty | Diagnostic page and dense compiled exchange pass |
-| `V01P` | Worker runs at priority 5, below the stock priority-6 UI task; self-wake unchanged | Diagnostic page, UI, native runtime and dense compiled exchange pass |
+After identifying a cause, fix that layer and rerun the same failing/control
+pair. Preserve ordered START identity, fail-closed deadlines, bounded queues,
+task-only USB and allocation-free/nonblocking audio callbacks. Any deliberate
+change to control cadence, latency or event semantics needs an explicit contract
+and audio/ordering evidence; it is not an incidental optimization.
 
-The no-self-wake variant still drains through render, RX and the UI watchdog;
-the compiled exchange passed with the same dense stream. A deliberate
-worker-starvation regression also confirms the active queue latches fail-closed
-on overflow, not silent loss. These are emulator results, not hardware timing.
+**Exit:** one paired candidate passes the formerly failing case with usable UI,
+no audio stop, no new deadline/order/overflow fault or FIFO underrun, bounded
+queues and intact guards. Record effective updates/s and delivery slack as well
+as knob settings. Existing short passes do not establish a supported budget.
 
-**V01P physical result: negative.** The UI was responsive at both `32/32` and
-`64/64`; at `64/64`, `UGAP` stayed `1625 ms` and `FAULT 0`. However, with the Pi
-voice muted, a fresh Pi boot accumulated FIFO underruns `509 -> 793` and playout
-faults `66 -> 101` within seconds, with retained code-3 late events. Lowering
-priority restored UI responsiveness but broke timely control/playout service.
-[Evidence](../evidence/v01/phase2-v01p-result.json). `V01P` is rejected.
+## Gate B — native persistence and musical edit semantics
 
-The no-self-wake `V01N` variant passed the emulator page and dense-exchange
-checks but was **not physically tested**. The V01P diagnostic remains installed;
-restore I04R from `private/v01/firmware-V01P/Digitakt-I04R-previous.syx` before
-normal use.
+Source/emulator mapping may proceed while Gate A awaits hardware. Establish
+where USB1 machine identity, eight SRC values, LFO/locks and sound references
+live in the native sound/pattern/project model before adding storage. Test only
+operations that actually exist on this Digitakt; do not invent a separate kit
+save workflow. The device remains authoritative and the Pi rebuilds transient
+state from its ordered stream.
 
-## Phase 3 — fix and qualify a modulation budget
+Use distinguishable A/B values in a disposable project. For each case record
+before/action/after, stored state, observed final stream/PCM, and unintended
+project-dirty changes. Test persistence once before reconnecting the Pi so a
+host cache cannot conceal a device restore failure.
 
-Fix the root cause at the responsible layer while preserving fail-closed
-deadlines, ordering, START identity and immediate handshake/ACK behavior. No
-audio-callback allocation, USB wait, unbounded backlog, coalescing of meaningful
-changes, or deadline rebasing.
-
-If rate limiting is required, it must be based on semantic equivalence: an
-update may be suppressed only when it cannot change engine output, and the
-reason must be counted. Unsupported density must produce silence or a clean
-reconnect, never stale audio or a hung UI.
-
-The supported budget is a table of numeric settings that passed the physical
-qualification profile, not a single knob position. Its minimum evidence is:
-
-- 10 minutes continuous at each supported dense profile, with zero new playout
-  faults and zero new FIFO underruns beyond the recorded startup baseline;
-- bounded source/playout queues and intact stack guards throughout;
-- no audio stop, no dropped/inserted blocks, no stale note, and acceptable UI
-  responsiveness by human observation plus an instrumented UI/service metric;
-- at least one just-above-budget setting that fails closed cleanly and recovers
-  with a fresh session. This documents the boundary rather than implying it is
-  unlimited.
-
-The UI threshold and exact soak durations must be frozen after Phase 2 produces
-the clean baseline and before testing the fix candidate. Changing them after a
-failure requires a recorded rationale.
-
-## Phase 4 — persistence and edit semantics
-
-Do not create a private sidecar database as the default. First establish which
-USB1 state is already stored by the Digitakt's native machine/sound/pattern
-path, and let the device remain authoritative. The host should rebuild its
-transient session and engine state from the ordered control stream.
-
-Use read-only source/emulator inspection to locate 1.54 storage and copy paths,
-then verify behavior on a disposable project and pattern. The minimum matrix is:
-
-| Case | What must be checked |
+| Case | Required outcome |
 | --- | --- |
-| Save project, power cycle, reload | USB1 machine identity, eight SRC values, LFO settings, filter/AMP/sends and sound-lock references restore; host silences until a new session activates |
-| Save/load sound or kit | SRC values/defaults and relevant sound-owned state travel correctly; no stale host values override loaded state |
-| Copy/paste track, sound and pattern | Copied state is complete and independent; destination starts a clean voice/session where required |
-| Undo | Restores the pre-edit values without leaving a queued event that later overwrites the restored state |
-| Track mute/unmute and trig mutes | Muted audio is silent, unmute does not replay stale PCM, and neighboring tracks keep working |
-| Sound locks on steps | Locked sound values are applied at the correct render point; switching back restores the prior sound; host voice identity is not confused with sound identity |
-| Load/switch while playing | Old session/queue is invalidated, no old audio survives, and a fresh handshake is required |
-| Copy/load into another track | Unsupported tracks fail closed; no state is silently applied to track 1 or another voice |
+| Project save/reload and cold boot | Machine, SRC, LFO, local processing and sound references restore; Pi cannot overwrite them with stale state |
+| Sound save/load; track and pattern copy/paste | State follows native ownership; editing the copy does not change the source |
+| Supported undo/reload operation | Correct native values return and pending old events cannot overwrite them |
+| Track/trig mute and unmute | Native musical mute/tail behavior is preserved; no stale trigger replay; neighboring tracks work |
+| Sound locks and return to base sound | Correct locked values and restoration at render time; START/voice identity remains ordered |
+| Pattern/project/sound switch during play | Fresh values take effect in order; invalidate queues/session when old state could otherwise survive |
+| Copy/load USB1 onto another track | Either explicit support or safe, documented unsupported behavior; never silently reroute the wrong voice |
 
-Each case needs at least: pre-edit state, edit, save/copy, restart/load, observed
-values/PCM, and whether the device marked the project modified. If 1.54 does not
-persist a required field, record the exact missing field and either fix it with
-a replayable patch or mark it unsupported; do not claim save/load from a
-successful control-link reconnect alone.
+Do not require a new handshake for every ordinary sound/value edit by default.
+Determine which transitions need session invalidation from the state/queue
+contract. Track mute need not kill a native release or effect tail unless the
+stock behavior requires it. These were overconstraints in the earlier plan.
 
-## Phase 5 — restart, reconnect and sustained stress
+**Exit:** every applicable row has evidence or an explicit unsupported boundary;
+required save/restore fields cannot be waived merely because reconnect works.
 
-Run these as separate cases so one recovery does not hide another failure:
+## Gate C — recovery and final combined qualification
 
-- USB cable pull/replug with audible PCM already playing (minimum ten cycles);
-- Pi reboot and fresh process start (at least three cycles);
-- Digitakt project/pattern restart and machine reselection;
-- Digitakt restart and power cycle only after backing up the disposable state;
-- dense LFO plus note starts, locks, mute toggles and sound-lock changes;
-- save/load and undo between runs, not only while idle.
+Freeze one numeric profile after Gate A: firmware/kernel hashes, LFO destination,
+SPD/DEP/MULT/WAVE/MODE/FADE/SPH, tempo, note/velocity, note/lock density and stock
+track load. A supported budget describes this profile and measured event rate,
+not just a speed/depth number. Retest 32/32, the prior 64/64 failure and the
+worst intended workload; expand the sweep only if it answers a boundary question.
+A deliberately failing setting is optional; inject link loss or completion stall
+to verify fail-closed behavior without demanding a hardware overload.
 
-Every reconnect must produce silence until a fresh nonzero session, the first
-START, and matching ACTIVATE; no old sequence, ACK, note or PCM may cross it.
-Recovery must not require a hidden coalescing rule or a stale snapshot.
+Pre-register UI response criteria before qualification: panel and Play/Stop
+response within 100 ms by wall-time observation, and maximum trial UI-service
+gap <=100 ms, excluding boot and explicit project-load operations. Check the
+clean baseline can meet these; if not, revise with a recorded rationale before
+candidate scoring. These are proposed engineering criteria, not prior user
+acceptance. Recheck relative onset timing against I04's accepted ~11.4 ms and
+record any latency tradeoff explicitly.
 
-A sustained run combines the supported dense profile with sequencer starts and
-UI edits for at least the accepted H02-style ten-minute window. Record start and
-end counters rather than only final values, and restart the interval after any
-fault rather than averaging across it. A shorter human-accepted run may be
-reported as such, but it does not establish the full soak claim.
+Run USB pull/replug during active PCM, Pi reboot and Digitakt restart separately
+at least three times each. Back up state before power cycles. Every true
+reconnect must silence old PCM until a fresh session, START and matching
+ACTIVATE; stale ACKs/notes must not cross sessions. A failed cycle stops the
+series and needs diagnosis, not extra passing retries to average it away.
 
-## Phase 6 — candidate, hardware gate and report
+Then run **one ten-minute combined soak** at the worst supported profile with
+notes, locks, UI edits, mutes and previously verified sound/state changes. Record
+start/end fault/FIFO/USB/drop counters, queue/slack maxima, guards, Pi render/
+control cost and human listening/UI observations. Zero new faults, underruns or
+dropped/inserted blocks are required. A shorter human-accepted run is reported
+as a limited result, not a full soak pass. Larger repeat counts are justified
+only by intermittency or a changed recovery mechanism.
 
-Only after host/emulator evidence and a reviewed diff:
+**Exit:** Gates A–C pass with explicit human listening acceptance, reproducible
+source/patches, exact installed pair and verified rollback. V01 stays open until
+then; more voices and Teensy stay deferred.
 
-1. Build a fresh candidate with source/patch hashes, protected-section checks,
-   native/UI/exchange probes and the full existing regression set.
-2. Prepare the paired Pi kernel and recovery artifacts in private storage.
-   Record the exact human flash/SD steps and rollback path.
-3. Ask the human to lower speakers and confirm availability. Start with Pi
-   muted and silence, then use a quiet, limited/faded-in tone. No bootloader or
-   wiring changes.
-4. Run the pre-registered physical matrix, stop on faults, preserve private
-   traces, and restore the original channel/bit-depth/prefix settings.
-5. Update this report with measured results, emulator/source facts, unresolved
-   limits and the exact next action. Update `TASKBOARD.md` and keep
-   `PROGRESS.md` a short handoff. Link compact evidence only.
+## Hardware and next action
 
-## Immediate next action
+Last recorded installation is **V01P diagnostic**, Pi muted; this has not been
+verified live in this session. Before normal use, the human should restore
+`private/v01/firmware-V01P/Digitakt-I04R-previous.syx` (I04R SHA256
+`6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b`).
+I04Q, H02F and stock 1.54 recoveries are in that package. Freshly reboot the Pi
+before establishing counter baselines.
 
-Complete Phase 0 inventory and static persistence inspection, then draft the
-numeric dense-LFO sweep and pre-register the UI/soak thresholds. Do not contact
-hardware until the human confirms the Phase 0 release condition and the paired
-candidate/recovery is ready.
-
-## Open release conditions
-
-- **Hardware:** human availability, lowered speakers, disposable project,
-  backups and reviewed candidate/recovery.
-- **Persistence:** establish the actual 1.54 storage/load/copy locations for
-  USB1 values and LFO/lock behavior before claiming save/load or copy/paste.
-- **Dense modulation:** reproduce with exact numeric settings and a private
-  trace; isolate the layer before choosing a fix.
-- **Dependency changes:** keep each as a replayable patch at
-  `sidecar-firmware` `6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457` or an
-  authorized accessible pinned commit; dirty ignored clones are not
-  deliverables.
+Next implementation step is a corrected, interval-scoped diagnostic baseline
+and verified candidate/recovery package, then the controlled Gate A comparison.
+Before hardware audio tests, confirm human availability, lowered speakers,
+known routing and disposable backed-up state, per `AGENTS.md`. The human handles
+firmware flashing; no bootloader or wiring changes. Offline work needs no such
+confirmation. Keep raw firmware, projects, traces and recordings private;
+dependency changes require replayable patches at the pinned base.
