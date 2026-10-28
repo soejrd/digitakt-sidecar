@@ -1,0 +1,26 @@
+{
+  "task": "I04",
+  "scope": "compiled I04Q OS 1.54 emulator; no physical timing claim",
+  "status": "verified",
+  "candidate_sha256": "75f5b66ae5db95676eb767ece3239ec81a9281a42966fbca7689b22a8b14bb8b",
+  "checks": [
+    "final A-H values, note, velocity and start bit are observable at the render hook",
+    "a stored p-lock fixture changes PTCH at the render hook and the following unlocked step restores it",
+    "seeded LFO settings change PTCH across render blocks",
+    "every snapshotted repeated manual start bit remains in block order"
+  ],
+  "plock_restore": {
+    "stored_ptch_8_8": 18432,
+    "locked_start_ptch_8_8": 18432,
+    "following_unlocked_start_ptch_8_8": 15360,
+    "contiguous_render_blocks": true
+  },
+  "lfo_distinct_ptch_values": 3,
+  "manual_starts": 3,
+  "limitations": [
+    "Retrigger is not established as a distinct Digitakt sequencer event; only repeated start bits were observed.",
+    "No hardware timing, callback latency, USB-MIDI delivery or device audio claim follows from these emulator values.",
+    "Lock and LFO scenarios seed native pattern/sound storage; panel editing is not qualified by these fixtures."
+  ],
+  "reproduce": "PYTHONPATH=\"$PWD/private/r03-runtime:$PWD/deps/digiemu\" ../digiemu/.venv/bin/python tools/i03_dynamic_probe.py --candidate private/i04-effective --output private/i04/live/i04q-dynamic.json --timeout 240"
+}

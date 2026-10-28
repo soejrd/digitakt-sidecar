@@ -71,5 +71,20 @@
     "applied": 10289,
     "fifo_underruns": 53,
     "fifo_delta_since_audible_src_reading": 0
+  },
+  "sequenced_locks_lfo": {
+    "human_reply": "it does sound correct, also with LFO, although when I p-lock it does seem like some parameter steps come later. Like the distortion sounds different when p-locked compared to played directly, only in a sequence story.",
+    "result": "Functional differences and LFO audible, but sequenced timbre/timing discrepancy unresolved; not full acceptance",
+    "uptime_seconds": 864,
+    "playout_faults": 0,
+    "starts": 424,
+    "consumed_starts": 424,
+    "applied": 32743,
+    "fifo_underruns": 53,
+    "fifo_delta_since_local_processing": 0,
+    "open_questions": [
+      "SRC DIRT/DIST or local AMP overdrive lock?",
+      "Does long AMP/open filter/dry FX remove the discrepancy?"
+    ]
   }
 }

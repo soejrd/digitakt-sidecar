@@ -197,3 +197,16 @@ at 53 across the next 193 seconds. Human observes local envelopes beginning
 before returned sound; total offset is unmeasured and unresolved. Sequenced
 locks/LFO and note/velocity remain pending.
 [Physical evidence](../evidence/i04/i04q-physical.json).
+
+### Sequenced locks/LFO observation
+
+Human hears correct locked differences and LFO, but some parameter steps seem
+later and sequenced locked distortion differs from manual playback. This is
+**unresolved**, not attributed solely to latency. SRC DIRT/DIST versus local
+AMP overdrive is being clarified; long AMP/open filter/dry FX is the isolation
+check. 424/424 STARTs consumed; zero playout faults; FIFO remains 53 after
+another 273 s. Current I04Q emulator lock/restore/LFO probe **passes**: stored PTCH 72 is
+present at the locked START, following unlocked START restores 60, LFO changes
+PTCH, and three manual STARTs retain block order. This checks native source
+values and cannot prove physical envelope alignment, DIRT/DIST behavior, or
+transport latency. [Compact results](../evidence/i04/i04q-dynamic.json).
