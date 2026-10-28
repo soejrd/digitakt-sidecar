@@ -1,21 +1,21 @@
 # I04 — external TRX-B2 voice
 
 Status: **three physical hits audible; SRC traffic overruns measured; effective-
-control firmware candidate I04Q checked, awaiting human-approved installation**
+control firmware I04Q installed; muted physical PTCH gesture passes**
 (2026-10-28). Owner: Codex. I04 is not DONE.
 
 ## What is installed and what is staged
 
-- **Digitakt:** physical H02F OS 1.54 candidate, USB1 on audio track 1. Its sender
-  still publishes every changed fractional 8.8 control snapshot.
+- **Digitakt:** human reports I04Q installed, USB1 on audio track 1. Sender
+  suppresses fractional changes discarded by the integer TRX API.
 - **Pi:** timing-trace kernel, native-rate real TRX-B2, generation fix and
-  experimental 2,048-frame (42.667 ms) playout / 256 events. Audio is muted;
-  trace is frozen at the first captured SRC failure. No new SD update is needed
+  experimental 2,048-frame (42.667 ms) playout / 256 events. The first I04Q
+  muted gesture passed; trace is off and limited/faded audio enabled for listening. No new SD update is needed
   for I04Q; the 61-byte protocol is unchanged.
 - **Staged only:** `private/i04/firmware-I04Q/` contains verified I04Q firmware,
   previous H02F and stock OS 1.54 recovery plus a source/hash manifest. Only the
   main OS section differs from stock; bootstrap/updater/coproc sections stay
-  byte-identical. No hardware firmware installation has occurred this session.
+  byte-identical. Human installed I04Q; no agent flash occurred.
 
 ## Measured diagnosis and targeted change
 
@@ -168,7 +168,7 @@ Pi maximum render/queue margin, stability and reconnect. The old failed USB
 MAIN pulse matching is not a valid latency reference; identify a usable capture
 channel or analog loopback. Reduce/revise timing only against measured evidence.
 
-No physical I04Q result exists yet. Fast/deep integer modulation remains a
+The first muted I04Q gesture passes below. Fast/deep integer modulation remains a
 capacity limit to test. I04 is incomplete, V01 depends on it, and there is no
 independent READY task.
 
@@ -177,8 +177,15 @@ independent READY task.
 Human confirmed the backup/installation gate for concrete I04Q; see
 [approval](../evidence/i04/firmware-trial-approval.json). Candidate sources,
 container/stock sections and both previous/stock recovery files reverified.
-Pi explicit mute accepted. Firmware installation is still pending the human:
-connect Digitakt USB to computer, use the normal Transfer OS-update workflow
-with the staged I04Q file, wait for completion/reboot, verify I04Q then reconnect
-to Pi. Leave trigs/SRC untouched for a fresh muted baseline/trace. No agent
-flash or Pi SD change is claimed.
+Pi explicit mute accepted before installation. Human subsequently reported I04Q
+uploaded and reconnected to Pi. No agent flash or Pi SD change occurred.
+
+## I04Q physical qualification resumed
+
+Human installed I04Q and reported PTCH no longer sluggish after the same muted
+one-trig / five-second sweep. Before trace dumping: zero playout faults and zero
+FIFO underruns; one START consumed, 1,425 snapshots applied, queue peak 81.
+The retained ring had rolled into idle liveness snapshots, so no sweep timing
+or end-to-end latency is inferred. Host I04 regression suite passes again.
+Trace stopped and quiet limited/faded TRX enabled; audible acceptance is pending.
+[Physical evidence](../evidence/i04/i04q-physical.json).

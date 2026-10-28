@@ -1,0 +1,42 @@
+{
+  "task": "I04",
+  "date_utc": "2026-10-28T12:09:53.513756+00:00",
+  "scope": "physical I04Q first muted PTCH gesture",
+  "firmware_installation": "human reports I04Q uploaded; Pi unchanged",
+  "pi_build": "Oct 28 2026 08:17:23",
+  "human_gesture": "one USB1 track-1 trig, approximately five seconds PTCH back-and-forth, sequencer stopped",
+  "human_reply": "done, control didnt feel sluggish anymore",
+  "before": {
+    "uptime_seconds": 52,
+    "fifo_underruns": 0,
+    "playout_faults": 0,
+    "starts": 0,
+    "consumed_starts": 0
+  },
+  "after_before_trace_dump": {
+    "uptime_seconds": 290,
+    "fifo_underruns": 0,
+    "playout_faults": 0,
+    "starts": 1,
+    "consumed_starts": 1,
+    "applied": 1425,
+    "queue_peak": 81
+  },
+  "trace": {
+    "retained_rows": 128,
+    "accepted_rows": 128,
+    "effective_engine_states": 1,
+    "minimum_slack_frames": 3576,
+    "limitation": "Ring rolled into idle liveness snapshots before retrieval; this is not retained sweep timing or integrated latency evidence."
+  },
+  "checks": {
+    "command": "bash scripts/test_i04.sh",
+    "result": "PASS"
+  },
+  "audio_enable": "trxtrace=off then trx=on accepted; 200 ms fade; limited return",
+  "remaining": [
+    "Audible SRC/local processing/locks/LFO/note and velocity checks",
+    "Integrated latency, jitter and local-lock alignment",
+    "Physical CPU/headroom and sustained modulation capacity"
+  ]
+}
