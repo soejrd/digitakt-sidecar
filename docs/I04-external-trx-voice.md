@@ -1,7 +1,7 @@
 # I04 — external TRX-B2 voice
 
-Status: **I04Q physical SRC/local processing works; sequenced timbre, velocity
-and latency acceptance remain open** (2026-10-28). Owner: Codex. I04 is not DONE.
+Status: **I04Q physical SRC/local processing works; sequenced timbre and velocity corrected;
+latency acceptance remains open** (2026-10-28). Owner: Codex. I04 is not DONE.
 
 ## Installed and pending hardware retest
 
@@ -16,7 +16,7 @@ and latency acceptance remain open** (2026-10-28). Owner: Codex. I04 is not DONE
   names. Verified prior I04 trace kernel and H02 kernel/firmware/stock recovery
   also retained privately. No Digitakt update or bootloader change is required.
 - Prior Pi build `Oct 28 2026 08:17:23` supplied all physical results below.
-  The new kernel's host tests/build and boot pass; correction listening pending.
+  The new kernel's host tests/build and boot pass; correction listening now passes below.
 
 [Candidate/tests](../evidence/i04/final-controls-candidate.json),
 [SD deployment](../evidence/i04/final-controls-sd-deployment.json).
@@ -68,7 +68,7 @@ implicit. PTCH owns pitch; note does not transpose this percussion prototype.
 The pending kernel latches linear clamped 8.8 velocity / 127 on START, after
 the return limiter. Parameter-only velocity metadata keeps the existing tail
 gain. Old hardware kernel used unity gain and human hears no VEL20/127
-difference in a sequence; new gain is not physically verified yet.
+difference in a sequence; new gain now passes the sequenced human listening test below.
 Parameter-only updates keep the tail. Fixed 0.125 gain and ±4095 int16 ceiling
 limit mono return channel 0 to about −18 dBFS before local processing; channels
 1–7 are zero. Converter overshoot can clip at this ceiling.
@@ -249,7 +249,11 @@ its preparation now refreshes the shared overlay before compiling both sides,
 and the combined suite passes. Desktop benchmark maximum is scheduling-sensitive
 and supplies no Pi worst-case claim.
 
-**Next:** repeat locked DIRT/DIST versus
-manual and sequenced VEL20/127. **Still required afterward:** integrated latency/
-jitter and local-envelope alignment with acceptable timing. The 43 ms buffer has
-not changed. Host fixes must not be reported as hardware fixes before retesting.
+**Physical correction retest passes:** human confirms sequenced VEL20/127 now
+works and SRC DIRT/DIST plus other parameter locks sound correct; previous
+per-parameter lag no longer reported. 231/231 STARTs consumed, zero faults,
+FIFO remains at14 startup underruns across246s. [Results](../evidence/i04/final-controls-physical.json).
+Overall audio latency is separate and remains unresolved. **Next:** measure
+source/analog return and integrated timing using the existing right-output to
+left-input cable, with input monitoring off. The43ms buffer has not changed;
+acceptable timing and local-envelope alignment are still required.

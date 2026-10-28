@@ -1,0 +1,35 @@
+{
+  "task": "I04",
+  "date_utc": "2026-10-28T12:54:11.025860+00:00",
+  "scope": "physical correction retest, I04Q firmware plus combined Pi kernel",
+  "pi_build": "Oct 28 2026 12:38:17",
+  "human_reply": "VEL seems to work as it should now. SRC DIRT/DIST other parameters the same story. I tested other P locks and they all work as they should, not the latency issue we had before with p-locks.",
+  "results": {
+    "sequenced_velocity_20_vs127": "human listening pass",
+    "src_dirt_dist_and_other_parameter_locks": "human listening pass; previous per-parameter lag no longer reported",
+    "overall_audio_latency": "still unresolved; not accepted"
+  },
+  "before": {
+    "uptime_seconds": 32,
+    "fifo_underruns": 14,
+    "playout_faults": 0,
+    "starts": 1,
+    "consumed_starts": 1,
+    "armed": false
+  },
+  "after": {
+    "uptime_seconds": 278,
+    "fifo_underruns": 14,
+    "playout_faults": 0,
+    "starts": 231,
+    "consumed_starts": 231,
+    "applied": 6812,
+    "queue_peak": 29,
+    "armed": true
+  },
+  "limitations": [
+    "Listening verification, not calibrated velocity curve or timbre equivalence measurement",
+    "Fixed 2048-frame buffering and local-envelope alignment remain unresolved",
+    "No worst-case Pi render/headroom qualification"
+  ]
+}
