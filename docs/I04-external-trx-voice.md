@@ -233,3 +233,16 @@ kernel/manifest, deploy/read-back diagnostic-1, eject and boot muted. Capture
 fault metadata during one tap, then repeated taps. Turn that observed failing
 scenario into a correct host regression, fix the identified cause, and repeat
 physical listening/transport checks. No other independent READY task exists.
+
+## Diagnostic SD deployment — 2026-10-28
+
+[Diagnostic deployment](../evidence/i04/diagnostic-sd-deployment.json): returned
+SD current kernel matched the original I04 candidate. Existing manifest passed.
+Current kernel/full manifest were backed up locally and on card with
+`before-diagnostic-1` names; all earlier backups/settings retained their hashes.
+Diagnostic kernel and updated manifest passed read-back; card safely ejected.
+No diagnostic boot, root-cause fix or audio success is claimed. Next: reinsert
+into powered-off Pi, boot muted and inspect counters before controlled taps.
+Rollback the kernel and full manifest from the matching `before-diagnostic-1`
+backup pair to restore the immediately previous I04 state; verified H02 rollback
+remains available separately.
