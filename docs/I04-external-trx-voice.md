@@ -1,293 +1,147 @@
 # I04 — external TRX-B2 voice
 
-Status: **generation-rejection bug fixed on host; BLOCKED on corrected physical retest** (2026-10-28).
-Owner: Codex; scheduling/filter follow-up claimed 07:11 UTC.
-The SD candidate is installed/read-back verified and physically booted; explicit
-TRX enable was accepted, but the human heard no taps; 37 playout faults disarmed
-the session. TRX is explicitly muted. Listening/timing acceptance has failed so far.
-No Digitakt firmware was flashed.
+Status: **three physical hits audible; SRC edit failed; batching fix checked on
+host, awaiting SD deployment and physical retest** (2026-10-28). Owner: Codex.
+Physical Pi is explicitly muted. I04 is not DONE.
 
-## Candidate behavior
+## Current implementation
 
-`audio/trx_voice.c` owns one persistent real mdkit TRX-B2 at
-`96157fe4fbda17bf4cae3168f52437d8232e6570`, using its public C API without
-changing synthesis arithmetic. SRC A–H map to PTCH, DEC, RAMP, HOLD, TICK, NOIS,
-DIRT, DIST. Signed 8.8 controls truncate and clamp to 0–127. Parameter-only
-snapshots preserve the tail. START installs all controls before calling trigger.
+One persistent real mdkit TRX-B2 uses the public C API at
+`96157fe4fbda17bf4cae3168f52437d8232e6570`. Engine arithmetic is unchanged.
+SRC A–H map to PTCH, DEC, RAMP, HOLD, TICK, NOIS, DIRT, DIST; signed 8.8 values
+truncate and clamp to 0–127. Wire `voice` is a **nonzero hit generation**, not
+track ID; the only supported audio track is implicit in the protocol. Every
+START installs all eight values before triggering; parameter-only events keep
+the tail. PTCH owns pitch; note does not transpose this percussion prototype.
+Host velocity gain is unity, leaving Digitakt local AMP velocity behavior to be
+verified physically. Mono channel 0 is returned; channels 1–7 are zero. Fixed
+0.125 gain and ±4095 int16 ceiling limit output to about −18 dBFS before local
+processing; converter overshoot can clip at that ceiling.
 
-**Note/velocity policy:** SRC PTCH owns pitch; note does not transpose this
-percussion prototype. Host velocity gain is unity; Digitakt's existing local
-AMP owns velocity. Host PCM independence is tested; the physical velocity curve
-remains unverified. Mono return is channel 0, with channels 1–7 zero. Fixed
-0.125 gain and a hard ±4095 int16 ceiling limit output to about −18 dBFS before
-local processing. The ceiling can clip converter overshoot.
+TRX-B2 remains at 44.1 kHz. `audio/src_44148.c` supplies causal 48 kHz output with
+a 128-tap, 160-phase Blackman-windowed sinc, 20 kHz cutoff, exact 160/147 ratio,
+and no native lookahead. Each 48,000 output frames consumes 44,100 native frames.
+History persists through STARTs, resetting on session invalidation. Coefficients
+initialize before activation. Render neither allocates, waits nor calls USB.
+R05's original 32-tap benchmark remains historical and unchanged.
 
-TRX-B2 stays at 44.1 kHz. The new `audio/src_44148.c` is a causal 128-tap,
-160-phase, Blackman-windowed sinc converter with a 20 kHz cutoff and exact
-160/147 conversion. It consumes 44,100 native frames per 48,000 output frames;
-no native lookahead or R05's 31 extra priming frames are generated. History
-persists across STARTs and resets on session invalidation. Coefficients are
-initialized before activation. Render never allocates, waits, or calls USB.
-R05 remains an unchanged historical benchmark of its earlier 32-tap converter.
+`audio/playout.c` owns **256 bounded snapshots**. First START anchors sender
+block time to current render time plus **2,048 frames (42.667 ms)**. Subsequent
+deadlines preserve sender block differences at 32 output frames/block, including
+wrap and events falling within Circle's 12-frame render blocks. Admission copies
+an immutable snapshot before ACTIVATE: ACK means the scheduled queue owns it;
+synthesis fires only at its deadline. Late/order/session/capacity/horizon faults
+invalidate and disarm; no silent coalescing, late replay or deadline rebasing.
+The future horizon is one second. Native mdkit trigger boundaries require at
+least 35 output frames; sender granularity makes the supported START minimum
+64 frames / two blocks (1.333 ms). Pending triggers and adjacent-block STARTs
+fail closed instead of merging hits.
 
-## Timestamped playout and limits
+**Timing is unqualified.** The increased buffer covers the modelled normal
+50-block (~33.3 ms) control-worker batching with margin. It does not remove
+initial transport, engine quantization, filter/USB/FIFO delay, clock drift, or
+align the Digitakt's current local locks with delayed audio. Worst-case slower
+workers can still fail. 42.667 ms is an experimental extra buffer, not an
+accepted musical latency or a measured total. A faster firmware worker,
+lookahead/compensation or a revised contract may be needed after measurements.
 
-`audio/playout.c` owns a bounded 64-snapshot queue. The first START anchors the
-sender's block clock to the current render frame plus **1,024 output frames
-(21.333 ms)**. Later deadlines preserve the exact sender block differences at
-32 output frames per block. Enqueue copies complete immutable snapshots before
-ACTIVATE; ACK means state is validated and owned by the scheduled queue, not
-that synthesis has already fired. Each event applies at its due output sample,
-including when a 12-frame Circle block straddles the deadline. Parameter-only
-snapshots retain the same schedule. Clock wrap is extended using positive
-32-bit deltas; sequence/session changes are rejected unless the session resets.
+## Safety, replay and diagnostics
 
-Late arrival, queue overflow, invalid ordering/session, more than one second
-of future events, or a trigger still pending at the next START fail closed.
-A fault closes the output gate and requires a fresh session. There is no late
-replay, silent event coalescing, or dynamic rebasing to conceal missed deadlines.
-No event allocation or USB wait occurs during rendering.
+Apply patches **0001–0008** at sidecar-firmware
+`6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457`, then use the I04 overlay. mdkit
+inputs must match their pin and remain unchanged. NOTICE preserves licences;
+no firmware-derived code/data enters the host overlay. The stock Rytm selection
+path remains separate. Private firmware, captures, kernels and rollback files
+stay ignored. The current fix is in tracked overlay sources, not a dirty-only
+dependency edit. No new Digitakt firmware flash is required; H02F remains.
 
-**Native trigger limit:** mdkit consumes triggers on 32-native-sample boundaries.
-At least 35 output frames between STARTs guarantee consumption opportunity;
-the sender's block granularity makes the supported minimum **two blocks / 64
-output frames (1.333 ms)**. Adjacent-block STARTs explicitly invalidate the
-session. The scheduler also checks actual pending-trigger state. This preserves
-native engine behavior rather than changing its internal block clock. Native
-trigger consumption can lag its scheduled application by up to about 0.73 ms;
-filter delay is additional. Dense tests check consumed triggers, not only calls.
+TRX audio defaults **off**. `:trx=on` requires an active USB1 session, binds to it
+and fades over 200 ms. `:trx=off` silences newly rendered PCM. Loss/reconnect or
+invalidation disarms; enabling never changes timestamp mapping. `:trxstatus`
+reports arm, queue/peak, lifetime fault count, applied/START/consumed counts and
+render frame. Last fault code/block/flags/delta/now/due survives session resets.
+Codes: 1 invalid, 2 order/session, 3 late, 4 horizon, 5 capacity, 6 START spacing,
+7 engine install/pending trigger, 8 missed render deadline. Fixed metadata is
+captured at failure and printed only on status requests. Per-session counters
+reset; they cannot count all taps across invalidations. Pi max-block timing
+includes synthesis work.
 
-The 21.333 ms buffer is an **experimental, uncalibrated** starting value, not an
-accepted latency target. It absorbs arrival variation within its available
-margin, measured from the first START's arrival on the render timeline. It
-does not remove initial transport latency, output FIFO latency, clock drift,
-or align local Digitakt filter/AMP locks with delayed remote audio. A late/drift
-fault is deliberately visible. Hardware measurements must decide whether a
-smaller buffer, lookahead or device-side compensation is required. No musical
-timing acceptance is claimed from host tests.
+## Physical findings and regression evidence
 
-## Safety, dependency replay and diagnostics
+| Check | Result and scope |
+| --- | --- |
+| Initial corrected routing candidate | Expected build/USB streaming; human heard no taps, 37 playout faults, underruns rose 8→1,828. [Failure](../evidence/i04/physical-silence.json) |
+| Diagnostic single muted tap | Code 1, START flag; invalid-generation rejection. [Baseline](../evidence/i04/diagnostic-baseline.json), [red/green generation regression](../evidence/i04/generation-regression.json) |
+| Generation fix | Both host layers wrongly required `voice == 1`; real worker increments it each hit. Accepting nonzero generations fixes the host reproduction. Isolated old fixtures used constant 1 and missed the bug. |
+| Corrected physical muted tap | START/consumed 1→2, zero faults, underruns stayed 15. Cable was changed near startup; this is not formal reconnect qualification. [Baseline](../evidence/i04/generation-fix-baseline.json), [tap](../evidence/i04/generation-fix-one-tap.json) |
+| Three audible corrected hits | Human confirmed three hits; START/consumed 2→5, arm 1, zero faults; underruns stayed 15. This proves audible hits only. [Evidence](../evidence/i04/physical-audible.json) |
+| PTCH change | Human reported sound stopped immediately on changing PTCH. Code 3 parameter-only event was 608 frames / 12.667 ms late; faults reached 33. Explicit mute accepted. [Evidence](../evidence/i04/ptch-failure.json) |
+| Bounded control-window monitor | USB kept streaming with no new USB gaps/errors, but FIFO underruns increased. It overlaps failed qualification; no stable audio/headroom proof. Details are in PTCH evidence. |
 
-Patches **0001–0007**, in order at sidecar-firmware
-`6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457`, plus the I04 overlay reproduce the
-candidate. The overlay verifies the pinned, unchanged mdkit inputs; NOTICE
-retains licences. No firmware-derived code or data enters the host overlay.
-The stock Rytm selection path is unchanged. The H02 tone regression API remains;
-production integrated rendering uses TRX-B2.
+The generation regression executes real firmware render/queue/worker/native
+transport → portable host → scheduled real engine. Before its fix, native hit 2
+reset the session; afterward generations 1–4 were retained and consumed.
 
-**TRX audio defaults off.** Core-3 console command `:trx=on` requires a valid
-USB1 session, binds enable to that session and fades in over 200 ms. `:trx=off`
-silences subsequent generated PCM. Loss, timeout, invalidation or reconnect
-removes enable; a new session needs a new explicit enable. The synthesis and
-scheduler continue while muted so enabling does not reset timestamp mapping.
-`:trxstatus` logs armed state, queue occupancy/peak, lifetime playout-fault count,
-applied snapshots, STARTs, consumed STARTs and low 32 bits of render frame.
-Per-session counters reset on invalidation. The existing maximum-block timing
-now includes TRX rendering, so later Pi measurements do not omit its work.
+The expanded test adds 1,000 per-block SRC edits with both slow initial service
+(50 blocks) and fast startup followed by normal 50-block batches. With the old
+1,024-frame delay it reproduces **code 3** in the fast-start case (now 36672,
+due 36160). Slow startup additionally needs more queue space: a 1,024-delay
+run with enlarged capacity peaked at 132 pending events. With delay 2,048 and
+capacity 256, both cases retain the session and apply 1,008 / 1,007 snapshots
+including periodic snapshots, queue peaks 164 / 66. No scheduling guard was
+removed. This is a host correction to the reproduced batching fault; the new
+buffer/capacity are not yet physically qualified.
 
-## Executed evidence
+## Other executed checks
 
-[Host/build evidence](../evidence/i04/host.json),
-[filter measurements](../evidence/i04/filter.json),
-[dense host benchmark](../evidence/i04/playout-benchmark.json).
-
-- ASan/UBSan: whole/ragged engine PCM equality, note/velocity policy, exact rate,
-  clipping bounds, native START consumption, reset and zero-generation checks.
-- Timestamp tests: exact output-sample application, burst versus delayed-arrival
-  PCM equality, timestamp wrap, 64 queued snapshots with 32 separately consumed
-  STARTs, and fail-closed capacity/late/order/session/horizon/too-close cases.
-- Actual Circle glue/Output/native bridge: handshake, explicit arm/default
-  silence/fade, loss/timeout silence, reconnect disarm, ACK congestion and
-  scheduler rejection closing the session. These are production-source host
-  tests, not USB DMA or hardware audio measurements.
-- Filter: 1 kHz RMS 0.070710648 for amplitude 0.1; 18 kHz gain +0.000496 dB;
-  22 kHz rejection −81.08 dB. Worst rejection over sampled 22,000–22,050 Hz
-  (10 Hz grid) is −80.15 dB; sampled first-image rejection exceeds 115 dB for
-  1–18 kHz tones (1 kHz grid). These finite-grid float tests do not establish
-  every-frequency or final int16/analog performance. DC phases and count pass.
-- Causal impulse: input frame 64 peaks at output frame 139; designed group
-  delay is 63.5 native samples (~1.440 ms), excluding engine/USB/FIFO/device.
-- Optimized desktop dense run: ten seconds of synthetic audio; 14,968 snapshots
-  applied, 7,484 STARTs consumed, queue peak 33/64, zero faults. Wall time and
-  observed maximum block time are recorded as **host-only** results, not Pi
-  worst-case scheduling/thermal/headroom evidence.
-- Pi 4 AArch64 Circle cross-build and seven-patch replay pass. Kernel hash/size
-  and source hashes are recorded. The kernel was subsequently deployed to the SD as recorded below.
-
-Reproduce from this repository after applying the patches at the pinned base:
+- ASan/UBSan engine, scheduler, native bridge and actual Circle glue/Output tests
+  pass: PCM block invariance, exact rate, generation handling, native START
+  consumption, timing/order/wrap/capacity/late guards, arm/fade, loss/reconnect,
+  congestion, last-fault preservation and default silence.
+- [Filter](../evidence/i04/filter.json): 18 kHz gain +0.000496 dB, 22 kHz rejection
+  −81.08 dB, worst sampled 22–22.05 kHz rejection −80.15 dB. Finite grids do not
+  prove every frequency or final analog/int16 quality. DC/count checks pass.
+  Input impulse 64 peaks at output 139; designed delay 63.5 native samples
+  (~1.440 ms), excluding engine/transport/device delays.
+- [Current dense host benchmark](../evidence/i04/playout-benchmark.json): optimized
+  desktop ten-second synthesis/queue workload; no USB/Pi worst-case scheduling
+  claim. Pi kernel build and eight-patch replay pass; candidate hashes identify
+  exactly which configuration was built. Older candidate evidence is historical.
 
 ```sh
 bash scripts/i04_prepare_circle.sh
 bash scripts/test_i04.sh
 python3 scripts/test_i04_replay.py
-bash scripts/test_i03.sh
-bash scripts/test_i03_handshake.sh
+# Negative control; expected failure with old buffer:
+I04_TEST_FLAGS=-DSC_PLAYOUT_DELAY=1024u bash scripts/test_i04_generation.sh
 bash deps/sidecar-firmware/pi/engine/build.sh kernel
-python3 scripts/i04_prepare_trial.py
 ```
 
-The staging command requires matching current build/source evidence and refuses
-to overwrite a different trial. It creates only ignored `private/i04/trial/`
-kernel, checksum, manifest and verified H02 kernel rollback. It checks that the
-existing H02F firmware and stock recovery exist; I04 needs no new Digitakt flash.
+## Hardware state, release condition and recovery
 
-## Physical release condition and next action
+The generation-fix kernel is currently on the physical Pi, explicitly muted
+after PTCH failure. Existing SD updates were read-back verified, safely ejected,
+and preserved settings and previous backups:
+[initial](../evidence/i04/sd-deployment.json),
+[diagnostic](../evidence/i04/diagnostic-sd-deployment.json),
+[generation fix](../evidence/i04/generation-fix-sd-deployment.json).
 
-Software work is ready for a **human-supervised hardware qualification session**.
-Make the Pi/Digitakt available with speakers lowered. Keep the Pi off for any SD
-replacement. The current working SD kernel must be backed up and hashed before
-install; retain settings/credentials, boot files and H01/H02 backups. Verify
-read-back and update only the kernel's entry in the existing SD checksum
-manifest. The staged rollback matches the physically booted H02 kernel hash
-recorded in `evidence/h02/sd-clock-deployment.json`.
+Next: human powers Pi off and returns SD; verify current kernel/manifest, back
+up both under fresh names, install/read-back the batch-fix candidate and safely
+eject. Boot muted, capture baseline, test hits and SRC edits muted for faults,
+then explicitly enable limited/faded audio with speakers lowered. Verify actual
+SRC A–H, locks/LFOs/retriggers, note/velocity, local filter/AMP/sends and unaffected
+neighboring track. Identify a usable capture channel before deriving latency;
+H02's failed USB MAIN pulse matching is not a valid timing reference. Analog
+loopback may be needed. Measure latency/jitter/local-lock alignment, queue margin,
+Pi worst-case scheduling, stability and reconnect before timing acceptance.
 
-Boot with TRX muted. Confirm handshake/status and zero playout faults, then
-explicitly enable the limited/faded voice. Demonstrate native SRC edits,
-sequencer locks, LFOs, retriggers, note/velocity policy, local filter/AMP/sends
-and an unaffected neighboring internal track. Capture source/render counters
-and identify a usable return capture channel before deriving latency; H02's
-failed USB MAIN pulse matching is not a valid latency reference. Use an analog
-loopback if needed and available. Measure integrated latency/jitter, local-lock
-alignment, Pi maximum render/queue margin, stability and reconnect. Choose an
-acceptable timing budget and calibrate the playout buffer from those results.
+For rollback, power Pi off and restore a matching backed-up kernel **and full
+manifest** pair. Generation-fix deployment preserved diagnostic-1 as
+`kernel8-rpi4.before-generation-fix.img` / `SHA256SUMS.before-generation-fix`.
+Verified H02 kernel remains `private/h02/trial/kernel8-rpi4-clock.img`; stock
+Digitakt recovery is `private/h02/trial/Digitakt-OS1.54-stock-recovery.syx` under
+the existing human procedure. Do not restore an older full manifest blindly
+with a newer kernel. No bootloader/internal wiring changes.
 
-If testing fails, disarm, stop the stream, power Pi off and restore the verified
-H02 kernel as `kernel8-rpi4.img`, restoring its checksum entry. Keep the pre-I04 SD manifest backup and verify all retained entries; the older
-`private/h02/sd-backup-clock/SHA256SUMS` belongs to the earlier kernel and must
-not be restored blindly with the newer rollback. The staged rollback is copied
-from `private/h02/trial/kernel8-rpi4-clock.img` and verified against H02
-deployment evidence. Existing H02F firmware remains in place.
-Stock firmware recovery remains `private/h02/trial/Digitakt-OS1.54-stock-recovery.syx`
-under the existing human recovery procedure. No bootloader/wiring changes.
-
-I04 is not DONE until this physical behavior and measured acceptable timing pass.
-V01 remains dependent; no other independent READY task exists. Persistence,
-calibrated semitone mapping, broad stress/reconnect and production audio quality
-remain outside the host proof.
-
-## SD deployment — 2026-10-28
-
-[Deployment evidence](../evidence/i04/sd-deployment.json): human confirmed Pi off
-and speakers lowered. The card's current kernel matched the physically booted
-H02 rollback. All existing manifest entries passed before replacement. Current
-kernel and manifest were backed up locally in `private/i04/sd-backup/` and on
-card as `kernel8-rpi4.before-i04.img` / `SHA256SUMS.before-i04`. Candidate and
-updated manifest passed read-back; all other regular card files, including
-settings, retained their hashes. The card was safely ejected. Boot and physical
-audio are not yet tested. Restore the pre-I04 card kernel and complete pre-I04
-manifest together for exact rollback. Next: human inserts SD into powered-off
-Pi, connects Digitakt as before and powers up; inspect silent session before
-explicitly enabling audio.
-
-## Physical boot and first enable — 2026-10-28
-
-[Boot evidence](../evidence/i04/physical-boot.json): the human installed the SD,
-connected/powered the devices and confirmed speakers lowered. HTTP status reports
-expected build `Oct 28 2026 07:20:19`, USB streaming and MAIN output. Muted TRX
-status had arm 0, queue 1, peak 2, zero playout faults, and one START consumed.
-Explicit `trx=on` was accepted; subsequent arm 1 / zero-fault status confirms
-session-bound enable. FIFO underruns stayed at startup baseline 8 through enable.
-This is not a zero-underrun boot or stress proof. Human was asked to select the
-existing USB1 track and tap trigs; audible behavior is not yet confirmed. Leave
-speakers low; audio is currently enabled, level-limited and subject to loss disarm.
-
-## Physical silence and diagnostic follow-up — 2026-10-28
-
-[Failure evidence](../evidence/i04/physical-silence.json): human reported many
-manual taps with no audible sound. Focused live counter check was RED:
-`armed=0, faults=37, starts=1, consumed=1`. FIFO underruns increased from startup
-8 to 1,828. START counters are for the latest session only; invalidations reset
-them, so they do not count all human taps. Explicit `trx=off` was accepted.
-No audible success or physical timing result is claimed.
-
-Ranked hypotheses, not findings: late events relative to fixed deadlines;
-adjacent-block START rejection; host scheduling stalls contributing both late
-events and FIFO starvation. The installed counter has no reason field, so none
-can be selected as the root cause yet. The private live assertion reproduces
-physical invalidation; it is not an unattended acoustic measurement.
-
-Patch 0008 adds bounded last-fault metadata, retained separately across resets.
-`:trxstatus` reports code, sender block/flags/delta and low 32 bits of render
-clock/deadline. Codes 1–8 are invalid frame, order/session, late, future horizon,
-capacity, START spacing, engine install/pending-trigger, missed render deadline.
-Metadata storage occurs at failure; printing occurs only on the status command.
-No extra audio-callback logging is added. Host tests assert exact reason codes
-and preservation across actual Circle invalidation/reconnect. This is diagnostic
-instrumentation, **not a fix**. Eight-patch replay and Pi build pass.
-
-[Diagnostic candidate](../evidence/i04/diagnostic-candidate.json) pins sources and
-kernel. It is staged in ignored `private/i04/diagnostic-1/` with verified H02
-rollback. Stage/recheck it with:
-
-```sh
-python3 scripts/i04_prepare_trial.py \
-  --evidence evidence/i04/diagnostic-candidate.json --trial-name diagnostic-1
-```
-
-The original trial and host source-hash evidence remain historical; their staging
-check deliberately refuses current changed sources. The diagnostic supports a
-separate named private trial without overwriting that original candidate.
-
-Release condition: human powers Pi off and returns SD; back up its current
-kernel/manifest, deploy/read-back diagnostic-1, eject and boot muted. Capture
-fault metadata during one tap, then repeated taps. Turn that observed failing
-scenario into a correct host regression, fix the identified cause, and repeat
-physical listening/transport checks. No other independent READY task exists.
-
-## Diagnostic SD deployment — 2026-10-28
-
-[Diagnostic deployment](../evidence/i04/diagnostic-sd-deployment.json): returned
-SD current kernel matched the original I04 candidate. Existing manifest passed.
-Current kernel/full manifest were backed up locally and on card with
-`before-diagnostic-1` names; all earlier backups/settings retained their hashes.
-Diagnostic kernel and updated manifest passed read-back; card safely ejected.
-No diagnostic boot, root-cause fix or audio success is claimed. Next: reinsert
-into powered-off Pi, boot muted and inspect counters before controlled taps.
-Rollback the kernel and full manifest from the matching `before-diagnostic-1`
-backup pair to restore the immediately previous I04 state; verified H02 rollback
-remains available separately.
-
-## Single-tap diagnosis and generation fix — 2026-10-28
-
-[Baseline](../evidence/i04/diagnostic-baseline.json): diagnostic build booted muted,
-zero playout faults, 16 startup FIFO underruns. One human tap while stopped
-produced exactly one fault: code 1, START flags 1, sender block 106307, delta 1,
-render frame 2644884. USB stayed streaming; underruns became 17. The fault was
-an invalid-frame rejection, not the deadline or minimum-START-spacing guard.
-
-[Regression evidence](../evidence/i04/generation-regression.json): the production
-firmware worker increments wire `voice` for each START. It is a **hit generation,
-not a track ID**; track identity is implicit in this single-track protocol. I04
-incorrectly required `voice == 1` in both queue admission and engine installation.
-The first recovery START worked, but the next native hit advanced the generation
-and invalidated/disarmed the session. This explains the silent physical path;
-per-session START counts reset during that invalidation.
-
-The new regression invokes the real firmware render/queue/worker and native
-transport with the scheduled real engine as its host installer. Before the fix,
-`bash scripts/test_i04_generation.sh` failed on hit 2 with session reset. After
-accepting nonzero generations in both layers, hits 2, 3 and 4 retain the same
-session and each is consumed by TRX-B2. Zero remains rejected. Wire field
-semantics are now explicit in `control/link.h`; scheduler tests advance generation
-instead of freezing it at 1. The prior isolated engine/queue tests used constant
-1 and therefore missed this integration error. Full host suite/eight-patch replay
-pass; physical correction remains to be tested.
-
-No timing, spacing or filter policy was relaxed. Diagnostic metadata is retained
-for the physical retest; it is bounded operational fault evidence, not temporary
-per-render logging. Next: corrected SD installation/read-back with fresh backup,
-muted boot and controlled taps, then explicitly enable faded audio and confirm
-human listening and modulation/local processing before any acceptance claim.
-
-## Corrected-kernel SD deployment — 2026-10-28
-
-[Generation-fix deployment](../evidence/i04/generation-fix-sd-deployment.json):
-returned card's kernel matched diagnostic-1; full existing manifest passed.
-Current diagnostic kernel/full manifest backed up locally under
-`private/i04/sd-backup-generation-fix/` and on card with `before-generation-fix`
-names. Corrected kernel and updated manifest read-back verified; all other
-regular files/settings/prior backups unchanged. Card safely ejected. No corrected
-physical boot/audio result yet. Next: boot muted with no manual taps, inspect
-baseline, then repeat controlled native hits before faded audio enable. Restore
-the matching before-generation-fix kernel/manifest pair for immediate rollback;
-older H02 verified rollback remains available separately.
+I04 remains incomplete. V01 depends on it; no independent READY task exists.

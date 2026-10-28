@@ -1,0 +1,27 @@
+{
+  "task": "I04",
+  "scope": "physical corrected native voice: human listening + Pi counters",
+  "human_report": "Yes, three drum hits",
+  "human_action": "three USB1 track-1 taps about one second apart, speakers low",
+  "playout": {
+    "armed": 1,
+    "queue": 1,
+    "peak": 4,
+    "faults": 0,
+    "applied": 2874,
+    "starts": 5,
+    "consumed": 5,
+    "frame": 5879196
+  },
+  "fifo_underruns": 15,
+  "assertions": {
+    "three_additional_starts_consumed": true,
+    "no_playout_faults": true,
+    "armed": true,
+    "no_new_fifo_underruns": true
+  },
+  "limitations": [
+    "Listening confirms audible drum hits only, not SRC/locks/LFO/local-processing acceptance",
+    "No integrated latency or jitter measurement yet"
+  ]
+}

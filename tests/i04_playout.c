@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 static sc_playout a,b;
-static int16_t burst[4096][8], timed[4096][8], scratch[4096][8];
+static int16_t burst[4096][8], timed[4096][8], scratch[16384][8];
 static struct sc_frame event(unsigned n) {
     struct sc_frame f={0};
     const int defaults[]={60,65,41,62,91,44,56,58};
@@ -28,7 +28,7 @@ int main(void) {
     // Exact sample deadlines, including device-block wrap and parameter-only events.
     sc_playout_init(&a);
     for(unsigned n=0;n<8;++n) { f=event(n); assert(sc_playout_enqueue(&a,&f)); }
-    for(unsigned i=0;i<1400;++i) {
+    for(unsigned i=0;i<SC_PLAYOUT_DELAY+400;++i) {
         unsigned expected=i<SC_PLAYOUT_DELAY ? 0 : (i-SC_PLAYOUT_DELAY)/32+1;
         if(expected>8) expected=8;
         assert(sc_playout_render(&a,scratch,1)); assert(a.applied==expected);
@@ -37,17 +37,17 @@ int main(void) {
     sc_playout_init(&a);
     for(unsigned n=0;n<SC_PLAYOUT_QUEUE;++n) { f=event(n); assert(sc_playout_enqueue(&a,&f)); }
     assert(a.peak==SC_PLAYOUT_QUEUE);
-    assert(sc_playout_render(&a,scratch,4096));
-    assert(a.applied==64 && a.voice.starts==32 && a.voice.consumed_starts==32);
+    assert(sc_playout_render(&a,scratch,16384));
+    assert(a.applied==SC_PLAYOUT_QUEUE && a.voice.starts==SC_PLAYOUT_QUEUE/2 && a.voice.consumed_starts==SC_PLAYOUT_QUEUE/2);
     // Capacity fault, late deadline, order, session, horizon, too-close START fail closed.
     for(unsigned scenario=0;scenario<7;++scenario) {
         sc_playout_init(&a); f=event(0); assert(sc_playout_enqueue(&a,&f));
         f=event(1);
         if(scenario==0) {
-            for(unsigned n=1;n<64;++n) { f=event(n); assert(sc_playout_enqueue(&a,&f)); }
-            f=event(64);
+            for(unsigned n=1;n<SC_PLAYOUT_QUEUE;++n) { f=event(n); assert(sc_playout_enqueue(&a,&f)); }
+            f=event(SC_PLAYOUT_QUEUE);
         }
-        if(scenario==1) assert(sc_playout_render(&a,scratch,1100));
+        if(scenario==1) assert(sc_playout_render(&a,scratch,SC_PLAYOUT_DELAY+76));
         if(scenario==2) ++f.sequence;
         if(scenario==3) ++f.session;
         if(scenario==4) f.block+=2000;
@@ -59,9 +59,9 @@ int main(void) {
         assert(a.failure.code==codes[scenario] && a.failure.block==f.block);
         assert(a.failure.clock==a.clock);
         memset(scratch,0x55,sizeof scratch);
-        assert(!sc_playout_render(&a,scratch,4096));
-        for(unsigned i=0;i<4096;++i) for(unsigned ch=0;ch<8;++ch) assert(scratch[i][ch]==0);
+        assert(!sc_playout_render(&a,scratch,16384));
+        for(unsigned i=0;i<16384;++i) for(unsigned ch=0;ch<8;++ch) assert(scratch[i][ch]==0);
         sc_playout_init(&a); f=event(0); f.session=10; assert(sc_playout_enqueue(&a,&f));
     }
-    puts("I04 playout: exact deadlines, burst/jitter PCM equality, wrap, 64 snapshots/32 consumed STARTs, fail-closed bounds and reset: PASS");
+    puts("I04 playout: exact deadlines, burst/jitter PCM equality, wrap, bounded dense snapshots/consumed STARTs, fail-closed bounds and reset: PASS");
 }

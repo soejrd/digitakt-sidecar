@@ -1,0 +1,24 @@
+{
+  "task": "I04",
+  "scope": "corrected kernel controlled physical muted tap; audible acceptance pending",
+  "baseline": "evidence/i04/generation-fix-baseline.json",
+  "human_action": "Exactly one USB1 audio-track-1 tap while stopped",
+  "playout": {
+    "armed": 0,
+    "queue": 2,
+    "peak": 4,
+    "faults": 0,
+    "applied": 1565,
+    "starts": 2,
+    "consumed": 2,
+    "frame": 3203136
+  },
+  "fifo_underruns": 15,
+  "assertions": {
+    "native_start_consumed": true,
+    "no_playout_fault": true,
+    "no_new_underrun": true
+  },
+  "audio_enable": "Subsequent explicit trx=on accepted; arm 1 and zero faults confirmed",
+  "listening_result": null
+}

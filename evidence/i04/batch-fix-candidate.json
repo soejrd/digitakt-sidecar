@@ -1,0 +1,67 @@
+{
+  "task": "I04",
+  "scope": "worker batching/queue capacity correction checked on host; physical retest pending",
+  "configuration": {
+    "delay_frames": 2048,
+    "delay_ms": 42.666666666666664,
+    "queue_capacity": 256
+  },
+  "checks": [
+    {
+      "command": "I04_TEST_FLAGS=-DSC_PLAYOUT_DELAY=1024u bash scripts/test_i04_generation.sh",
+      "result": "EXPECTED RED",
+      "coverage": "fast startup then 50-block dense SRC batching -> same code-3 late rejection as physical PTCH edit"
+    },
+    {
+      "command": "bash scripts/test_i04.sh",
+      "result": "PASS",
+      "coverage": "ASan/UBSan; actual native worker -> scheduled engine: four generations plus 1000 dense edits, startup periods 50 and 1; queue peaks 164 and 66"
+    },
+    {
+      "command": "python3 scripts/test_i04_replay.py",
+      "result": "PASS",
+      "scope": "eight pinned-base patches match dependency"
+    },
+    {
+      "command": "bash deps/sidecar-firmware/pi/engine/build.sh kernel",
+      "result": "PASS",
+      "target": "Pi 4 AArch64 Circle",
+      "kernel_sha256": "c22e7b6191190bea85971d5e62cf7c2bf4d91de5951064c226af38d8bb6dab3e",
+      "kernel_bytes": 2474312,
+      "deployment": "pending"
+    }
+  ],
+  "source_sha256": {
+    "audio/playout.c": "91419d01ed0015ad8b288cb87754cbe6f74513cab840045a7f2de0a43a5abd4b",
+    "audio/playout.h": "8d6a7c1265e6bf0386b82d269141a0a78f9a426ae78b44d83914e3ba300a4966",
+    "audio/src_44148.c": "17e34f1a05ab474336837fe85b1c75d6a56859de9780b2bb0f0bb15d592070b7",
+    "audio/src_44148.h": "23ae3ecde4ab9b059209b2266301e5df18eb700a7cace29e4cabf2e5899b5f97",
+    "audio/trx_voice.c": "7c7da4f2be5442de5a0c2c686228f0bd692c057ae7b3f4d85ff72bc86abb1d60",
+    "audio/trx_voice.h": "6e32ed345d6a418e58821fe013bf91410066518176392bcd12c3d6cc6b8a6c99",
+    "control/link.h": "52dd5c5186ab590f1d9fbcfe13ed7a520f293e56a34f85f5d1a1afa8c8e67540",
+    "patches/sidecar-firmware/0001-directional-overbridge-layout.patch": "87fecfb46737ddf85bed736cf245caf0976c4d3b671478e26297ef5ff352be39",
+    "patches/sidecar-firmware/0002-static-capture-marker.patch": "455b1c1d08189f2ec5e21e8173176508da46569fe6cd1758a0f5aa9286c97e5e",
+    "patches/sidecar-firmware/0003-dtsc-control-link.patch": "fb6e8de487359ee515f4e6b849674c1982203e3801e557f239fac35cdb6db85c",
+    "patches/sidecar-firmware/0004-h02-gated-test-tone.patch": "42f3c9df1a41d0ec42d9005324924b780c48f4e87583c747a40b688d145f936c",
+    "patches/sidecar-firmware/0005-monotonic-control-clock.patch": "fb478754766b1975f14b57a43d1aaf709e07360bfe186e7f791089bf14236afc",
+    "patches/sidecar-firmware/0006-i04-trx-voice.patch": "b9c12b1190e3f154e64184c89685744a383e0e7fd903383900b4fc9c732fcaa2",
+    "patches/sidecar-firmware/0007-i04-scheduled-playout.patch": "e998f473d360e3beb8eed6f04aa13aea55858245f7be971622cf69f700569a1b",
+    "patches/sidecar-firmware/0008-i04-playout-fault-reason.patch": "f86f9d316705a097c485a5e2c31372a3ef70f5a544d66ba06fe8b842c30969ae",
+    "scripts/i04_prepare_circle.sh": "abf9c25c34fbbbb803426e00f4a2e717a4424c251b061c59c1ceb80b3e5ee213",
+    "scripts/i04_prepare_trial.py": "09441dfd88926f3f59cc9ae87317296bc97744b8bf1e310e85dd4c3676e8d83e",
+    "scripts/test_i03_integration.sh": "7c9c3217e57656f764a526b87ab422489d97de78fbd83b1df70922c9c25e5fd2",
+    "scripts/test_i04.sh": "28b62d2a23c6c5028baf256269f70d0b516e22120b8a9f0743bf328817d5a6f8",
+    "scripts/test_i04_generation.sh": "02e4140742c692c09e0d1c702a39f314dc20fee2c954e15f76d437a4ea703609",
+    "tests/i03_integrated.c": "fee3b74976fa24d81cc4917ba2f8506743bb4973a5188df296ff1faa6330a508",
+    "tests/i04_generation.c": "9d0b91bc8ad0c3405e52bf6169ef96b91bae4844e7706f92fcd0318fca46becb",
+    "tests/i04_playout.c": "b77296d1edf0d0011c651e7886b88c77b08872b7b5b6a106ed1ebbb2abeb7191",
+    "tests/i04_voice.c": "4f4a4917a6e48a627aca857850bebbf615ce7fe666f93812b78383712a3947a4"
+  },
+  "default_audio": "muted; explicit session-bound enable with 200 ms fade",
+  "physical_current": "generation-fix kernel remains on Pi and explicitly muted after late PTCH fault",
+  "limitations": [
+    "Additional 42.667 ms buffer is experimental, not accepted total musical latency",
+    "Physical SRC/locks/LFO/local processing and scheduling/headroom still need qualification",
+    "No guards relaxed; slower or congested worker can still fail closed"
+  ]
+}

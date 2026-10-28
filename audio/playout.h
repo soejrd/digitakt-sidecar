@@ -2,8 +2,10 @@
 #ifndef SC_PLAYOUT_H
 #define SC_PLAYOUT_H
 #include "trx_voice.h"
-#define SC_PLAYOUT_QUEUE 64u
-#define SC_PLAYOUT_DELAY 1024u /* experimental 21.333 ms; hardware calibration pending */
+#define SC_PLAYOUT_QUEUE 256u
+#ifndef SC_PLAYOUT_DELAY
+#define SC_PLAYOUT_DELAY 2048u /* 42.667 ms: covers modelled 50-block worker batches; hardware qualification pending */
+#endif
 #define SC_PLAYOUT_HORIZON 48000u
 /* All calls on core 3. Device timestamps are 32-frame 48 kHz blocks.
  * Enqueue owns complete snapshots before ACK; render applies only when due.

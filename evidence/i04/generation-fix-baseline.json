@@ -1,0 +1,24 @@
+{
+  "task": "I04",
+  "scope": "corrected physical boot baseline, muted before manual taps",
+  "build": "Oct 28 2026 07:48:02",
+  "uptime_seconds": 34,
+  "streaming": true,
+  "link": "usb",
+  "fifo_underruns": 15,
+  "playout": {
+    "armed": 0,
+    "queue": 2,
+    "peak": 2,
+    "faults": 0,
+    "applied": 728,
+    "starts": 1,
+    "consumed": 1,
+    "frame": 1491720
+  },
+  "human_context": "Cable replaced about five seconds after boot; possible double boot. No intentional triggers yet.",
+  "limits": [
+    "Current runtime baseline only; cable replacement is not formal reconnect qualification",
+    "Startup underruns present; zero-underrun boot not claimed"
+  ]
+}

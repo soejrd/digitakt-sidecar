@@ -1,0 +1,64 @@
+{
+  "task": "I04",
+  "scope": "physical SRC edit failure, separate from corrected hit-generation bug",
+  "human_report": "Three drum hits audible after fix; touching/changing PTCH then stopped audio",
+  "fault": {
+    "code": 3,
+    "sender_block": 325614,
+    "flags": 0,
+    "block_delta": 3,
+    "render_now": 1728,
+    "render_due": 1120
+  },
+  "lateness_frames": 608,
+  "lateness_ms": 12.666666666666666,
+  "total_playout_faults": 33,
+  "mitigation": "trx=off accepted; physical Pi left muted",
+  "host_red_command": "I04_TEST_FLAGS=-DSC_PLAYOUT_DELAY=1024u bash scripts/test_i04_generation.sh",
+  "host_red_result": "startup cadence 1 -> normal 50-block batching: code 3, block 1101, flags 0, now 36672, due 36160; session/gate assertion failed (exit 134)",
+  "host_fix": {
+    "delay_frames": 2048,
+    "delay_ms": 42.666666666666664,
+    "queue_capacity": 256,
+    "rationale": "50-block worker batching is about 33.3 ms; old 21.333 ms was insufficient. Slow initial recovery can add queued snapshots; observed host peak 164 exceeds 64/128 capacity."
+  },
+  "host_green": {
+    "startup_cadence_50": {
+      "dense_applied_snapshots": 1008,
+      "queue_peak": 164
+    },
+    "startup_cadence_1": {
+      "dense_applied_snapshots": 1007,
+      "queue_peak": 66
+    },
+    "generation_session_preserved": true
+  },
+  "monitor": {
+    "scope": "bounded physical transport observation overlapping failed control qualification; not a stable audio proof",
+    "seconds": 60.060725292016286,
+    "usb_delta": {
+      "stream_ms": 62000,
+      "in_blocks": 425139,
+      "gaps": 0,
+      "lost": 0,
+      "odd_gaps": 0,
+      "short": 0,
+      "bad_headers": 0,
+      "in_errors": 0,
+      "out_blocks": 425143,
+      "out_errors": 0,
+      "credit_drops": 0,
+      "in_submit_fail": 0,
+      "out_submit_fail": 0
+    },
+    "fifo_initial": 2079,
+    "fifo_final": 2292,
+    "network_errors": [],
+    "pass": false
+  },
+  "limits": [
+    "42.667 ms is additional experimental playout buffer, not measured total latency or accepted musical timing",
+    "Corrected batching candidate not deployed or physically checked yet",
+    "FIFO underruns rose during resets; independent scheduling/USB/CPU cause not proven"
+  ]
+}

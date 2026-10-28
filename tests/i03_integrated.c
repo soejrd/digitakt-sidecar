@@ -45,7 +45,13 @@ static int install(void *ctx,const struct sc_frame *f)
 {
     assert(ctx==&host);
 #ifdef I04_ENGINE_PEER
-    if (!sc_playout_enqueue(&playout,f)) return 0;
+    if (!sc_playout_enqueue(&playout,f)) {
+        printf("I04 host reject code %u block %u flags %u now %llu due %llu generation %u\n",
+               playout.failure.code,f->block,f->flags,
+               (unsigned long long)playout.failure.clock,
+               (unsigned long long)playout.failure.due,f->voice);
+        return 0;
+    }
 #endif
     installed=*f; ++frames; if(f->flags&SC_START) ++starts; return 1;
 }
