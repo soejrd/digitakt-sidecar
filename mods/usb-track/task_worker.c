@@ -14,17 +14,41 @@ volatile uint32_t usb_track_worker_runs,usb_track_worker_guard_faults;
 volatile uint32_t usb_track_diag_worker_entries,usb_track_diag_worker_gap_max;
 volatile uint32_t usb_track_diag_batch_max,usb_track_diag_ui_gap_max;
 static uint32_t diag_worker_entered,diag_ui_last;
+volatile uint32_t usb_track_diag_worker_window;
+static uint32_t diag_batch_window;
+static uint8_t diag_worker_valid,diag_ui_valid;
+volatile uint32_t usb_track_diag_window,usb_track_diag_started_at;
+void usb_track_diag_reset(void)
+{
+    /* UI owns UI counters. The higher-priority worker owns its counters and
+     * acknowledges the new window at its next entry; no shared bulk clear. */
+    usb_track_diag_started_at=usb_track_clock;
+    usb_track_diag_ui_ticks=usb_track_diag_ui_gap_max=0;
+    diag_ui_last=usb_track_clock;
+    diag_ui_valid=1;
+    __asm__ volatile ("" ::: "memory");
+    ++usb_track_diag_window;
+}
 static void diag_stamp_entry(void)
 {
     uint32_t now=usb_track_clock;
+    if (usb_track_diag_worker_window!=usb_track_diag_window) {
+        usb_track_diag_worker_window=usb_track_diag_window;
+        usb_track_diag_worker_entries=usb_track_diag_worker_gap_max=0;
+        usb_track_diag_batch_max=0;
+        diag_worker_valid=0;
+    }
+    diag_batch_window=usb_track_diag_worker_window;
     ++usb_track_diag_worker_entries;
-    if (diag_worker_entered && now-diag_worker_entered>usb_track_diag_worker_gap_max)
+    if (diag_worker_valid && now-diag_worker_entered>usb_track_diag_worker_gap_max)
         usb_track_diag_worker_gap_max=now-diag_worker_entered;
     diag_worker_entered=now;
+    diag_worker_valid=1;
 }
 static void diag_stamp_exit(void)
 {
     uint32_t elapsed=usb_track_clock-diag_worker_entered;
+    if (diag_batch_window!=usb_track_diag_window) return;
     if (elapsed>usb_track_diag_batch_max) usb_track_diag_batch_max=elapsed;
 }
 #endif
@@ -61,12 +85,13 @@ void usb_track_ui_tick(void *ctrl)
     (void)ctrl;
 #ifdef USB_TRACK_DIAGNOSTIC
     ++usb_track_diag_ui_ticks;
-    if (diag_ui_last) {
+    if (diag_ui_valid) {
         uint32_t gap=usb_track_clock-diag_ui_last;
         uint32_t ms=usb_track_diag_ms(gap);
         if (ms>usb_track_diag_ui_gap_max) usb_track_diag_ui_gap_max=ms;
     }
     diag_ui_last=usb_track_clock;
+    diag_ui_valid=1;
 #endif
     if (!started) {
         for (unsigned i=0;i<8;++i) worker_stack.low[i]=worker_stack.high[i]=GUARD;

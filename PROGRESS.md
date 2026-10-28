@@ -10,27 +10,33 @@ Task status/claims: [TASKBOARD.md](TASKBOARD.md). Pins: sources.json. Read AGENT
 
 **Known failure explicitly deferred to V01:** increasing LFO speed/amount (e.g. PTCH) can stop TRX audio and make Digitakt sluggish. Captured code3 late parameter event **260frames/5.417ms late**; host disarmed. Retained fault 1, FIFO later 29 versus clean 3; interval includes later listening/high modulation, no precise boundary. No OS crash dump; sender CPU/transport/host scheduling cause unisolated. [Failure/reproduction lead](evidence/i04/v01-dense-lfo-handoff.json).
 
-## V01 — current owner and next step
+## V01 — Gate A candidates ready; hardware later
 
-Codex renewed ownership `2026-10-28T18:41:42Z`. V01 remains IN PROGRESS.
-[Revised three-gate plan](docs/V01-persistence-stress.md): scheduling diagnosis,
-native persistence/edit semantics, then recovery and one combined soak.
-Phase 0 passed; Phase 1 reproduced 64/64 lag; Phase 2 is incomplete.
+Codex ownership renewed `2026-10-28T22:49:17Z`. V01 remains IN PROGRESS.
+[Plan](docs/V01-persistence-stress.md), [trial runbook](docs/V01-gate-a-runbook.md),
+[paired candidate evidence](evidence/v01/gate-a-candidates.json).
 
-**Diagnostic correction:** V01D/N/P converted 1500-Hz render blocks as 32-Hz
-ticks, inflating displayed milliseconds by 46.875×. UGAP 8469 is approximately
-181 ms, not 8.469 s. Human-reported seconds-long lag remains valid; multi-second
-UI starvation is not established by these counters. [Correction/test evidence](evidence/v01/diagnostic-clock-correction.json).
-Actual C UI/worker producer/formatter regression failed before the fix and passes
-afterward; dense event-worker/START/ACK/overflow checks pass. No new firmware
-build or hardware test yet. Old candidate source manifests are stale after the
-correction; rebuild rather than reusing V01N artifacts.
+**Offline preparation passes.** V01B = priority-14/self-wake baseline; V01C =
+same priority/no-self-wake. Both have corrected timing, machine-selection trial
+reset, SECS stopwatch comparison, and sticky guard faults. Both build/boot and
+pass panel, compiled reset/formatter, native sleep/wake/guards, and dense
+compiled exchange/ACK/reconnect checks. Full I04 host regression and ten-patch
+replay pass. Packages: `private/v01/firmware-V01B/` and `firmware-V01C/`, each
+with I04R/I04Q/H02F/stock rollback. Neither is installed or hardware-qualified.
+No Pi code/kernel change. The human said hardware is unavailable; resume later.
 
-V01P priority 5 remains rejected: responsive UI but growing Pi late faults and
-FIFO underruns, even muted. No-self-wake remains physically untested. Next:
-prepare corrected interval-scoped diagnostics and verified baseline/recovery,
-then compare baseline vs no-self-wake at 32/32 and 64/64. Existing model tests
-cannot reproduce the exact hardware UI failure; do not treat them as proof.
+**Next physical action:** lower monitors, use backed-up disposable state and
+keep Pi muted; install V01B by human Transfer, fresh Pi reboot, new USB1 window,
+check SECS against a stopwatch, then 32/32 control and 64/64 reproduction.
+Stop on lag/new faults/underruns; review baseline before V01C. The guided
+`scripts/v01_trial.sh` records private observations without sending device
+commands. No scheduling fix or audible/budget acceptance is claimed.
+
+Earlier V01D/N/P times were inflated by 46.875×; UGAP 8469 is ~181 ms, not
+8.469 s. Human-observed multi-second lag remains valid. Do not reuse old
+candidate artifacts or their ms interpretations. Static native wait clears all
+pending posts, so one-wait-per-old-credit accumulation is ruled out; repeated
+self-post readiness remains a hypothesis. V01P priority 5 stays rejected.
 
 ## Hardware / recovery
 

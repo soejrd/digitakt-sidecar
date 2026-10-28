@@ -1,0 +1,22 @@
+{
+  "task": "I04",
+  "scope": "compiled native RTOS emulator; no hardware/USB latency proof",
+  "candidate_sha256": "e13d3622b8e138d68035a0a2c3e462127228dcfc8de5f8420cb03880ecd1ac32",
+  "status": "verified",
+  "checks": {
+    "task_sem_stack_16byte_aligned": true,
+    "stack_pointer_4byte_aligned": true,
+    "idle_runs_in300ms": 10,
+    "signal_wakes_in5ms": 2,
+    "blocked_on_own_semaphore": true,
+    "artificial_wait_satisfactions": 0,
+    "stack_guards_intact": true,
+    "idle_path_observed_stack_used_bytes": 336,
+    "modelled_intc2_reschedules": 41
+  },
+  "limits": [
+    "Existing emulator models INTC0 but not INTC2 reschedules by default; probe explicitly adds INTC2 source13 using its generic interrupt model",
+    "Stack watermark covers idle/signalling paths only; compiled exchange exercises transport separately",
+    "Instruction/USB/DMA model does not qualify hardware worst-case latency or CPU headroom"
+  ]
+}

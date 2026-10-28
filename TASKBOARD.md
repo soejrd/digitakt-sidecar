@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Status | Dependencies / first action | Acceptance |
 | --- | --- | --- | --- | --- |
-| V01 | Persistence and stress | IN PROGRESS — Codex 2026-10-28T18:41:42Z (plan reviewed; diagnostic units corrected) | Phase 1 lag reproduced; Phase 2 unresolved. [Clock correction](evidence/v01/diagnostic-clock-correction.json): prior displayed ms inflated 46.875×; multi-second UI starvation not established. V01P rejected; V01N physically untested and needs rebuild. Next: interval-scoped diagnostic baseline and controlled comparison. [Plan](docs/V01-persistence-stress.md). Last installed V01P; human restore I04R before normal use. | Numeric supported workload with responsive UI and no audio/deadline failure; native persistence/edit semantics; reconnect and combined soak; explicit listening acceptance. |
+| V01 | Persistence and stress | IN PROGRESS — Codex 2026-10-28T22:49:17Z (Gate A candidates verified; hardware unavailable) | [V01B/V01C pair](evidence/v01/gate-a-candidates.json) builds/boots; panel/reset/native task/dense exchange, full host regression and patch replay pass. Corrected interval diagnostics; no hardware result. Human requested resume later. Next: muted V01B 32/32 then 64/64, review before V01C; [runbook](docs/V01-gate-a-runbook.md). Last recorded installed V01P; I04R rollback retained. | Numeric supported workload with responsive UI and no audio/deadline failure; native persistence/edit semantics; reconnect and combined soak; explicit listening acceptance. |
 
 ## Waiting
 

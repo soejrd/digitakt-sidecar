@@ -28,5 +28,8 @@ extern volatile uint32_t usb_track_diag_ui_ticks, usb_track_diag_render_wakes;
 extern volatile uint32_t usb_track_diag_worker_entries, usb_track_diag_worker_gap_max;
 extern volatile uint32_t usb_track_diag_batch_max, usb_track_diag_ui_gap_max;
 extern volatile uint32_t usb_track_worker_guard_faults;
+extern volatile uint32_t usb_track_diag_window, usb_track_diag_started_at;
+extern volatile uint32_t usb_track_diag_worker_window;
+void usb_track_diag_reset(void); /* UI task only; never clears safety faults. */
 #endif
 #endif

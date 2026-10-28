@@ -1,0 +1,201 @@
+{
+  "task": "V01",
+  "date_utc": "2026-10-28T22:55:05.124073+00:00",
+  "status": "paired diagnostics verified and staged; human hardware unavailable; not installed",
+  "scope": "offline diagnostic preparation only; no hardware contact or scheduling-fix acceptance",
+  "candidates": [
+    {
+      "label": "V01B",
+      "candidate_root": "private/v01-window-baseline-2",
+      "package": "private/v01/firmware-V01B",
+      "sha256": "e13d3622b8e138d68035a0a2c3e462127228dcfc8de5f8420cb03880ecd1ac32",
+      "compiler_defines": [
+        "USB_TRACK_DIAGNOSTIC"
+      ],
+      "worker_priority": 14,
+      "protected_section_verification": {
+        "sha256": "e13d3622b8e138d68035a0a2c3e462127228dcfc8de5f8420cb03880ecd1ac32",
+        "bytes": 1482912,
+        "messages": 11587,
+        "content_checksum": "0xff38a91f",
+        "container_len": 1170032,
+        "flash_end": "0x19da70",
+        "flash_headroom": 1975696,
+        "ele3_version": "V01B",
+        "main": {
+          "section": 3,
+          "stored": 1018544,
+          "image": 2507696,
+          "sha256": "91b86cb8ddaa877e95874dbce3c610cce7e00d1005e01fd97eb2d238a0332ef9",
+          "staged_to": "0x402f8ab0",
+          "inplace_min_gap": 606968
+        },
+        "sections": {
+          "5": {
+            "stored": 15,
+            "stored_sha256": "faaa4adfd799a90a8a2d551f7009cc04dc39a57f876f453d85e57ad55dc9947e",
+            "stock": true
+          },
+          "2": {
+            "stored": 15128,
+            "stored_sha256": "1e4a0473f963ce3f563c6533adecb8bb57b2f8c6a13861ff8327dabdeacbd48b",
+            "stock": true
+          },
+          "3": {
+            "stored": 1018544,
+            "stored_sha256": "5dfb921c9a98dbb8e53f3860cecd8c40c6d55bac5b1f869ec187b5d931321416",
+            "stock": false
+          },
+          "4": {
+            "stored": 32776,
+            "stored_sha256": "a874ca9b9165ffecca865b037450a158a73da0ad603d60c6c5e7262ebd9e0db8",
+            "stock": true
+          },
+          "8": {
+            "stored": 103416,
+            "stored_sha256": "764f169834ac9ebcdbc1fd883e9f941be1eb43c2d57e4ff02e04685550838b06",
+            "stock": true
+          }
+        }
+      },
+      "evidence": {
+        "diagnostic": "evidence/v01/gate-a-baseline-diagnostic.json",
+        "ui": "evidence/v01/gate-a-baseline-ui.json",
+        "runtime": "evidence/v01/gate-a-baseline-runtime.json",
+        "exchange": "evidence/v01/gate-a-baseline-exchange.json"
+      },
+      "recovery_sha256": {
+        "Digitakt-I04R-previous.syx": "6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b",
+        "Digitakt-I04Q-previous.syx": "75f5b66ae5db95676eb767ece3239ec81a9281a42966fbca7689b22a8b14bb8b",
+        "Digitakt-H02F-previous.syx": "5acb609a4b409153d2eed7b528becf4ca553d7cce548031f00d4910c4e0ebd33",
+        "Digitakt-OS1.54-stock-recovery.syx": "f78ba80fa7b1da5fb0e1ff61ad61e9e71aafe79f4364fc49679f3651353e3cf6"
+      }
+    },
+    {
+      "label": "V01C",
+      "candidate_root": "private/v01-window-noself",
+      "package": "private/v01/firmware-V01C",
+      "sha256": "518291de992575a99dd0e998a6b266fc0ccceb220d0e57797bf33a941fd72b05",
+      "compiler_defines": [
+        "USB_TRACK_DIAGNOSTIC",
+        "V01_NO_SELF_WAKE"
+      ],
+      "worker_priority": 14,
+      "protected_section_verification": {
+        "sha256": "518291de992575a99dd0e998a6b266fc0ccceb220d0e57797bf33a941fd72b05",
+        "bytes": 1482912,
+        "messages": 11587,
+        "content_checksum": "0x105e73c8",
+        "container_len": 1170016,
+        "flash_end": "0x19da60",
+        "flash_headroom": 1975712,
+        "ele3_version": "V01C",
+        "main": {
+          "section": 3,
+          "stored": 1018516,
+          "image": 2507620,
+          "sha256": "b8e75e1cced7a43e48f064afbbeb973b76178e20d0f855cc6091b820fa194d5e",
+          "staged_to": "0x402f8a94",
+          "inplace_min_gap": 607017
+        },
+        "sections": {
+          "5": {
+            "stored": 15,
+            "stored_sha256": "faaa4adfd799a90a8a2d551f7009cc04dc39a57f876f453d85e57ad55dc9947e",
+            "stock": true
+          },
+          "2": {
+            "stored": 15128,
+            "stored_sha256": "1e4a0473f963ce3f563c6533adecb8bb57b2f8c6a13861ff8327dabdeacbd48b",
+            "stock": true
+          },
+          "3": {
+            "stored": 1018516,
+            "stored_sha256": "7fa2e7755be72dc2d95ce8d4aadd78df2c793ccb57b417c9629337b04a968fc9",
+            "stock": false
+          },
+          "4": {
+            "stored": 32776,
+            "stored_sha256": "a874ca9b9165ffecca865b037450a158a73da0ad603d60c6c5e7262ebd9e0db8",
+            "stock": true
+          },
+          "8": {
+            "stored": 103416,
+            "stored_sha256": "764f169834ac9ebcdbc1fd883e9f941be1eb43c2d57e4ff02e04685550838b06",
+            "stock": true
+          }
+        }
+      },
+      "evidence": {
+        "diagnostic": "evidence/v01/gate-a-noself-diagnostic.json",
+        "ui": "evidence/v01/gate-a-noself-ui.json",
+        "runtime": "evidence/v01/gate-a-noself-runtime.json",
+        "exchange": "evidence/v01/gate-a-noself-exchange.json"
+      },
+      "recovery_sha256": {
+        "Digitakt-I04R-previous.syx": "6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b",
+        "Digitakt-I04Q-previous.syx": "75f5b66ae5db95676eb767ece3239ec81a9281a42966fbca7689b22a8b14bb8b",
+        "Digitakt-H02F-previous.syx": "5acb609a4b409153d2eed7b528becf4ca553d7cce548031f00d4910c4e0ebd33",
+        "Digitakt-OS1.54-stock-recovery.syx": "f78ba80fa7b1da5fb0e1ff61ad61e9e71aafe79f4364fc49679f3651353e3cf6"
+      }
+    }
+  ],
+  "diagnostic_contract": {
+    "trial_start": "native machine change to USB1 on track 1; select a stock machine, wait a UI tick, then USB1",
+    "clock": "1500 render blocks/s, rounded milliseconds; SECS since selection saturates at 9999",
+    "ui_worker_maxima": "UI-owned reset; worker-owned reset on next entry with epoch check; stale worker fields hidden until acknowledgment",
+    "faults": "lifetime guard faults never cleared by trial reset",
+    "independent_check": "compare SECS with external 10-second stopwatch interval; stop if mismatch"
+  },
+  "checks": [
+    {
+      "command": "bash scripts/test_v01_diag.sh",
+      "result": "PASS: units, wrap, overflow-safe saturation, UI/worker producers, native descriptor callback seam, new-window reset, stale-batch exclusion, sticky safety faults",
+      "red_before": "Existing code had no on_switch callback; assert(usb_page.base.on_switch) failed with exit 134 before implementation"
+    },
+    {
+      "command": "bash scripts/test_i04.sh",
+      "result": "PASS: full sanitizer host suite including actual Circle glue, deadlines, DSP, velocity, final controls, generations, fractional-change equivalence and dense 128-frame worker/START/ACK/overflow checks",
+      "generated_outputs": "New benchmark/filter results retained private; historical tracked evidence restored unchanged"
+    },
+    {
+      "command": "python3 scripts/test_i04_replay.py",
+      "result": "PASS: ten patches replay at pinned base; production overlay matches"
+    },
+    {
+      "command": "bash -n scripts/v01_trial.sh; python3 -m py_compile tools/v01_diag_probe.py; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "static_native_fact": {
+    "main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
+    "wait_entry": "0x400016fe",
+    "positive_count_path": "0x4000170c clears all pending posts; not one decrement per wait",
+    "post_entry": "0x40001770",
+    "conclusion": "one-wait-per-old-credit accumulation excluded; repeated producer/self posts can still keep worker ready",
+    "method": "local disassembly of pinned OS 1.54 MAIN; no physical scheduler timing claim"
+  },
+  "kernel": {
+    "path": "private/i04/event-worker-final/kernel8-rpi4.img",
+    "expected_sha256": "c057f063c24770a520b842e66d4d7e10655bdda3d45de05e1b67edc85d34a0f2",
+    "change": "none; retain the 128-frame Pi build",
+    "actual_sha256": "c057f063c24770a520b842e66d4d7e10655bdda3d45de05e1b67edc85d34a0f2"
+  },
+  "runbook": "docs/V01-gate-a-runbook.md",
+  "guided_capture": "scripts/v01_trial.sh",
+  "reproduction": {
+    "build": "PYTHONPATH=\"$PWD/private/r03-runtime:$PWD/deps/digiemu\" deps/digiemu/.venv/bin/python tools/i02_probe.py candidate --root NEW_PRIVATE_ROOT --stock private/i02-fixture/Digitakt_OS1.54.syx --fixture private/i02-fixture --diagnostic --label V01B (add --no-self-wake and --label V01C for the paired variant)",
+    "emulator": "Use that same PYTHONPATH/interpreter with tools/v01_diag_probe.py, tools/i03_probe.py, tools/i04_worker_runtime_probe.py and tools/i03_integrated_probe.py; exact candidate roots and evidence paths below",
+    "emulator_sandbox": "Initial sandboxed build exited 132 at emulator ladder (JIT executable-memory restriction); rerun outside sandbox passed. No hardware access was involved."
+  },
+  "limitations": [
+    "Current emulator models USB completion and PCM and does not reproduce the exact physical UI failure",
+    "SECS and gap metrics depend on continued rendering; external wall-time check and UI observation required",
+    "Trial reset requires machine change and may apply native defaults; configure held settings after selection",
+    "The entire setting/save/play interval is measured, not just steady playback",
+    "Muted short physical trials still required before any audible or supported-budget claim",
+    "Hardware unavailable per human; no physical test executed"
+  ],
+  "next_action": "Human installs V01B from staged package; fresh Pi boot and muted 32/32 control followed by 64/64 if clean; review result before V01C",
+  "same_source_hashes_for_both_variants": true
+}

@@ -1,0 +1,53 @@
+{
+  "task": "V01",
+  "phase": "2 device-side service timing",
+  "status": "candidate verified in emulator; not installed",
+  "scope": "compiled diagnostic formatter/task model only; no physical USB or CPU timing claim",
+  "candidate_sha256": "e13d3622b8e138d68035a0a2c3e462127228dcfc8de5f8420cb03880ecd1ac32",
+  "candidate_root": "private/v01-window-baseline-2",
+  "diagnostic_page": {
+    "title": "V01 DIAG",
+    "labels": [
+      "SECS",
+      "UI",
+      "WORK",
+      "WGAP",
+      "BATCH",
+      "UGAP",
+      "FAULT"
+    ],
+    "seeded_formatter_values": {
+      "SECS": 8,
+      "UI": 234,
+      "WORK": 345,
+      "WGAP": 299,
+      "BATCH": 85,
+      "UGAP": 7000,
+      "FAULT": 0
+    },
+    "units": {
+      "SECS": "seconds since USB1 selection",
+      "UI": "ticks",
+      "WORK": "entries",
+      "WGAP": "ms",
+      "BATCH": "ms",
+      "UGAP": "ms",
+      "FAULT": "count"
+    },
+    "saturation": "elapsed seconds and ms fields saturate at 9999; count fields show modulo 10000",
+    "clock": "1500 render blocks/s at 48 kHz; nearest-ms conversion"
+  },
+  "trial_reset": {
+    "native_machine_selection_started_window": true,
+    "compiled_callback_clears_ui_maxima": true,
+    "old_worker_samples_hidden_until_new_entry": true
+  },
+  "emulator_tasks": [],
+  "worker_priority": 14,
+  "highest_stock_task_priority": null,
+  "task_hierarchy_limit": "The resumed test session exposes no task-create list; the boot log from the candidate build records priorities 0,1,2,5,6,7,8,9,10 and the worker at 14. This is emulator evidence, not a hardware scheduler proof.",
+  "limits": [
+    "Formatters invoke compiled functions with seeded values; no counter behavior, hardware scheduling or USB timing is claimed",
+    "The four-digit diagnostic text saturates at 9999; a longer stall must be recorded with Pi logs or a larger trace"
+  ]
+}

@@ -50,6 +50,10 @@ def run(candidate, output):
             finally:
                 s.m.uc.context_restore(context)
 
+        assert u32(addr("usb_track_diag_window")) > 0, "native selection did not start a trial"
+        window = u32(addr("usb_track_diag_window"))
+        put(addr("usb_track_diag_worker_window"), window)
+        put(addr("usb_track_diag_started_at"), 0)
         put(addr("usb_track_clock"), 12345)
         put(addr("usb_track_diag_ui_ticks"), 234)
         put(addr("usb_track_diag_worker_entries"), 345)
@@ -58,14 +62,26 @@ def run(candidate, output):
         put(addr("usb_track_diag_ui_gap_max"), 7000)
         put(addr("usb_track_worker_guard_faults"), 0)
         values = {}
-        for k, label in enumerate(("RCLK", "UI", "WORK", "WGAP", "BATCH", "UGAP", "FAULT")):
+        for k, label in enumerate(("SECS", "UI", "WORK", "WGAP", "BATCH", "UGAP", "FAULT")):
             knob = ui + 336 + 40 * k
             assert bytes(s.m.uc.mem_read(u32(knob), len(label) + 1)) == label.encode() + b"\0"
             s.m.uc.mem_write(0x30000000, bytes(32))
             invoke(u32(knob + 32), [0x30000000, 0, 0, 121])
             values[label] = int(bytes(s.m.uc.mem_read(0x30000000, 32)).split(b"\0")[0])
-        assert values == {"RCLK": 2345, "UI": 234, "WORK": 345, "WGAP": 299,
+        assert values == {"SECS": 8, "UI": 234, "WORK": 345, "WGAP": 299,
                           "BATCH": 85, "UGAP": 7000, "FAULT": 0}
+        # Exercise the compiled on_switch callback through its actual descriptor.
+        callback = u32(ui + 12)
+        assert callback
+        invoke(callback, [0, 0, 0])
+        assert u32(addr("usb_track_diag_window")) == window + 1
+        assert u32(addr("usb_track_diag_ui_gap_max")) == 0
+        assert u32(addr("usb_track_diag_ui_ticks")) == 0
+        assert u32(addr("usb_track_diag_started_at")) == 12345
+        # Old worker samples cannot appear in a fresh, unacknowledged window.
+        for k in (0, 2, 3, 4, 5):
+            invoke(u32(ui + 336 + 40 * k + 32), [0x30000000, 0, 0, 121])
+            assert bytes(s.m.uc.mem_read(0x30000000, 2)) == b"0\0"
         record = {
             "task": "V01",
             "phase": "2 device-side service timing",
@@ -77,17 +93,20 @@ def run(candidate, output):
                 "title": "V01 DIAG",
                 "labels": list(values),
                 "seeded_formatter_values": values,
-                "units": {"RCLK": "blocks", "UI": "ticks", "WORK": "entries",
+                "units": {"SECS": "seconds since USB1 selection", "UI": "ticks", "WORK": "entries",
                           "WGAP": "ms", "BATCH": "ms", "UGAP": "ms", "FAULT": "count"},
-                "saturation": "time fields saturate at 9999 ms; count fields show modulo 10000",
+                "saturation": "elapsed seconds and ms fields saturate at 9999; count fields show modulo 10000",
                 "clock": "1500 render blocks/s at 48 kHz; nearest-ms conversion",
             },
+            "trial_reset": {"native_machine_selection_started_window": True,
+                            "compiled_callback_clears_ui_maxima": True,
+                            "old_worker_samples_hidden_until_new_entry": True},
             "emulator_tasks": tasks,
             "worker_priority": 14,
             "highest_stock_task_priority": None,
             "task_hierarchy_limit": "The resumed test session exposes no task-create list; the boot log from the candidate build records priorities 0,1,2,5,6,7,8,9,10 and the worker at 14. This is emulator evidence, not a hardware scheduler proof.",
             "limits": [
-                "Formatters invoke compiled functions with seeded values; no counter behavior, hardware scheduling or USB timing is claimed",
+                "Formatters and reset callbacks run with seeded values; no hardware scheduling, CPU or USB timing is claimed",
                 "The four-digit diagnostic text saturates at 9999; a longer stall must be recorded with Pi logs or a larger trace",
             ],
         }

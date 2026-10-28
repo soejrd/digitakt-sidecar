@@ -62,26 +62,28 @@ separate. Do not overwrite old evidence to make a new candidate look tested.
 
 ## Gate A — resolve dense-modulation failure
 
-**Immediate offline work:** correct and regression-test the diagnostic clock
-conversion. This has now passed the actual C UI/worker producer and formatter
-paths, including wrap and saturation. The corrected compiled firmware has not
-been built/installed. Old V01N artifacts contain the old conversion and their
-source manifests no longer match the corrected source; rebuild rather than
-silently reusing them. Do not call this instrumentation fix a scheduling fix.
+**Offline preparation complete:** corrected, interval-scoped diagnostic
+candidates V01B (priority-14/self-wake baseline) and V01C (same priority, no
+self-wake) build/boot and pass panel, reset, unit-conversion, native-task and
+compiled-exchange checks. The full host regression and ten-patch replay pass.
+Verified recovery packages are staged; neither candidate is installed.
+[Candidate evidence](../evidence/v01/gate-a-candidates.json),
+[physical runbook](V01-gate-a-runbook.md).
 
-Before another physical candidate, prepare a corrected priority-14/self-wake
-baseline and recovery package with protected-section, boot/UI, native-task,
-compiled-exchange and current host regression checks. Record exact hashes.
-Add trial-scoped/resettable maxima and an independent wall-time observation or
-clock; check a known interval before interpreting numbers. Do not print a trace
-while measuring: `trxtrace` dumps previously caused FIFO growth.
+Selecting another machine then USB1 starts a new diagnostic window. UI/worker
+maxima exclude the previous window; guard faults stay sticky. SECS allows a
+stopwatch comparison before interpreting render-clock durations. Old V01N
+artifacts retain the wrong units; use the rebuilt V01C. Do not call this
+instrumentation change a scheduling fix. Do not print a trace while measuring:
+`trxtrace` dumps previously caused FIFO growth.
 
 Ranked hypotheses for the next controlled investigation (not findings):
 
-1. **High-priority readiness/worker contention.** If repeated self-posts or
-   accumulated semaphore credits starve stock work, removing self-posts at the
-   same priority should improve UI service while preserving delivery slack.
-   Check native semaphore behavior before assuming V01N guarantees a sleep.
+1. **High-priority readiness/worker contention.** If repeated self-posts starve
+   stock work, removing them at the same priority should improve UI service
+   while preserving delivery slack. Static native inspection shows the wait
+   clears all pending posts, ruling out one-wait-per-old-credit accumulation.
+   Continuous producer signals may still prevent a sleep in either variant.
 2. **Native serializer/USB critical-section pressure.** If interrupt-masked
    sends or USB backpressure dominate, capture-to-submit/completion age should
    grow with dense effective changes even when self-posts are removed.
@@ -195,8 +197,9 @@ verified live in this session. Before normal use, the human should restore
 I04Q, H02F and stock 1.54 recoveries are in that package. Freshly reboot the Pi
 before establishing counter baselines.
 
-Next implementation step is a corrected, interval-scoped diagnostic baseline
-and verified candidate/recovery package, then the controlled Gate A comparison.
+Next step is the controlled V01B/V01C Gate A hardware comparison in the runbook.
+The human confirmed hardware is unavailable for now; resume when available.
+Offline preparation is complete; no physical trial or scheduling fix is claimed.
 Before hardware audio tests, confirm human availability, lowered speakers,
 known routing and disposable backed-up state, per `AGENTS.md`. The human handles
 firmware flashing; no bootloader or wiring changes. Offline work needs no such

@@ -230,11 +230,22 @@ static uint32_t diag_ms(uint32_t blocks)
 #define DIAG_FORMAT(name, expression) \
 static int32_t name(char *b, int32_t v, int32_t c, int32_t m) \
 { (void)v; (void)c; (void)m; return diag_text(b, (expression)); }
-DIAG_FORMAT(diag_clock, usb_track_clock)
+static uint32_t diag_seconds(void)
+{
+    uint32_t seconds=(usb_track_clock-usb_track_diag_started_at)/1500u;
+    return seconds>9999u ? 9999u : seconds;
+}
+static void diag_switch(int32_t track, int32_t from, uint8_t *sound)
+{
+    (void)from; (void)sound;
+    if (track==0) usb_track_diag_reset();
+}
+DIAG_FORMAT(diag_clock, diag_seconds())
 DIAG_FORMAT(diag_ui, usb_track_diag_ui_ticks)
-DIAG_FORMAT(diag_worker, usb_track_diag_worker_entries)
-DIAG_FORMAT(diag_wgap, diag_ms(usb_track_diag_worker_gap_max))
-DIAG_FORMAT(diag_batch, diag_ms(usb_track_diag_batch_max))
+#define DIAG_CURRENT(value) (usb_track_diag_worker_window==usb_track_diag_window ? (value) : 0u)
+DIAG_FORMAT(diag_worker, DIAG_CURRENT(usb_track_diag_worker_entries))
+DIAG_FORMAT(diag_wgap, DIAG_CURRENT(diag_ms(usb_track_diag_worker_gap_max)))
+DIAG_FORMAT(diag_batch, DIAG_CURRENT(diag_ms(usb_track_diag_batch_max)))
 DIAG_FORMAT(diag_ugap, usb_track_diag_ui_gap_max)
 DIAG_FORMAT(diag_fault, usb_track_worker_guard_faults)
 #define DIAG_KNOB(label, formatter) {.name = label, .lname = label, .look = 0x86, \
@@ -244,6 +255,9 @@ DIAG_FORMAT(diag_fault, usb_track_worker_guard_faults)
                       .max = 127 << 8, .def = 64 << 8}
 static const struct cm_ui32 usb_page = {
     .base = {.abi = cm_ui_v32, .page_from = 3, .group = "TRX-B2",
+#ifdef USB_TRACK_DIAGNOSTIC
+    .on_switch = diag_switch,
+#endif
     .knob = {
         [0] = {.name = "PTCH", .lname = "PTCH",
                .look = 0x86, .fmt = control_text,
@@ -279,7 +293,7 @@ static const struct cm_ui32 usb_page = {
                .min = 0, .max = 127 << 8, .def = 58 << 8},
     }},
 #ifdef USB_TRACK_DIAGNOSTIC
-    .extra = {DIAG_KNOB("RCLK", diag_clock), DIAG_KNOB("UI", diag_ui),
+    .extra = {DIAG_KNOB("SECS", diag_clock), DIAG_KNOB("UI", diag_ui),
               DIAG_KNOB("WORK", diag_worker), DIAG_KNOB("WGAP", diag_wgap),
               DIAG_KNOB("BATCH", diag_batch), DIAG_KNOB("UGAP", diag_ugap),
               DIAG_KNOB("FAULT", diag_fault)},

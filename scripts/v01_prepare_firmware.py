@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify and stage the private V01D diagnostic firmware and its recovery chain."""
+"""Verify and stage private V01 diagnostic firmware and its recovery chain."""
 import argparse
 import hashlib
 import json
@@ -44,7 +44,7 @@ assert ui["ui_emulator"]["candidate_sha256"] == sha(raw)
 assert runtime["candidate_sha256"] == sha(raw) and runtime["status"] == "verified"
 assert exchange["candidate"]["syx_sha256"] == sha(raw) and exchange["status"] == "verified"
 assert diagnostic["candidate_sha256"] == sha(raw) and diagnostic["diagnostic_page"]["labels"] == [
-    "RCLK", "UI", "WORK", "WGAP", "BATCH", "UGAP", "FAULT"]
+    "SECS", "UI", "WORK", "WGAP", "BATCH", "UGAP", "FAULT"]
 
 recovery_files = {
     "Digitakt-I04R-previous.syx": root / "private/i04/firmware-I04R/Digitakt-I04R-event-worker.syx",
