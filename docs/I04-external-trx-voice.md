@@ -6,18 +6,21 @@ Owner: Codex. I04 is not DONE; V01 still depends on it.
 
 ## Hardware state and recovery
 
-- Digitakt mk1 OS1.54 **I04Q**, human-installed, USB1 on audio track1. Firmware
-  SHA256 `75f5b66ae5db95676eb767ece3239ec81a9281a42966fbca7689b22a8b14bb8b`.
-- Pi4B combined final-SRC/velocity kernel **Oct28 2026 12:38:17** is physically
-  booted. Kernel SHA256 `0c544fb5ddecb8aef61c0be6638ae608d296df688b639b18bd03daedbe1070ed`.
-  Trace off; **explicitly muted after timing tests**. Recorder idle and original
+- Digitakt mk1 OS1.54 **I04R**, now human-installed; USB1 on audio track1.
+  Firmware SHA256 `6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b`.
+  All completed physical functional/timing results below are from previous I04Q.
+- Pi4B128-frame kernel written/read-back, safely ejected; **paired boot pending**.
+  Kernel SHA256 `c057f063c24770a520b842e66d4d7e10655bdda3d45de05e1b67edc85d34a0f2`.
+  Prior physical build **Oct28 2026 12:38:17** supplied all completed measurements.
+  Recorder idle and original
   channel/bit-depth/prefix settings restored. Right output→left input loopback
   remains connected; human disabled external-input monitoring. Disposable test
   pattern has USB1 right/native track2 left; no original project was overwritten.
 - SD update/read-back/manifests/backups and unchanged other files/settings pass.
-  Card rollback: with Pi off restore `kernel8-rpi4.before-final-controls.img`
-  as `kernel8-rpi4.img`, and `SHA256SUMS.before-final-controls` as `SHA256SUMS`.
-  Local backup: `private/i04/sd-backup-final-controls/`. Prior I04 trace kernel
+  Current card rollback: with Pi off restore `kernel8-rpi4.before-event-worker.img`
+  as `kernel8-rpi4.img`, and `SHA256SUMS.before-event-worker` as `SHA256SUMS`.
+  Local backup: `private/i04/sd-backup-event-worker/`. Previous layer remains
+  under `private/i04/sd-backup-final-controls/`. Prior I04 trace kernel
   and verified H02 fallback also retained privately.
 - Firmware/stock recovery remain in `private/i04/firmware-I04Q/`. Only MAIN
   section3 changes; stock2/4/5/8 remain byte-identical. Human approval/backups
@@ -132,7 +135,7 @@ python3 scripts/test_i04_replay.py
   --capture private/i04/live/seq-end.json --output evidence/i04/physical-sequence-timing.json
 ```
 
-## Checked I04R timing candidate — not installed
+## Checked I04R timing pair — installed, boot pending
 
 I04R (`usb-track`0.5) moves USB/control service into one native RTOS task,
 priority14, with an aligned8KB stack and guards. Render publishes immutable
@@ -170,7 +173,7 @@ using replayable patch0010. Compiled first-anchor addition128 is verified in the
 ELF; portable header default2048 remains for historical/legacy host regressions.
 ASan/UBSan suite, ColdFire render no allocator/wait imports and ten-patch replay
 pass. Current working I04Q kernel, previous I04Q firmware, H02F and stock1.54
-recovery are retained. **Neither new firmware nor new SD kernel is installed.**
+recovery are retained. **Human reports I04R installed; paired SD written/ejected, boot pending.**
 
 [Candidate/configuration/checks](../evidence/i04/event-worker-candidate.json),
 [task runtime](../evidence/i04/event-worker-runtime.json),
@@ -188,8 +191,8 @@ python3 scripts/i04_prepare_trial.py --evidence evidence/i04/event-worker-candid
 
 ## Remaining release conditions
 
-Human installs the checked I04R/128-frame pair under the existing backup/recovery
-gate. Start muted and inspect faults, then retest native controls and local
+Human boot of the installed I04R/128-frame pair is pending under the existing
+backup/recovery gate. Start muted and inspect faults, then retest native controls and local
 processing; repeat the same native-click/analog timing capture. Establish
 acceptable measured latency/jitter and envelope alignment, and collect existing
 Pi render/pass/CPU statistics. **2.667ms is a buffer configuration, not a measured

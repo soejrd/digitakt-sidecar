@@ -1,0 +1,9 @@
+{
+  "task": "I04",
+  "date_utc": "2026-10-28T14:12:04.857726+00:00",
+  "human_reply": "SD card is in the macos, l04R is installed",
+  "firmware": "I04R",
+  "candidate_sha256": "6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b",
+  "scope": "Human reports firmware installed through Transfer; paired Pi boot pending",
+  "agent_flashed_firmware": false
+}

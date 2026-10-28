@@ -1,0 +1,24 @@
+{
+  "task": "I04",
+  "date_utc": "2026-10-28T14:11:45.850195+00:00",
+  "scope": "I04R paired128-frame event-worker kernel update/read-back; physical retest pending",
+  "old_kernel_sha256": "0c544fb5ddecb8aef61c0be6638ae608d296df688b639b18bd03daedbe1070ed",
+  "new_kernel_sha256": "c057f063c24770a520b842e66d4d7e10655bdda3d45de05e1b67edc85d34a0f2",
+  "new_kernel_bytes": 2474600,
+  "backup_kernel": "kernel8-rpi4.before-event-worker.img",
+  "backup_manifest": "SHA256SUMS.before-event-worker",
+  "assertions": {
+    "human_confirmed_pi_off_speakers_lowered": true,
+    "existing_manifest_verified": true,
+    "local_and_card_backup_verified": true,
+    "candidate_readback_verified": true,
+    "updated_manifest_verified": true,
+    "other_files_unchanged": true
+  },
+  "boot_verified": false,
+  "safely_ejected": true,
+  "rollback": "With Pi off restore kernel8-rpi4.before-event-worker.img as kernel8-rpi4.img and SHA256SUMS.before-event-worker as SHA256SUMS.",
+  "digitakt_firmware": "I04R installed by human",
+  "playout_delay_frames": 128,
+  "playout_delay_ms": 2.6666666666666665
+}
