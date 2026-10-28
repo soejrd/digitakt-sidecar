@@ -1,0 +1,12 @@
+{
+  "task": "I04",
+  "date_utc": "2026-10-28T09:07:14.357389+00:00",
+  "candidate_label": "I04Q",
+  "candidate_sha256": "75f5b66ae5db95676eb767ece3239ec81a9281a42966fbca7689b22a8b14bb8b",
+  "human_reply": "yes",
+  "approved_context": "Projects/sounds backed up and approval to install concrete I04Q candidate under existing human firmware/recovery procedure",
+  "candidate_and_recovery_reverified": true,
+  "pi_mute_command_accepted": true,
+  "firmware_transfer": "pending human installation; no flash performed by agent",
+  "pi_sd_change_required": false
+}

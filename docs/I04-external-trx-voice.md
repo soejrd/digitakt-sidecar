@@ -171,3 +171,14 @@ channel or analog loopback. Reduce/revise timing only against measured evidence.
 No physical I04Q result exists yet. Fast/deep integer modulation remains a
 capacity limit to test. I04 is incomplete, V01 depends on it, and there is no
 independent READY task.
+
+### Human approval recorded
+
+Human confirmed the backup/installation gate for concrete I04Q; see
+[approval](../evidence/i04/firmware-trial-approval.json). Candidate sources,
+container/stock sections and both previous/stock recovery files reverified.
+Pi explicit mute accepted. Firmware installation is still pending the human:
+connect Digitakt USB to computer, use the normal Transfer OS-update workflow
+with the staged I04Q file, wait for completion/reboot, verify I04Q then reconnect
+to Pi. Leave trigs/SRC untouched for a fresh muted baseline/trace. No agent
+flash or Pi SD change is claimed.
