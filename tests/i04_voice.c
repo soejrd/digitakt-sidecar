@@ -25,7 +25,7 @@ int main(void) {
         sc_trx_render(&b,ragged+pos,n); pos+=n;
     }
     assert(!memcmp(whole,ragged,sizeof whole));
-    assert(a.native_frames==b.native_frames && a.native_frames==44131);
+    assert(a.native_frames==b.native_frames && a.native_frames==44100);
     for(unsigned i=0;i<48000;++i) {
         assert(whole[i][0]>=-4095 && whole[i][0]<=4095);
         nonzero+=whole[i][0]!=0;
@@ -34,10 +34,10 @@ int main(void) {
     assert(nonzero>1000);
     f.flags=0; assert(sc_trx_install(&a,&f)); assert(a.starts==1);
     f.flags=SC_START; assert(sc_trx_install(&a,&f)); assert(a.starts==2);
-    assert(sc_trx_install(&a,&f)); assert(a.starts==3);
+    assert(!sc_trx_install(&a,&f)); assert(a.starts==2);
     sc_trx_render(&a,whole,48000);
     nonzero=0; for(unsigned i=0;i<48000;++i) nonzero+=whole[i][0]!=0;
-    assert(nonzero>1000);
+    assert(nonzero>1000 && a.consumed_starts==2);
     sc_trx_clear(&a); sc_trx_init(&b);
     assert(sc_trx_install(&a,&f) && sc_trx_install(&b,&f));
     sc_trx_render(&a,whole,48000); sc_trx_render(&b,ragged,48000);

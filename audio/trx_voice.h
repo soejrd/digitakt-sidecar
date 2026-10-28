@@ -3,7 +3,7 @@
 #define DTSC_TRX_VOICE_H
 #include "link.h"
 #include "mdkit_trx_b2.h"
-#include "r05_resampler.h"
+#include "src_44148.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,8 +12,8 @@ extern "C" {
  * An explicit START retriggers; parameter-only snapshots retain the tail. */
 typedef struct sc_trx_voice {
     mdkit_trx_b2 engine;
-    r05_resampler converter;
-    uint64_t frames, native_frames, starts;
+    sc_src converter;
+    uint64_t frames, native_frames, starts, consumed_starts;
 } sc_trx_voice;
 void sc_trx_init(sc_trx_voice *v);
 void sc_trx_clear(sc_trx_voice *v);

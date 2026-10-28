@@ -1,0 +1,15 @@
+{
+  "scope": "host converter only, no USB or hardware",
+  "taps": 128,
+  "cutoff_hz": 20000,
+  "reference_1khz_rms": 0.070710648,
+  "passband_18khz_db": 0.000496,
+  "stopband_22khz_db": -81.082437,
+  "worst_passband_deviation_db": 0.000496,
+  "worst_22khz_to_nyquist_db": -80.147363,
+  "worst_first_image_db": -115.191097,
+  "input_impulse_frame": 64,
+  "output_impulse_peak_frame": 139,
+  "group_delay_native_frames": 63.5,
+  "result": "PASS"
+}

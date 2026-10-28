@@ -53,10 +53,21 @@ cross-builds with the existing `rytm-circle` toolchain image; no SD was written.
 
 ## 0006-i04-trx-voice.patch
 
-I04 host prototype: gated real TRX-B2, native-rate converter, loss reset and
-third-party NOTICE. Apply **0001–0006** in order at the pinned base, then
-`bash scripts/i04_prepare_circle.sh` (supersedes the I03-only overlay).
+I04 initial host prototype: gated real TRX-B2, native-rate converter, loss reset
+and third-party NOTICE. This is followed by **0007**; apply all seven patches
+then `bash scripts/i04_prepare_circle.sh` (supersedes the I03-only overlay).
 Run `bash scripts/test_i04.sh` and `python3 scripts/test_i04_replay.py`.
 The overlay verifies mdkit's pin and refuses changes to copied tracked sources.
 See [I04](../../docs/I04-external-trx-voice.md) for timing, filter-quality and
 hardware acceptance limits. No firmware assets or SD image are deliverables.
+
+## 0007-i04-scheduled-playout.patch
+
+I04 follow-up: timestamped bounded playout, 128-tap native-rate conversion,
+explicit session-bound `:trx=on/off` with fade/default silence, `:trxstatus`,
+and inclusion of synthesis in the Pi maximum-block timer. Apply after **0001–0006**
+then run `bash scripts/i04_prepare_circle.sh`. This supersedes 0006's immediate
+trigger/R05-converter behavior. `python3 scripts/test_i04_replay.py` checks all
+seven patches; the I04 suite checks scheduled deadlines and separately consumed
+native STARTs. The 1,024-frame buffer is experimental; adjacent-block STARTs
+fail closed. Hardware timing remains unqualified; see the current I04 report.

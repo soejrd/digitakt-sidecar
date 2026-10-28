@@ -2,7 +2,7 @@
   "task": "I04",
   "date_utc": "2026-10-28",
   "scope": "host executable production-source tests and Pi cross-build; no hardware access",
-  "status": "BLOCKED at physical acceptance; host prototype passes",
+  "status": "BLOCKED on hardware; scheduled silent-by-default candidate checked",
   "dependency_pins": {
     "sidecar-firmware": "6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457",
     "mdkit": "96157fe4fbda17bf4cae3168f52437d8232e6570"
@@ -13,20 +13,22 @@
       "result": "PASS",
       "instrumentation": "ASan/UBSan",
       "coverage": [
-        "real TRX-B2 PCM block invariance",
-        "48000 output frames consume 44131 native frames including priming",
-        "note/velocity-independent host PCM",
-        "START call counts and tail/reset",
-        "mono channel and +/-4095 ceiling",
-        "actual production native bridge/Circle link/Output gate",
-        "synthesis silence after loss and timeout",
-        "congested ACK/reconnect"
+        "real TRX-B2 whole/ragged PCM equality and note/velocity independence",
+        "48000 output frames consume exactly 44100 native frames",
+        "pending-trigger rejection and native START consumption, bounds and reset",
+        "sample-exact scheduled deadlines and wrapped sender timestamps",
+        "burst versus delayed arrival yields identical PCM",
+        "64 queued snapshots with 32 separately consumed STARTs",
+        "late/order/session/horizon/overflow/too-close START faults latch silence",
+        "production Circle arm/default mute/fade, loss, reconnect and congestion",
+        "production scheduler rejection closes session and disarms",
+        "128-tap filter finite-grid passband, stopband, image, DC and impulse tests"
       ]
     },
     {
       "command": "python3 scripts/test_i04_replay.py",
       "result": "PASS",
-      "scope": "six patches apply to pinned archive; production I04 files and NOTICE equal dependency"
+      "scope": "seven patches apply at pinned archive; production I04 files and NOTICE equal dependency"
     },
     {
       "command": "bash scripts/test_i03.sh",
@@ -37,28 +39,50 @@
       "result": "PASS"
     },
     {
-      "command": "bash deps/sidecar-firmware/pi/engine/build.sh",
+      "command": "bash deps/sidecar-firmware/pi/engine/build.sh kernel",
       "result": "PASS",
       "target": "Pi 4 AArch64 Circle",
-      "kernel_bytes": 2472056,
-      "kernel_sha256": "91d074a02a784214c65d45e1321d1660b8f56e7d11ab26f6b9b18cec5ae6ecf6",
+      "kernel_bytes": 2474248,
+      "kernel_sha256": "a91a5f7504fce2466dfa1e157dca94c979bc05b6dfa27d135ed764175d071c3a",
       "deployment": "none"
+    },
+    {
+      "command": "python3 scripts/i04_prepare_trial.py",
+      "result": "PASS",
+      "scope": "private candidate and physically booted H02 rollback staged/read-back verified; existing firmware and stock recovery present; no deployment",
+      "rollback_sha256": "a46476a30ee94c0c32dfe05983626869c198e6522fa0a065e338b0b227228a82"
     }
   ],
   "source_sha256": {
-    "audio/trx_voice.c": "bad4ba719eb6f37b49c9e001c09bc0725664a9eb6f7b12a17cd29977fc94b647",
-    "audio/trx_voice.h": "e8afe4b8aab06d4c508307821f21b2542dc8cbf711a4b83b9bfa3de2a0af04d5",
-    "tools/r05_resampler.c": "bf3abbd07d11cb0c816491f6273285c66fb31e8bada5fe02648def9a4fb729d4",
-    "tools/r05_resampler.h": "316b0d4b6b4c98afa4d69073fcd300c6a40fc3d195fa3244189850b3dc60b0d5",
+    "audio/playout.c": "e217b48bac06d39f5c690033bdf6b3de88b61fd74e5015ff83a5252ffefad1bf",
+    "audio/playout.h": "cac8a20f5924fb0c25a78e0f08b2ade042fe2ec02716385c257fabbebfb07043",
+    "audio/src_44148.c": "17e34f1a05ab474336837fe85b1c75d6a56859de9780b2bb0f0bb15d592070b7",
+    "audio/src_44148.h": "23ae3ecde4ab9b059209b2266301e5df18eb700a7cace29e4cabf2e5899b5f97",
+    "audio/trx_voice.c": "aeaaf99ac1685d09a3867288ae0abddba72ac366c0882e8cf3692a9004725cbc",
+    "audio/trx_voice.h": "6e32ed345d6a418e58821fe013bf91410066518176392bcd12c3d6cc6b8a6c99",
+    "patches/sidecar-firmware/0001-directional-overbridge-layout.patch": "87fecfb46737ddf85bed736cf245caf0976c4d3b671478e26297ef5ff352be39",
+    "patches/sidecar-firmware/0002-static-capture-marker.patch": "455b1c1d08189f2ec5e21e8173176508da46569fe6cd1758a0f5aa9286c97e5e",
+    "patches/sidecar-firmware/0003-dtsc-control-link.patch": "fb6e8de487359ee515f4e6b849674c1982203e3801e557f239fac35cdb6db85c",
+    "patches/sidecar-firmware/0004-h02-gated-test-tone.patch": "42f3c9df1a41d0ec42d9005324924b780c48f4e87583c747a40b688d145f936c",
+    "patches/sidecar-firmware/0005-monotonic-control-clock.patch": "fb478754766b1975f14b57a43d1aaf709e07360bfe186e7f791089bf14236afc",
     "patches/sidecar-firmware/0006-i04-trx-voice.patch": "b9c12b1190e3f154e64184c89685744a383e0e7fd903383900b4fc9c732fcaa2",
-    "scripts/i04_prepare_circle.sh": "3c45d699b0151afa5c9ec5e52b75abbf067c648b892daa1df3a26b8438bacdc3",
-    "tests/i04_voice.c": "c432e09b6c36f55b29fa418c563a2d082329bf583fb1e74d71651f1212a7d390",
-    "tests/i03_circle_glue.cpp": "a6c0e0a9e86c45c3ce85ee73c6deba21aa7c2294e941680b4d0a8388a5d2139a"
+    "patches/sidecar-firmware/0007-i04-scheduled-playout.patch": "e998f473d360e3beb8eed6f04aa13aea55858245f7be971622cf69f700569a1b",
+    "scripts/i04_prepare_circle.sh": "b8d1d9e9ad40498cc40858de492e7fc5b58867c283eeedf99b148ee1e1c0d66f",
+    "scripts/i04_prepare_trial.py": "a1d706b1e349892f33ae5d427a5e194e1cf0c8f3df42f11af6b92472d060d681",
+    "scripts/test_i03_integration.sh": "7c9c3217e57656f764a526b87ab422489d97de78fbd83b1df70922c9c25e5fd2",
+    "scripts/test_i04.sh": "d1ee9bd674fce31f0a5110346ef36bb1184f4bf8e4627002f5758ee949643631",
+    "scripts/test_i04_replay.py": "9e4a0a8bcf99ac7609aee32f25ad6914935b7834f46ea368323a0261e419312a",
+    "tests/i03_circle_glue.cpp": "cd2298abf04ed600ceb3553cb95bab972d78666fd1fbbdce4f2d31755c5a56e2",
+    "tests/i04_filter.c": "40ae9b27cd3d266e263ae4c0baf0b69105d029f733e9d6c0ea404a0f681021a6",
+    "tests/i04_playout.c": "a6142f041b572d8e6bcce901a35d4aa4ca55ea03379a64835ef880c1addadb90",
+    "tests/i04_voice.c": "9d4b845c9cfe7eae05576576c6cfbc8f6dc49d58c5efdc2809d263ec20a2701f",
+    "tools/i04_bench.c": "db4bbada725f39538cd98f2c326e9bc830f5b0c75f9dc5841ac36d80afd2b025"
   },
   "policy": {
     "note": "ignored; SRC PTCH authoritative",
     "velocity": "unity host gain; physical local AMP behavior unverified",
-    "prototype_gain": 0.125
+    "prototype_gain": 0.125,
+    "enable": "explicit session-bound trx=on, 200 ms fade, disarmed on loss/reconnect"
   },
   "unmeasured": [
     "physical TRX-B2 SRC/locks/LFO/local processing",
@@ -68,9 +92,24 @@
     "distinct audible dense retriggers"
   ],
   "limitations": [
-    "arrival-time event application; device timestamps not scheduled; pending engine STARTs can coalesce before render",
-    "R05 32-tap converter unchanged; prior host 22 kHz rejection -26.3 dB",
+    "1,024-frame buffer is experimental; total physical latency, clock drift and local-lock alignment unqualified",
+    "native engine trigger quantization remains up to about 0.73 ms plus converter delay",
+    "minimum 64 output frames between source STARTs; adjacent-block STARTs fail closed",
+    "finite-grid filter tests are not full analog/int16 or listening qualification",
     "prototype ceiling can clip converter overshoot"
   ],
-  "release_condition": "qualify timestamped bounded playout and filter; human hardware session with recoverable candidate and silence-first lowered-speaker protocol, then physical acceptance and measured timing/headroom"
+  "release_condition": "Human-supervised hardware session: deploy/read-back private candidate with verified rollback, start silent/lowered speakers; measure buffer/latency/local-lock alignment and Pi headroom, verify physical controls and processing",
+  "playout": {
+    "queue_capacity": 64,
+    "delay_output_frames": 1024,
+    "delay_ms": 21.333333333333332,
+    "calibrated": false,
+    "minimum_supported_start_spacing_output_frames": 64,
+    "failure_policy": "late/overflow/order/session/horizon/too-close START -> silence and fresh session",
+    "ack_semantics": "validated immutable snapshot owned by queue before ACTIVATE; synthesis applies at due sample"
+  },
+  "related_measurements": {
+    "filter": "evidence/i04/filter.json",
+    "optimized_host_dense_run": "evidence/i04/playout-benchmark.json"
+  }
 }

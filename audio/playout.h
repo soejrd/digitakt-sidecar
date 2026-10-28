@@ -1,0 +1,27 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+#ifndef SC_PLAYOUT_H
+#define SC_PLAYOUT_H
+#include "trx_voice.h"
+#define SC_PLAYOUT_QUEUE 64u
+#define SC_PLAYOUT_DELAY 1024u /* experimental 21.333 ms; hardware calibration pending */
+#define SC_PLAYOUT_HORIZON 48000u
+/* All calls on core 3. Device timestamps are 32-frame 48 kHz blocks.
+ * Enqueue owns complete snapshots before ACK; render applies only when due.
+ * Deadline, overflow and order faults latch silence until a new session. */
+typedef struct sc_playout {
+    sc_trx_voice voice;
+    struct { struct sc_frame frame; uint64_t due; } events[SC_PLAYOUT_QUEUE];
+    uint64_t clock, last_due, last_start_due, applied;
+    uint32_t session, last_block, last_sequence, read, write, peak;
+    unsigned fault, anchored, playing, had_start;
+} sc_playout;
+#ifdef __cplusplus
+extern "C" {
+#endif
+void sc_playout_init(sc_playout *p);
+int sc_playout_enqueue(sc_playout *p, const struct sc_frame *f);
+int sc_playout_render(sc_playout *p, int16_t (*out)[8], unsigned frames);
+#ifdef __cplusplus
+}
+#endif
+#endif

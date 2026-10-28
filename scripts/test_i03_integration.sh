@@ -3,6 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p build/i03
+rm -f build/i03/glue_*.o
 CFLAGS=(-std=c99 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined
         -Itests -Icontrol -Imods/usb-track -Ideps/elekloader/elekloader/sdk/include)
 TRANSPORT=(control/usbmidi.c control/sysex_split.c control/dt1_transport.c)
@@ -20,7 +21,7 @@ build/i03/output_gate
 for unit in link host_link circle_link_adapter; do
   "${CC:-cc}" "${CFLAGS[@]}" -c "control/$unit.c" -o "build/i03/glue_$unit.o"
 done
-for unit in audio/trx_voice.c tools/r05_resampler.c deps/mdkit/src/trx/b2/mdkit_trx_b2.c; do
+for unit in audio/trx_voice.c audio/src_44148.c audio/playout.c deps/mdkit/src/trx/b2/mdkit_trx_b2.c; do
   "${CC:-cc}" "${CFLAGS[@]}" -Iaudio -Itools -Ideps/mdkit/include -Ideps/mdkit/src/trx/b2 -c "$unit" -o "build/i03/glue_$(basename "$unit").o"
 done
 "${CXX:-c++}" -std=c++17 -O1 -Wall -Wextra -Werror -fsanitize=address,undefined \

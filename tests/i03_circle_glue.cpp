@@ -39,12 +39,20 @@ int main() {
     for (auto &row:pcm) for(auto x:row) assert(x==0);
   };
   assert(!dt_link::TestToneCommand(true)); silent();
+#ifdef I04_RENDER_TEST
+  assert(!dt_link::VoiceCommand(true));
+#endif
   assert(!dt_link::Selected()); dt_link::Select(); dt_link::Poll(1);
   assert(!(g_Output.ControlToken()&1));
   hello(41,10); assert(!dt_link::State(&f)); start(41,11); dt_link::Poll(2);
   assert(dt_link::State(&f) && f.params[0]==60<<8 && (g_Output.ControlToken()&1));
 #ifdef I04_RENDER_TEST
   silent(); // diagnostic tone still needs explicit enable
+  for(unsigned block=0; block<100; ++block) {
+    dt_link::RenderVoice(pcm,32);
+    for(auto &row:pcm) for(auto x:row) assert(x==0);
+  }
+  assert(dt_link::VoiceCommand(true));
   dt_link::RenderVoice(pcm,32);
   unsigned synth_nonzero=0;
   for(unsigned block=0; block<100; ++block) {
@@ -85,6 +93,10 @@ int main() {
   assert(!dt_link::State(&f));
   hello(42,20); start(42,21); dt_link::Poll(4); assert(dt_link::State(&f));
   silent(); // reconnect needs a new explicit tone enable
+#ifdef I04_RENDER_TEST
+  dt_link::RenderVoice(pcm,32);
+  for(auto &row:pcm) for(auto x:row) assert(x==0);
+#endif
   assert(dt_link::TestToneCommand(true));
   // Production Circle renders 12-frame blocks; leases use 32-frame units.
   // Advance the protocol clock independently of resettable engine statistics.
@@ -103,5 +115,21 @@ int main() {
   uint8_t b[SC_CONTROL_WIRE_SIZE]; sc_control c={43,1,30,SC_HELLO};
   assert(sc_encode_control(b,&c)); assert(dt_link::SysEx(b,sizeof b)); dt_link::Poll(755);
   assert(!(g_Output.ControlToken()&1) && !dt_link::State(&f));
+#ifdef I04_RENDER_TEST
+  while(g_MidiOut.size()) pop();
+  hello(44,30); start(44,31); dt_link::Poll(756);
+  sc_frame dense={}; dense.session=44; dense.sequence=2; dense.block=32;
+  dense.voice=1; dense.flags=SC_START;
+  uint8_t wire[SC_WIRE_SIZE]; assert(sc_encode(wire,&dense));
+  assert(dt_link::SysEx(wire,sizeof wire));
+  assert(reply().kind==SC_DEACTIVATE); dt_link::Poll(757);
+  assert(!dt_link::State(&f) && !(g_Output.ControlToken()&1));
+  unsigned stats[8]; dt_link::VoiceStatus(stats);
+  assert(stats[0]==0 && stats[1]==0 && stats[3]==1);
+  assert(!dt_link::VoiceCommand(true));
+  hello(45,40); start(45,41); dt_link::Poll(758);
+  dt_link::RenderVoice(pcm,32);
+  for(auto &row:pcm) for(auto x:row) assert(x==0);
+#endif
   puts("actual Circle dt_link: handshake, state installation, loss, reconnect, lease, ACK congestion, explicit faded bounded H02 tone: PASS");
 }

@@ -1,0 +1,151 @@
+--- a/pi/engine/dt_link.cpp
++++ b/pi/engine/dt_link.cpp
+@@ -3,12 +3,13 @@
+ #include "dt_control/circle_link_adapter.h"
+ #include "dt_control/h02_test_tone.h"
+ #include "shared.h"
+-#include "dt_control/trx_voice.h"
++#include "dt_control/playout.h"
+ #include <circle/util.h>
+ namespace dt_link {
+ static sc_circle_link link;
+ static H02TestTone test_tone;
+-static sc_trx_voice voice;
++static sc_playout playout;
++static uint32_t armed_session, faded, playout_faults;
+ static sc_frame snapshot;
+ static uint32_t selected, losses, seen_loss;
+ static bool initialized, installed;
+@@ -32,18 +33,19 @@
+   return 1; // complete record is owned by core 0's existing USB sender
+ }
+ static int Install(void *, const sc_frame *f) {
+-  if (!sc_trx_install(&voice, f)) return 0;
++  if (!sc_playout_enqueue(&playout, f)) { ++playout_faults; return 0; }
+   snapshot = *f; installed = true; return 1;
+ }
+ static void Clear(void *) {
+   test_tone.Disable();
+-  sc_trx_clear(&voice);
++  sc_playout_init(&playout);
++  armed_session = faded = 0;
+   installed = false; memset(&snapshot, 0, sizeof snapshot);
+   g_Output.ControlClose();
+ }
+ static void Init() {
+   if (!initialized) {
+-    sc_trx_init(&voice);
++    sc_playout_init(&playout);
+     sc_circle_init(&link, Install, Send, Clear, 0, 750u);
+     initialized = true;
+   }
+@@ -97,6 +99,39 @@
+ void RenderVoice(int16_t (*out)[8], unsigned frames) {
+   sc_frame f;
+   if (!State(&f)) { memset(out, 0, frames * sizeof *out); return; }
+-  sc_trx_render(&voice, out, frames);
++  if (!sc_playout_render(&playout, out, frames)) {
++    ++playout_faults;
++    armed_session = faded = 0;
++    sc_circle_transport_lost(&link, SC_REASON_SEQUENCE);
++    g_Output.ControlClose();
++    return;
++  }
++  for (unsigned i=0; i<frames; ++i) {
++    if (armed_session != f.session) out[i][0]=0;
++    else {
++      const uint32_t gain=faded < 9600u ? faded++ : 9600u;
++      out[i][0]=(int16_t)((int32_t)out[i][0]*(int32_t)gain/9600);
++    }
++  }
+ }
+ }
++
++namespace dt_link {
++bool VoiceCommand(bool on) {
++  sc_frame f;
++  armed_session = faded = 0;
++  if (!on) return true;
++  if (!State(&f)) return false;
++  armed_session = f.session;
++  return true;
++}
++}
++
++namespace dt_link {
++void VoiceStatus(unsigned out[8]) {
++  out[0]=armed_session != 0; out[1]=playout.write-playout.read;
++  out[2]=playout.peak; out[3]=playout_faults;
++  out[4]=(unsigned)playout.applied; out[5]=(unsigned)playout.voice.starts;
++  out[6]=(unsigned)playout.voice.consumed_starts; out[7]=(unsigned)playout.clock;
++}
++}
+--- a/pi/engine/dt_link.h
++++ b/pi/engine/dt_link.h
+@@ -20,3 +20,7 @@
+ }
+ 
+ namespace dt_link { void RenderVoice(int16_t (*out)[8], unsigned frames); }
++
++namespace dt_link { bool VoiceCommand(bool on); } // core 3: explicit session-bound arm
++
++namespace dt_link { void VoiceStatus(unsigned out[8]); } // core 3: bounded diagnostics
+--- a/pi/engine/cores.cpp
++++ b/pi/engine/cores.cpp
+@@ -228,11 +228,11 @@
+ 			for (;;) asm volatile ("wfe");		// core 0 stops the stream and reboots
+ 		}
+ 	}
+-	unsigned nUs = (unsigned) ((Ticks () - t0) * 1000000 / TickRate ());
+-	if (nUs > s_nMaxBlock) s_nMaxBlock = nUs;
+ 	// Integrated return is session-gated TRX-B2 (I04 prototype).
+ 	// Never leak unrelated stock-engine voices onto it.
+ 	if (dt_link::Selected()) dt_link::RenderVoice(s_Block, bridge::kBlock);
++	unsigned nUs = (unsigned) ((Ticks () - t0) * 1000000 / TickRate ());
++	if (nUs > s_nMaxBlock) s_nMaxBlock = nUs;
+ 	dt_link::AdvanceFrames(bridge::kBlock);
+ 	dt_link::Poll();
+ 	g_Output.Push (s_Block, bridge::kBlock);
+@@ -317,7 +317,20 @@
+ void CEngineCores::Command (const char *p)
+ {
+ 	CLogger *L = CLogger::Get ();
+-	if (strcmp(p, "h02tone=on") == 0 || strcmp(p, "h02tone=off") == 0)
++	if (strcmp(p, "trxstatus") == 0)
++	{
++		unsigned st[8]; dt_link::VoiceStatus(st);
++		L->Write(From, LogNotice, "I04 arm %u queue %u peak %u faults %u applied %u starts %u consumed %u frame %u",
++		         st[0],st[1],st[2],st[3],st[4],st[5],st[6],st[7]);
++	}
++	else if (strcmp(p, "trx=on") == 0 || strcmp(p, "trx=off") == 0)
++	{
++		bool on = strcmp(p, "trx=on") == 0;
++		bool accepted = dt_link::VoiceCommand(on);
++		L->Write(From, LogNotice, "I04 TRX %s: %s", on ? "on" : "off",
++		         accepted ? "accepted" : "rejected (USB1 session inactive)");
++	}
++	else if (strcmp(p, "h02tone=on") == 0 || strcmp(p, "h02tone=off") == 0)
+ 	{
+ 		bool on = strcmp(p, "h02tone=on") == 0;
+ 		bool accepted = dt_link::TestToneCommand(on);
+--- a/pi/engine/Makefile
++++ b/pi/engine/Makefile
+@@ -34,7 +34,7 @@
+ # messages, the slot map), hosted: user machines on the Pi (core/user/um.cpp, docs/user-machines-pi.md)
+ RMPSRC := ../../teensy/libraries/RytmPlugins/src
+ RMP_SRC := rmp_loader.cpp rmp_manifest.cpp rmp_meta.cpp rmp_proto.cpp rmp_resolve.cpp rmp_slots.cpp rmp_presets.cpp rmp_pool.cpp
+-PORT_SRC := dt_control/trx_voice.c dt_control/r05_resampler.c dt_control/mdkit_trx_b2.c dt_control/link.c dt_control/host_link.c dt_control/circle_link_adapter.c output.cpp midi_in.cpp bridge.cpp emu_proto.cpp tones.cpp sendfx_pi.cpp fsweb.cpp recorder.cpp rec_play.cpp wifi_conf.cpp power_state.cpp
++PORT_SRC := dt_control/trx_voice.c dt_control/src_44148.c dt_control/playout.c dt_control/mdkit_trx_b2.c dt_control/link.c dt_control/host_link.c dt_control/circle_link_adapter.c output.cpp midi_in.cpp bridge.cpp emu_proto.cpp tones.cpp sendfx_pi.cpp fsweb.cpp recorder.cpp rec_play.cpp wifi_conf.cpp power_state.cpp
+ HOSTED_OBJS := $(patsubst $(CORE)/%,hosted/core/%.o,$(CORE_SRC)) $(patsubst %,hosted/%.o,$(PORT_SRC)) \
+                $(patsubst %,hosted/rmp/%.o,$(RMP_SRC)) \
+                $(patsubst %,hosted/%.o,$(ENG_SRC) $(ENG_C_SRC))
+--- a/NOTICE
++++ b/NOTICE
+@@ -65,5 +65,5 @@
+ Local DTSC I04 prototype overlay (scripts/i04_prepare_circle.sh):
+   dt_control/mdkit*.{c,h}: mdkit TRX-B2 and public headers, CC0-1.0,
+     https://github.com/soejrd/mdkit at 96157fe4fbda17bf4cae3168f52437d8232e6570.
+-  dt_control/r05_resampler.{c,h}: local streaming converter, CC0-1.0.
+-  dt_control/trx_voice.{c,h}: local host wrapper, GPL-2.0-or-later.
++  dt_control/src_44148.{c,h}: local 128-tap streaming converter, CC0-1.0.
++  dt_control/trx_voice.{c,h}, playout.{c,h}: local host wrapper and scheduler, GPL-2.0-or-later.
