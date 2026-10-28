@@ -1,0 +1,56 @@
+{
+  "task": "I04",
+  "date_utc": "2026-10-28T14:25:58.428439+00:00",
+  "status": "DONE by human acceptance within prototype scope; dense modulation remains V01",
+  "firmware": "I04R",
+  "pi_build": "Oct 28 2026 13:38:57",
+  "timing_evidence": "evidence/i04/event-worker-physical-timing.json",
+  "human_timing_reply": "done feels super good now, like exact",
+  "human_final_regression_reply": "audio stays clean all the way, super acceptable, let's wrap thius step up",
+  "accepted_test_scope": [
+    "native SRC controls and parameter locks",
+    "slow/shallow PTCH LFO plus brief PTCH/DEC edits",
+    "local filter and AMP decay/volume including reasonably short decay",
+    "previous note/pitch policy and velocity checks",
+    "prototype musical timing/envelope response"
+  ],
+  "clean_timing_interval": {
+    "baseline_uptime_seconds": 28,
+    "end_counter_uptime_seconds": 157,
+    "fifo_underruns_before": 3,
+    "fifo_underruns_after": 3,
+    "playout_faults": 0,
+    "starts": 20,
+    "consumed_starts": 20,
+    "source_reference_hits_in_take": 19,
+    "queue_peak": 2,
+    "recorder_drops": 0,
+    "recorder_out_short_frames": 21
+  },
+  "pi_observed_performance": {
+    "scope": "13 existing one-second stats rows spanning timed pattern, uptime117..130s; not worst-case guarantee",
+    "stats_rows": 13,
+    "output_block_frames": 12,
+    "output_block_budget_us": 250,
+    "max_observed_block_us": 10,
+    "max_observed_control_pass_us": 18,
+    "max_core3_busy_percent": 3.5,
+    "fifo_min": 78,
+    "fifo_max": 96
+  },
+  "limits": [
+    "11.417ms median is native-click-relative analog audio onset, not calibrated manual-key or sequencer-event latency",
+    "19-hit onset spread0.729ms is a short-run observation, not a worst-case jitter bound",
+    "Final listening regression accepted by human; no separate counter boundary was captured before later aggressive-LFO test",
+    "Fast/deep modulation is not qualified; explicit failure deferred by human to V01"
+  ],
+  "ending_state": {
+    "audio": "explicitly muted",
+    "recorder": "idle, original channels/bit depth/prefix restored",
+    "firmware_and_kernel": "remain installed; no rollback required for accepted prototype scope",
+    "hardware": "Human disconnected Pi and Digitakt for shutdown; no subsequent hardware verification",
+    "last_observed_pi_uptime_seconds": 614,
+    "retained_faults": 1,
+    "fifo_underruns": 29
+  }
+}

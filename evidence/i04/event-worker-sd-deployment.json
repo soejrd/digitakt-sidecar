@@ -15,10 +15,20 @@
     "updated_manifest_verified": true,
     "other_files_unchanged": true
   },
-  "boot_verified": false,
+  "boot_verified": true,
   "safely_ejected": true,
   "rollback": "With Pi off restore kernel8-rpi4.before-event-worker.img as kernel8-rpi4.img and SHA256SUMS.before-event-worker as SHA256SUMS.",
   "digitakt_firmware": "I04R installed by human",
   "playout_delay_frames": 128,
-  "playout_delay_ms": 2.6666666666666665
+  "playout_delay_ms": 2.6666666666666665,
+  "baseline": {
+    "build": "Oct 28 2026 13:38:57",
+    "uptime_seconds": 28,
+    "streaming": true,
+    "armed": false,
+    "fifo_underruns": 3,
+    "playout_faults": 0,
+    "starts": 1,
+    "consumed_starts": 1
+  }
 }

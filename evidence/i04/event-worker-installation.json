@@ -4,6 +4,6 @@
   "human_reply": "SD card is in the macos, l04R is installed",
   "firmware": "I04R",
   "candidate_sha256": "6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b",
-  "scope": "Human reports firmware installed through Transfer; paired Pi boot pending",
+  "scope": "Human-installed firmware and paired Pi boot verified; prototype accepted with dense-LFO limitation",
   "agent_flashed_firmware": false
 }

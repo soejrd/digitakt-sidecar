@@ -4,14 +4,14 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 ## Ready
 
-No independent READY tasks. I04 has a checked host prototype; see its release conditions below.
+| ID | Work | Status | Dependencies / first action | Acceptance |
+| --- | --- | --- | --- | --- |
+| V01 | Persistence and stress | READY — unclaimed | I04 prototype accepted. First reproduce fast/deep PTCH LFO audio stop + sluggish Digitakt; captured late parameter 260 frames past deadline. [Handoff](evidence/i04/v01-dense-lfo-handoff.json) | Document supported dense-modulation budget, responsive UI and no audio/deadline failure; save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and sustained stress regressions. |
 
 ## Waiting
 
 | ID | Work | Status | Release condition / dependencies | Acceptance |
 | --- | --- | --- | --- | --- |
-| I04 | External TRX-B2 voice | IN PROGRESS — Codex; I04Q function passes; I04R event-worker / 128-frame pair installed, boot pending | Human boot installed I04R + matching Pi SD kernel; muted baseline and same physical timing/alignment/CPU retest. Current measured offset ~116ms | Physical native track plays TRX-B2 through SRC/locks/LFO/local processing, verified note/velocity and acceptable timing. [Report](docs/I04-external-trx-voice.md), [latest candidate](evidence/i04/final-controls-candidate.json) |
-| V01 | Persistence and stress | BLOCKED | I04 | Save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and dense modulation regressions. |
 | X01 | More voices | DEFERRED | V01 + transport capacity decision | Establish independent-channel capacity and measured worst-case margin before scaling. |
 | X02 | Teensy port | DEFERRED | V01 + proven architecture | Measure USB, conversion and DSP capacity; state supported voice count. |
 
@@ -19,6 +19,7 @@ No independent READY tasks. I04 has a checked host prototype; see its release co
 
 | ID | Result | Evidence |
 | --- | --- | --- |
+| I04 | DONE by user acceptance of one-voice prototype: SRC/locks/shallow LFO/local processing/note/velocity and musical timing pass. Native-click→analog median 11.417 ms (old 115.833 ms); 19-hit spread 0.729 ms. Fast/deep LFO failure explicitly deferred to V01; not a full stress pass | [Report](docs/I04-external-trx-voice.md), [acceptance](evidence/i04/physical-acceptance.json), [timing](evidence/i04/event-worker-physical-timing.json), [V01 issue](evidence/i04/v01-dense-lfo-handoff.json) |
 | H02 | DONE by user acceptance: physical USB1 tone responds to filter, AMP/decay, overdrive and both sends; neighboring track remains audible. 506.758 s with no new USB gaps/errors or FIFO underruns. User accepted shortened run; timing remains unmeasured | [Report](docs/H02-real-track-pipeline.md), [routing](evidence/h02/physical-routing.json), [stability](evidence/h02/physical-stability.json), [timing limitation](evidence/h02/timing.json) |
 | I03 | Eight native SRC controls, ordered START/final lock/LFO values, native USB-MIDI worker, matching-session activation gate and Circle integration pass host/compiled-emulator checks; congestion and reconnect recover. Pi 4 kernel builds. No hardware claim | [Report](docs/I03-src-control-link.md), [compiled exchange](evidence/i03/integrated-154.json), [dynamic ordering](evidence/i03/dynamic-154.json), [integration/build](evidence/i03/integration.json) |
 | R05 | Real TRX-B2 stays at 44.1 kHz; exact 160/147 streaming conversion passes continuous/ragged boundary invariance, retrigger, pitch endpoints, 60 s drift and host CPU checks. No Pi/hardware claim; 22 kHz rejection is −26.3 dB | [Report](docs/R05-engine-resampling.md), [results](evidence/r05/benchmark.json), `scripts/test_r05.sh` |
@@ -32,4 +33,4 @@ No independent READY tasks. I04 has a checked host prototype; see its release co
 | R07 | OS 1.54 native USB receive/boot path and dry suppression; focused execution passes | [Report](docs/R07-usb-coldfire-handoff.md), [anchors](evidence/r07/handoff-facts.json), [probe results](evidence/r07/receive-154.json) |
 | R03 | Nine emulator assertions pass on OS 1.53 | [Reproduction](docs/R03-REPRODUCTION.md), [results](evidence/r03/insertion-153.json), [probe](tools/r03_probe.py) |
 
-R06's inspector work is consolidated into R02. OS 1.54 candidate boot and track processing now pass emulator checks. Stock live streaming is qualified by H01. H02 physically proves one-track routing under the user-accepted scope. Integrated latency/headroom and reconnect stress remain unqualified.
+R06's inspector work is consolidated into R02. OS 1.54 candidate boot and track processing now pass emulator checks. Stock live streaming is qualified by H01. H02 physically proves one-track routing under the user-accepted scope. I04 now measures relative integrated timing and observed Pi margin within the user-accepted prototype scope; dense modulation and persistence/reconnect stress remain V01.

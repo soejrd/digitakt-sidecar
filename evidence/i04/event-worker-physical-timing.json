@@ -1,0 +1,186 @@
+{
+  "task": "I04",
+  "hardware_test": true,
+  "scope": "120 BPM simultaneous T1 USB1 and T2 native-click relative audio-onset offsets",
+  "sample_rate_hz": 48000,
+  "reference_hits": 19,
+  "stats": {
+    "source_offset_frames": {
+      "min_ms": 6.0,
+      "median_ms": 6.416666666666667,
+      "max_ms": 6.729166666666667,
+      "range_ms": 0.729166666666667
+    },
+    "analog_offset_frames": {
+      "min_ms": 11.020833333333334,
+      "median_ms": 11.416666666666666,
+      "max_ms": 11.75,
+      "range_ms": 0.7291666666666661
+    },
+    "return_path_lag_frames": {
+      "min_ms": 4.979166666666667,
+      "median_ms": 4.979166666666667,
+      "max_ms": 5.0,
+      "range_ms": 0.020833333333333037
+    }
+  },
+  "rows": [
+    {
+      "reference_frame": 1092395,
+      "source_offset_frames": 288,
+      "analog_offset_frames": 529,
+      "return_path_lag_frames": 239,
+      "correlation": 0.9954499430248259
+    },
+    {
+      "reference_frame": 1116395,
+      "source_offset_frames": 323,
+      "analog_offset_frames": 563,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9949269603487124
+    },
+    {
+      "reference_frame": 1140395,
+      "source_offset_frames": 320,
+      "analog_offset_frames": 562,
+      "return_path_lag_frames": 239,
+      "correlation": 0.9953889624823893
+    },
+    {
+      "reference_frame": 1164395,
+      "source_offset_frames": 318,
+      "analog_offset_frames": 559,
+      "return_path_lag_frames": 239,
+      "correlation": 0.9952853808973547
+    },
+    {
+      "reference_frame": 1188395,
+      "source_offset_frames": 317,
+      "analog_offset_frames": 557,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9950527544506335
+    },
+    {
+      "reference_frame": 1212395,
+      "source_offset_frames": 314,
+      "analog_offset_frames": 555,
+      "return_path_lag_frames": 239,
+      "correlation": 0.995559042841085
+    },
+    {
+      "reference_frame": 1236395,
+      "source_offset_frames": 312,
+      "analog_offset_frames": 553,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9949903046170924
+    },
+    {
+      "reference_frame": 1260395,
+      "source_offset_frames": 310,
+      "analog_offset_frames": 551,
+      "return_path_lag_frames": 239,
+      "correlation": 0.9952744402676774
+    },
+    {
+      "reference_frame": 1284395,
+      "source_offset_frames": 308,
+      "analog_offset_frames": 548,
+      "return_path_lag_frames": 239,
+      "correlation": 0.9955397012157646
+    },
+    {
+      "reference_frame": 1308395,
+      "source_offset_frames": 306,
+      "analog_offset_frames": 546,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9949431531945261
+    },
+    {
+      "reference_frame": 1332395,
+      "source_offset_frames": 303,
+      "analog_offset_frames": 544,
+      "return_path_lag_frames": 239,
+      "correlation": 0.9954943708532392
+    },
+    {
+      "reference_frame": 1356395,
+      "source_offset_frames": 301,
+      "analog_offset_frames": 542,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9950308444512781
+    },
+    {
+      "reference_frame": 1380395,
+      "source_offset_frames": 299,
+      "analog_offset_frames": 540,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9952423936479714
+    },
+    {
+      "reference_frame": 1404395,
+      "source_offset_frames": 297,
+      "analog_offset_frames": 537,
+      "return_path_lag_frames": 239,
+      "correlation": 0.9956202257192358
+    },
+    {
+      "reference_frame": 1428395,
+      "source_offset_frames": 295,
+      "analog_offset_frames": 535,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9949334590102655
+    },
+    {
+      "reference_frame": 1452395,
+      "source_offset_frames": 292,
+      "analog_offset_frames": 533,
+      "return_path_lag_frames": 239,
+      "correlation": 0.9953543248889973
+    },
+    {
+      "reference_frame": 1476395,
+      "source_offset_frames": 290,
+      "analog_offset_frames": 531,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9951822755313199
+    },
+    {
+      "reference_frame": 1500395,
+      "source_offset_frames": 323,
+      "analog_offset_frames": 564,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9951200830272996
+    },
+    {
+      "reference_frame": 1524395,
+      "source_offset_frames": 321,
+      "analog_offset_frames": 561,
+      "return_path_lag_frames": 239,
+      "correlation": 0.995632342386721
+    }
+  ],
+  "method": {
+    "native_reference": "first sample exceeding 10% absolute peak, >=250 ms refractory",
+    "remote_onsets": "1 ms trailing RMS first crossing max(10% post-reference peak, 3x pre-reference baseline); 50 ms pre-reference baseline, 250 ms search",
+    "return_match": "200 ms normalized waveform correlation, 0..100 ms search, >=0.9 required"
+  },
+  "recorder": {
+    "frames": 2175208,
+    "drops": 0,
+    "silence": 0,
+    "outShort": 21,
+    "error": ""
+  },
+  "capture_sha256": {
+    "04_SD.wav": "a4d90d87247fa3ed990ffffa7f9bad7ee3f6f05179c9c2b00fb31ca6e2bd6810",
+    "13_VOICE1.wav": "934b3f0823f48dada87b7e1cc37cb225a2c39dfd0fe1b3d398be277ef40025fc",
+    "11_IN_L.wav": "30558a04715a76f8ade8f15acb2d1cd892acc23cb03fc309342cbdf98a98900b"
+  },
+  "limits": [
+    "Native sample onset/leading silence is not calibrated to the sequencer trigger; these are observable relative audio offsets",
+    "RMS threshold and different attack shapes bias onset values; no exact event-to-audio claim",
+    "Analog and native reference are same-clock IN channels; OUT FIFO alignment uncertainty applies to the Pi source reference only (up to112 frames/2.333ms)",
+    "Short 21-hit run does not establish worst-case or long-run jitter",
+    "No manual-key latency or Pi render CPU margin measurement"
+  ]
+}

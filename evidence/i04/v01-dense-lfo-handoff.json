@@ -1,0 +1,32 @@
+{
+  "next_task": "V01",
+  "date_utc": "2026-10-28T14:25:58.430091+00:00",
+  "scope": "known physical dense-LFO failure; explicitly deferred by human after I04 prototype acceptance",
+  "human_report": "Although I did notice when I put the LFO speed/amount up, for example to pitch, it can stop working, like crash the trx-b2 sound. Also the diggitakt will feel sluggish then. But I feel like that's more part of V01 task than this one.",
+  "reproduction_lead": "Start from accepted slow/shallow PTCH LFO, increase speed/amount; exact numeric settings and thresholds not yet captured",
+  "final_observation": {
+    "pi_uptime_seconds": 542,
+    "streaming": true,
+    "armed": false,
+    "retained_playout_fault_count": 1,
+    "fault_code": 3,
+    "fault_name": "SC_PF_LATE",
+    "source_block": 762393,
+    "flags": 0,
+    "source_delta_blocks": 22,
+    "host_now_frame": 21628356,
+    "scheduled_due_frame": 21628096,
+    "late_frames": 260,
+    "late_ms": 5.416666666666667,
+    "fifo_underruns": 29,
+    "previous_clean_fifo_underruns": 3
+  },
+  "interpretation": "Captured host fail-closed late parameter admission and disarm. Digitakt sluggishness is human-observed; native CPU versus transport/scheduling cause remains unisolated. No proof of an OS crash.",
+  "limits": [
+    "FIFO3\u219229 spans later listening plus high-modulation interval; no boundary isolates the cause of all26 underruns",
+    "Post-invalidation START/applied counters are per current session and cannot be treated as whole-run totals",
+    "No frozen raw timing trace was armed for this failure"
+  ],
+  "release_condition_for_V01": "Reproduce with numeric LFO settings and private timing trace, identify bottleneck, keep UI responsive and audio/deadlines stable through a documented dense-modulation budget; then persistence/reconnect stress acceptance",
+  "ending_state": "Pi explicitly muted; recorder settings restored; human advised to lower/stop LFO; human subsequently disconnected Pi/Digitakt for shutdown"
+}
