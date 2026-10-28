@@ -198,3 +198,15 @@ before one stopped trig/PTCH sweep, dump the first frozen failure privately and
 replay its real timing through the scheduler. Choose clock/worker changes from
 that evidence. Do not deploy another buffer-only increase or claim the existing
 42.667 ms is musically accepted. No independent READY task exists.
+
+## Timing-trace SD deployment — 2026-10-28
+
+[Deployment](../evidence/i04/timing-trace-sd-deployment.json): returned SD matched
+the batch-fix kernel; full existing manifest passed. Fresh kernel/full-manifest
+backups stored locally in `private/i04/sd-backup-timing-trace/` and on card with
+`before-timing-trace` names. Timing-trace candidate/new manifest passed read-back;
+all other regular files/settings/earlier backups preserved. Card safely ejected.
+No trace boot or captured timing result yet. Next: human boots with Digitakt
+connected and leaves trigs/SRC untouched until baseline/capture are armed. Audio
+remains muted; trace enable interlocks voice enable. Restore the matching
+before-timing-trace kernel/manifest pair for immediate rollback.

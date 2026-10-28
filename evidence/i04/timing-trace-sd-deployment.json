@@ -1,0 +1,22 @@
+{
+  "task": "I04",
+  "date_utc": "2026-10-28T08:22:56.367449+00:00",
+  "scope": "Timing-trace kernel update/read-back; diagnostic instrumentation only; physical trace capture pending",
+  "old_kernel_sha256": "c22e7b6191190bea85971d5e62cf7c2bf4d91de5951064c226af38d8bb6dab3e",
+  "new_kernel_sha256": "f62d2a2ffb33aa7a0785488235bb0669cb151cab6a3780c56f5ec8c8b26a7290",
+  "new_kernel_bytes": 2474600,
+  "backup_kernel": "kernel8-rpi4.before-timing-trace.img",
+  "backup_manifest": "SHA256SUMS.before-timing-trace",
+  "assertions": {
+    "human_confirmed_pi_off_speakers_lowered": true,
+    "existing_manifest_verified": true,
+    "local_and_card_backup_verified": true,
+    "candidate_readback_verified": true,
+    "updated_manifest_verified": true,
+    "other_files_unchanged": true
+  },
+  "boot_verified": false,
+  "safely_ejected": true,
+  "rollback": "With Pi off restore kernel8-rpi4.before-timing-trace.img as kernel8-rpi4.img and SHA256SUMS.before-timing-trace as SHA256SUMS.",
+  "diagnostic_only": true
+}
