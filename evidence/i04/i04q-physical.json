@@ -86,5 +86,25 @@
       "SRC DIRT/DIST or local AMP overdrive lock?",
       "Does long AMP/open filter/dry FX remove the discrepancy?"
     ]
+  },
+  "isolation_and_velocity": {
+    "human_src_lock_reply": "It was the SRC DIRT/DIST. Yes remains.",
+    "isolation_settings": "long AMP decay, open filter, delay/reverb sends zero",
+    "note_reply": "note changes leave pitch unchanged",
+    "velocity_manual_reply": "trig velocity does nothing",
+    "velocity_sequenced_reply": "VEL20 versus127 identical hits: nothing changes",
+    "result": "Note policy passes. SRC timbre/lock and velocity defects unresolved on old kernel; targeted host corrections staged."
+  },
+  "final_old_kernel_reading": {
+    "uptime_seconds": 2141,
+    "playout_faults": 0,
+    "starts": 627,
+    "consumed_starts": 627,
+    "applied": 147763,
+    "fifo_underruns": 53,
+    "fifo_delta_since_uptime398": 0,
+    "interval_seconds_since_uptime398": 1743,
+    "scope": "Mixed human tests and idle time; not a prescribed continuous stress workload",
+    "explicit_mute_accepted": true
   }
 }

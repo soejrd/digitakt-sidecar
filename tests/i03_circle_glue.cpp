@@ -24,6 +24,7 @@ static void hello(unsigned id,unsigned block) {
 static void start(unsigned id,unsigned block) {
   uint8_t b[SC_WIRE_SIZE]; sc_frame f={}; f.session=id; f.sequence=1;
 #ifdef I04_RENDER_TEST
+  f.velocity=100<<8;
   f.block=block; f.voice=1; f.flags=SC_START; f.params[0]=60<<8; f.params[1]=65<<8; f.params[3]=62<<8; f.params[4]=91<<8;
 #else
   f.block=block; f.voice=1; f.flags=SC_START; f.params[0]=60<<8;

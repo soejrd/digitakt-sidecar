@@ -1,0 +1,112 @@
+{
+  "task": "I04",
+  "scope": "host final SRC snapshot and per-hit velocity corrections; hardware qualification pending",
+  "digitakt_firmware": "I04Q",
+  "red": {
+    "command": "build/i04/final_controls (compiled from tests/i04_final_controls.c against previous audio/trx_voice.c)",
+    "exit_code": 134,
+    "requested_dirt_dist": [
+      127,
+      127
+    ],
+    "engine_current_after_consumed_start": [
+      42.0,
+      43.5
+    ]
+  },
+  "change": "Synchronize pinned mdkit public control-clock state to Digitakt final SRC values before START; bypass duplicate target smoothing. Preserve native DSP history, phase, clock, 44.1 kHz rendering and pending-trigger rejection. No dependency source change. Latch clamped signed 8.8 velocity/127 on START only; apply once after output limiter so velocity scales gain without changing return clipping.",
+  "checks": [
+    {
+      "command": "bash scripts/test_i04.sh",
+      "result": "PASS",
+      "scope": "ASan/UBSan production wrapper/scheduler/worker/native/Circle/filter; effective-control PCM equivalence; captured timing replay; new locked DIRT/DIST and tail restore regression; linear per-hit velocity, zero/negative/upper clamp, rejected START and tail-gain retention"
+    },
+    {
+      "command": "build/i04/final_controls",
+      "result": "PASS",
+      "scope": "127/127 at consumed START, 0/0 restore remains through subsequent native smoother ticks; install retains DSP state/render phase/native clock"
+    },
+    {
+      "command": "python3 scripts/test_i04_replay.py",
+      "result": "PASS",
+      "scope": "nine patches apply at pinned base and match ignored dependency"
+    },
+    {
+      "command": "bash deps/sidecar-firmware/pi/engine/build.sh kernel",
+      "result": "PASS",
+      "target": "Pi 4 AArch64 Circle",
+      "kernel_sha256": "0c544fb5ddecb8aef61c0be6638ae608d296df688b639b18bd03daedbe1070ed",
+      "kernel_bytes": 2474600,
+      "deployment": "SD written/read-back and boot verified"
+    },
+    {
+      "command": "build/i04/velocity",
+      "result": "PASS",
+      "scope": "20/127 gain, zero/negative mute, upper clamp equals127, rejected START keeps gain, parameter-only metadata keeps tail gain"
+    },
+    {
+      "scope": "integration harness stale-overlay layout failure",
+      "result": "fixed; combined suite passes",
+      "change": "test_i03_integration.sh refreshes production overlay before compiling both C objects and Circle C++"
+    }
+  ],
+  "host_benchmark": {
+    "scope": "optimized desktop host, no USB/Pi, synthetic dense snapshots",
+    "audio_seconds": 10,
+    "output_block_frames": 12,
+    "playout_delay_frames": 2048,
+    "wall_seconds": 0.080147,
+    "max_observed_render_us": 64.0,
+    "queue_peak": 65,
+    "applied_snapshots": 14936,
+    "starts": 7468,
+    "consumed_starts": 7468,
+    "faults": 0
+  },
+  "source_sha256": {
+    "audio/playout.c": "91419d01ed0015ad8b288cb87754cbe6f74513cab840045a7f2de0a43a5abd4b",
+    "audio/playout.h": "8d6a7c1265e6bf0386b82d269141a0a78f9a426ae78b44d83914e3ba300a4966",
+    "audio/src_44148.c": "17e34f1a05ab474336837fe85b1c75d6a56859de9780b2bb0f0bb15d592070b7",
+    "audio/src_44148.h": "23ae3ecde4ab9b059209b2266301e5df18eb700a7cace29e4cabf2e5899b5f97",
+    "audio/trx_voice.c": "e86949e162945251e9c0d6934562e61ae53703071e5c65b88a1b5c325be1544c",
+    "audio/trx_voice.h": "d76b61ef5eb3012b20978d2c6d5377c59e76f8e00febd31d34969de6e07c3549",
+    "control/link.h": "52dd5c5186ab590f1d9fbcfe13ed7a520f293e56a34f85f5d1a1afa8c8e67540",
+    "patches/sidecar-firmware/0001-directional-overbridge-layout.patch": "87fecfb46737ddf85bed736cf245caf0976c4d3b671478e26297ef5ff352be39",
+    "patches/sidecar-firmware/0002-static-capture-marker.patch": "455b1c1d08189f2ec5e21e8173176508da46569fe6cd1758a0f5aa9286c97e5e",
+    "patches/sidecar-firmware/0003-dtsc-control-link.patch": "fb6e8de487359ee515f4e6b849674c1982203e3801e557f239fac35cdb6db85c",
+    "patches/sidecar-firmware/0004-h02-gated-test-tone.patch": "42f3c9df1a41d0ec42d9005324924b780c48f4e87583c747a40b688d145f936c",
+    "patches/sidecar-firmware/0005-monotonic-control-clock.patch": "fb478754766b1975f14b57a43d1aaf709e07360bfe186e7f791089bf14236afc",
+    "patches/sidecar-firmware/0006-i04-trx-voice.patch": "b9c12b1190e3f154e64184c89685744a383e0e7fd903383900b4fc9c732fcaa2",
+    "patches/sidecar-firmware/0007-i04-scheduled-playout.patch": "e998f473d360e3beb8eed6f04aa13aea55858245f7be971622cf69f700569a1b",
+    "patches/sidecar-firmware/0008-i04-playout-fault-reason.patch": "f86f9d316705a097c485a5e2c31372a3ef70f5a544d66ba06fe8b842c30969ae",
+    "patches/sidecar-firmware/0009-i04-bounded-timing-trace.patch": "99477a884adbff823b2282099636e1f762e58445aead92263cf24b99bead8a4b",
+    "scripts/i04_prepare_circle.sh": "8a782d08940dd72a38af2658bde1dcd31309e20b28f8d784c5967212dff18c5d",
+    "scripts/i04_prepare_trial.py": "b61c4b348a377f5686a08d683e9e92767f61fecb49de8ea344272d97c4f5b83c",
+    "scripts/test_i04.sh": "29691eeb7a4f0fc67136ec48fc5a8878a34a64a7b62796956e884239502771b6",
+    "scripts/test_i04_replay.py": "16f6ca1a12e42346e446d96c64474c6ec542c5e62e626ef4f664c53e4bef3ea2",
+    "tests/i03_circle_glue.cpp": "9cf1997b126643d40c0077c6c8aeb8922767ba9a43c3edbba9a75ebecc27cd35",
+    "tests/i03_output_gate.cpp": "cd40f43094b3b1f28590b776ebad09839d2b23006e4662d86ff053a942ce5516",
+    "tests/i04_trace.py": "9664f15765a1119b84391bf422433162df130ff3f89a5954cbf4fca9118c0bf5",
+    "tools/i04_analyze_trace.py": "f8a879dc441e0290f6871456b5d079259f30700ca88c035e8e4d91565317eb7c",
+    "tests/i04_final_controls.c": "425e7d9da452d799f6f3fa372cf7aa080b83f9d192221e4f21ea4cb153d07b67",
+    "tests/i04_voice.c": "b4c4a3fd00694e9114d1867f973fb9414c09014434af189afe85b0cfcc1cb6df",
+    "mods/usb-track/usb_track.c": "1a5aea77400e71318bb87cae0b0ec7df690db8a8966eee11b6ad7e4b34d843bb",
+    "mods/usb-track/mod.json": "c2c058cb9748e197cc5ac524b56a6353cbcb1fb6bd5e7da04ea1d53427150189",
+    "tests/i04_velocity.c": "13a0d4fa2fd56c83ffcdb5f9d47cd6e4f81d855ca867b6df72efde9ce2ce7866",
+    "tests/i04_playout.c": "bd59bdbcd2a71c51a049da96ff9e4e46eb301201b441ddf1c668d209a4452eee",
+    "scripts/test_i03_integration.sh": "dd99dbd07689d39b84a4e698e5a6d9aa9c6fd9f423a320b7f1b71c43e1f03b5e",
+    "tools/i04_bench.c": "250cddaf63365019f9628695a32fa35f0aa2d408c8f7e111762e383dc70c6af1"
+  },
+  "limits": [
+    "SD written/read-back and boot verified; physical correction listening pending",
+    "Direct public control-clock layout access is specific to pinned mdkit TRX-B2; standalone mdkit target-smoothing semantics intentionally bypassed for already-final native values",
+    "43 ms scheduler buffer unchanged; physical envelope/audio misalignment unresolved",
+    "Human confirms sequenced VEL20/127 unchanged on old kernel; proposed gain correction not yet physically verified",
+    "Host benchmark is desktop wall time including scheduling, not Pi real-time headroom"
+  ],
+  "velocity_red": {
+    "command": "build/i04/velocity against previous unity-gain wrapper",
+    "exit_code": 134,
+    "assertion": "VEL 20 PCM gain must be 20/127 of VEL 127 within integer rounding"
+  }
+}

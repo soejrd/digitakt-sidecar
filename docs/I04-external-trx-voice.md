@@ -1,21 +1,25 @@
 # I04 — external TRX-B2 voice
 
-Status: **three physical hits audible; SRC traffic overruns measured; effective-
-control firmware I04Q installed; muted physical PTCH gesture passes**
-(2026-10-28). Owner: Codex. I04 is not DONE.
+Status: **I04Q physical SRC/local processing works; sequenced timbre, velocity
+and latency acceptance remain open** (2026-10-28). Owner: Codex. I04 is not DONE.
 
-## What is installed and what is staged
+## Installed and pending hardware retest
 
-- **Digitakt:** human reports I04Q installed, USB1 on audio track 1. Sender
-  suppresses fractional changes discarded by the integer TRX API.
-- **Pi:** timing-trace kernel, native-rate real TRX-B2, generation fix and
-  experimental 2,048-frame (42.667 ms) playout / 256 events. The first I04Q
-  muted gesture passed; trace is off and limited/faded audio enabled for listening. No new SD update is needed
-  for I04Q; the 61-byte protocol is unchanged.
-- **Staged only:** `private/i04/firmware-I04Q/` contains verified I04Q firmware,
-  previous H02F and stock OS 1.54 recovery plus a source/hash manifest. Only the
-  main OS section differs from stock; bootstrap/updater/coproc sections stay
-  byte-identical. Human installed I04Q; no agent flash occurred.
+- **Digitakt:** I04Q OS 1.54, installed by human. USB1 on audio track 1;
+  effective integer SRC sender normalization removes redundant fractional traffic.
+- **Pi SD:** combined final-SRC / per-hit-velocity kernel written, read-back and
+  manifests verified, settings/other files preserved, safely ejected. **Boot verified** as `Oct 28 2026 12:38:17`: muted, zero faults, 14 startup
+  FIFO underruns. Quiet/faded voice then explicitly enabled. Prior physical kernel/manifest backed up on card
+  as `kernel8-rpi4.before-final-controls.img` / `SHA256SUMS.before-final-controls`
+  and privately under `private/i04/sd-backup-final-controls/`.
+- **Rollback:** with Pi off restore those two card backups under their original
+  names. Verified prior I04 trace kernel and H02 kernel/firmware/stock recovery
+  also retained privately. No Digitakt update or bootloader change is required.
+- Prior Pi build `Oct 28 2026 08:17:23` supplied all physical results below.
+  The new kernel's host tests/build and boot pass; correction listening pending.
+
+[Candidate/tests](../evidence/i04/final-controls-candidate.json),
+[SD deployment](../evidence/i04/final-controls-sd-deployment.json).
 
 ## Measured diagnosis and targeted change
 
@@ -55,11 +59,16 @@ capacity and remains a stress/architecture question.
 ## Current voice/transport contract
 
 One persistent real mdkit TRX-B2 at
-`96157fe4fbda17bf4cae3168f52437d8232e6570` uses its public C API; synthesis
-arithmetic is unchanged. SRC A–H map to PTCH, DEC, RAMP, HOLD, TICK, NOIS, DIRT,
+`96157fe4fbda17bf4cae3168f52437d8232e6570` retains native synthesis
+arithmetic and 44.1 kHz rendering. The adapter now also synchronizes the pinned
+public control-clock state to already-final Digitakt SRC values, bypassing
+mdkit target smoothing; this is an intentional integration-policy change. SRC A–H map to PTCH, DEC, RAMP, HOLD, TICK, NOIS, DIRT,
 DIST. Wire `voice` is a nonzero **hit generation**, not track ID. Track 1 is
 implicit. PTCH owns pitch; note does not transpose this percussion prototype.
-Host velocity gain is unity; physical local AMP velocity behavior is unverified.
+The pending kernel latches linear clamped 8.8 velocity / 127 on START, after
+the return limiter. Parameter-only velocity metadata keeps the existing tail
+gain. Old hardware kernel used unity gain and human hears no VEL20/127
+difference in a sequence; new gain is not physically verified yet.
 Parameter-only updates keep the tail. Fixed 0.125 gain and ±4095 int16 ceiling
 limit mono return channel 0 to about −18 dBFS before local processing; channels
 1–7 are zero. Converter overshoot can clip at this ceiling.
@@ -210,3 +219,37 @@ present at the locked START, following unlocked START restores 60, LFO changes
 PTCH, and three manual STARTs retain block order. This checks native source
 values and cannot prove physical envelope alignment, DIRT/DIST behavior, or
 transport latency. [Compact results](../evidence/i04/i04q-dynamic.json).
+
+## Final SRC / velocity corrections awaiting physical retest
+
+The human isolated sequenced timbre differences to **SRC DIRT/DIST**, remaining
+with long AMP decay, open filter and dry sends. Note changes leave pitch
+unchanged (intended). VEL20 versus127 also remains equally loud in a sequence.
+Before muting old kernel: **627/627 STARTs consumed, zero faults, FIFO stays 53**
+for another 1,743 s after uptime 398. Mixed tests/idle, not prescribed stress.
+
+Production-wrapper regression reproduces duplicate smoothing: requested
+DIRT/DIST 127/127 reaches consumed START as 42/43.5. Fix synchronizes only pinned
+mdkit control pipeline fields (target/raw/current/pending/last-raw), clears stale
+pending control publication and retains native DSP history, clock/render phase
+and trigger consumption. Corrected values are 127/127 at START; unlocked 0/0
+restore remains through later native smoother ticks. This intentionally bypasses
+standalone mdkit knob smoothing because Digitakt supplies final lock/LFO values.
+Standalone R05 and dependency source remain unchanged.
+
+Velocity regression is RED with unity gain, GREEN with START-latched 0..127
+linear gain after clipping: 20/127 relative PCM, zero/negative silent, upper clamp
+equals 127; rejected START and non-START metadata cannot change tail gain. Existing
+PCM scheduling fixtures now use nonzero velocities and assert audible samples.
+
+ASan/UBSan full engine/scheduler/production worker/native/Circle/filter suite,
+captured timing replay, nine-patch replay and Pi4 cross-build pass. A stale
+generated header initially caused an ASan layout overflow in the host harness;
+its preparation now refreshes the shared overlay before compiling both sides,
+and the combined suite passes. Desktop benchmark maximum is scheduling-sensitive
+and supplies no Pi worst-case claim.
+
+**Next:** repeat locked DIRT/DIST versus
+manual and sequenced VEL20/127. **Still required afterward:** integrated latency/
+jitter and local-envelope alignment with acceptable timing. The 43 ms buffer has
+not changed. Host fixes must not be reported as hardware fixes before retesting.

@@ -10,7 +10,7 @@ No independent READY tasks. I04 has a checked host prototype; see its release co
 
 | ID | Work | Status | Release condition / dependencies | Acceptance |
 | --- | --- | --- | --- | --- |
-| I04 | External TRX-B2 voice | IN PROGRESS — Codex; I04Q installed by human; physical qualification resumed 2026-10-28 12:05 UTC | Muted physical SRC gesture passes with zero faults/underruns. Audible controls/local processing, locks/LFO/note/velocity and measured acceptable latency remain | Physical native track plays TRX-B2 through SRC/locks/LFO/local processing, verified note/velocity and acceptable timing. [Report](docs/I04-external-trx-voice.md), [candidate evidence](evidence/i04/effective-control-candidate.json) |
+| I04 | External TRX-B2 voice | IN PROGRESS — Codex; I04Q physical controls pass; corrected Pi kernel boot verified | Human retest DIRT/DIST lock timbre and sequenced velocity; then resolve and measure acceptable latency/local-envelope alignment | Physical native track plays TRX-B2 through SRC/locks/LFO/local processing, verified note/velocity and acceptable timing. [Report](docs/I04-external-trx-voice.md), [latest candidate](evidence/i04/final-controls-candidate.json) |
 | V01 | Persistence and stress | BLOCKED | I04 | Save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and dense modulation regressions. |
 | X01 | More voices | DEFERRED | V01 + transport capacity decision | Establish independent-channel capacity and measured worst-case margin before scaling. |
 | X02 | Teensy port | DEFERRED | V01 + proven architecture | Measure USB, conversion and DSP capacity; state supported voice count. |

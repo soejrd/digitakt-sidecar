@@ -19,7 +19,7 @@ int main(int argc,char **argv) {
             struct sc_frame f={0};
             const int values[]={60,65,41,62,91,44,56,58};
             f.session=1; f.sequence=next+1; f.block=next; f.voice=1;
-            f.flags=next%2==0 ? SC_START : 0;
+            f.flags=next%2==0 ? SC_START : 0; f.velocity=127*256;
             for(unsigned i=0;i<8;++i) f.params[i]=((values[i]+next)%128)*256;
             assert(sc_playout_enqueue(&p,&f)); ++next;
         }

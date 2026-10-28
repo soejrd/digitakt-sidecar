@@ -2,6 +2,8 @@
 # Production firmware C + native ABI + portable Circle peer. No hardware.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# C objects and Circle C++ must use the same current overlay layouts.
+bash scripts/i04_prepare_circle.sh
 mkdir -p build/i03
 rm -f build/i03/glue_*.o
 CFLAGS=(-std=c99 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined

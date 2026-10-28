@@ -31,7 +31,7 @@ manifest = {
     'kernel_sha256': sha(kernel), 'kernel_bytes': len(kernel),
     'rollback_sha256': sha(rollback), 'default_audio': 'silent; explicit trx=on after valid session',
     'source_sha256': evidence['source_sha256'],
-    'digitakt': 'existing H02F mode6 candidate; no firmware change for I04',
+    'digitakt': 'existing '+evidence.get('digitakt_firmware', 'H02F')+' mode6 candidate; no firmware change required',
 }
 files = {
     'kernel8-rpi4.img': kernel,

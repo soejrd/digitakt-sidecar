@@ -7,7 +7,7 @@ static int16_t whole[48000][8], ragged[48000][8];
 static struct sc_frame frame(void) {
     struct sc_frame f = {0};
     const int values[8] = {60,65,41,62,91,44,56,58};
-    f.voice=1; f.flags=SC_START;
+    f.voice=1; f.flags=SC_START; f.velocity=127*256;
     for (unsigned i=0;i<8;++i) f.params[i]=values[i]*256;
     return f;
 }
@@ -69,5 +69,5 @@ int main(void) {
     f.flags=0;
     f.voice=2; assert(sc_trx_install(&a,&f));
     f.voice=0; assert(!sc_trx_install(&a,&f));
-    puts("I04 real TRX-B2: ragged PCM equality, exact rate, note/velocity policy, retriggers, bounds, reset: PASS");
+    puts("I04 real TRX-B2: ragged PCM equality, exact rate, note independence, retriggers, bounds, reset: PASS");
 }

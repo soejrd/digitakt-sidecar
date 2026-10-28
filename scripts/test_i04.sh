@@ -6,6 +6,12 @@ flags=(-std=c99 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined
        -Icontrol -Iaudio -Itools -Ideps/mdkit/include -Ideps/mdkit/src/trx/b2)
 "${CC:-cc}" "${flags[@]}" tests/i04_voice.c audio/trx_voice.c audio/src_44148.c audio/playout.c \
   deps/mdkit/src/trx/b2/mdkit_trx_b2.c -lm -o build/i04/voice
+"${CC:-cc}" "${flags[@]}" tests/i04_final_controls.c audio/trx_voice.c audio/src_44148.c \
+  deps/mdkit/src/trx/b2/mdkit_trx_b2.c -lm -o build/i04/final_controls
+build/i04/final_controls
+"${CC:-cc}" "${flags[@]}" tests/i04_velocity.c audio/trx_voice.c audio/src_44148.c \
+  deps/mdkit/src/trx/b2/mdkit_trx_b2.c -lm -o build/i04/velocity
+build/i04/velocity
 build/i04/voice
 "${CC:-cc}" "${flags[@]}" tests/i04_playout.c audio/playout.c audio/trx_voice.c audio/src_44148.c \
   deps/mdkit/src/trx/b2/mdkit_trx_b2.c -lm -o build/i04/playout
