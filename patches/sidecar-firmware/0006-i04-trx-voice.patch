@@ -1,0 +1,93 @@
+--- a/pi/engine/dt_link.cpp
++++ b/pi/engine/dt_link.cpp
+@@ -1,13 +1,14 @@
+-// DTSC session plumbing. Integrated output is silent unless the explicit
+-// session-bound H02 diagnostic tone is enabled. Synthesis remains I04.
++// DTSC session plumbing and one native-rate TRX-B2 voice (I04 prototype).
+ #include "dt_link.h"
+ #include "dt_control/circle_link_adapter.h"
+ #include "dt_control/h02_test_tone.h"
+ #include "shared.h"
++#include "dt_control/trx_voice.h"
+ #include <circle/util.h>
+ namespace dt_link {
+ static sc_circle_link link;
+ static H02TestTone test_tone;
++static sc_trx_voice voice;
+ static sc_frame snapshot;
+ static uint32_t selected, losses, seen_loss;
+ static bool initialized, installed;
+@@ -31,15 +32,18 @@
+   return 1; // complete record is owned by core 0's existing USB sender
+ }
+ static int Install(void *, const sc_frame *f) {
++  if (!sc_trx_install(&voice, f)) return 0;
+   snapshot = *f; installed = true; return 1;
+ }
+ static void Clear(void *) {
+   test_tone.Disable();
++  sc_trx_clear(&voice);
+   installed = false; memset(&snapshot, 0, sizeof snapshot);
+   g_Output.ControlClose();
+ }
+ static void Init() {
+   if (!initialized) {
++    sc_trx_init(&voice);
+     sc_circle_init(&link, Install, Send, Clear, 0, 750u);
+     initialized = true;
+   }
+@@ -88,3 +92,11 @@
+ }
+ 
+ }
++
++namespace dt_link {
++void RenderVoice(int16_t (*out)[8], unsigned frames) {
++  sc_frame f;
++  if (!State(&f)) { memset(out, 0, frames * sizeof *out); return; }
++  sc_trx_render(&voice, out, frames);
++}
++}
+--- a/pi/engine/dt_link.h
++++ b/pi/engine/dt_link.h
+@@ -18,3 +18,5 @@
+ bool TestToneCommand(bool on);
+ void RenderTestTone(int16_t (*out)[8], unsigned frames);
+ }
++
++namespace dt_link { void RenderVoice(int16_t (*out)[8], unsigned frames); }
+--- a/pi/engine/cores.cpp
++++ b/pi/engine/cores.cpp
+@@ -232,7 +232,7 @@
+ 	if (nUs > s_nMaxBlock) s_nMaxBlock = nUs;
+-	// Integrated return is silence or the explicitly enabled H02 diagnostic.
++	// Integrated return is session-gated TRX-B2 (I04 prototype).
+ 	// Never leak unrelated stock-engine voices onto it.
+-	if (dt_link::Selected()) dt_link::RenderTestTone(s_Block, bridge::kBlock);
++	if (dt_link::Selected()) dt_link::RenderVoice(s_Block, bridge::kBlock);
+ 	dt_link::AdvanceFrames(bridge::kBlock);
+ 	dt_link::Poll();
+ 	g_Output.Push (s_Block, bridge::kBlock);
+--- a/pi/engine/Makefile
++++ b/pi/engine/Makefile
+@@ -34,7 +34,7 @@
+ # messages, the slot map), hosted: user machines on the Pi (core/user/um.cpp, docs/user-machines-pi.md)
+ RMPSRC := ../../teensy/libraries/RytmPlugins/src
+ RMP_SRC := rmp_loader.cpp rmp_manifest.cpp rmp_meta.cpp rmp_proto.cpp rmp_resolve.cpp rmp_slots.cpp rmp_presets.cpp rmp_pool.cpp
+-PORT_SRC := dt_control/link.c dt_control/host_link.c dt_control/circle_link_adapter.c output.cpp midi_in.cpp bridge.cpp emu_proto.cpp tones.cpp sendfx_pi.cpp fsweb.cpp recorder.cpp rec_play.cpp wifi_conf.cpp power_state.cpp
++PORT_SRC := dt_control/trx_voice.c dt_control/r05_resampler.c dt_control/mdkit_trx_b2.c dt_control/link.c dt_control/host_link.c dt_control/circle_link_adapter.c output.cpp midi_in.cpp bridge.cpp emu_proto.cpp tones.cpp sendfx_pi.cpp fsweb.cpp recorder.cpp rec_play.cpp wifi_conf.cpp power_state.cpp
+ HOSTED_OBJS := $(patsubst $(CORE)/%,hosted/core/%.o,$(CORE_SRC)) $(patsubst %,hosted/%.o,$(PORT_SRC)) \
+                $(patsubst %,hosted/rmp/%.o,$(RMP_SRC)) \
+                $(patsubst %,hosted/%.o,$(ENG_SRC) $(ENG_C_SRC))
+--- a/NOTICE
++++ b/NOTICE
+@@ -61,3 +61,9 @@
+ The Raspberry Pi build (Pi 4B and Pi 5) links Circle (GPL-3.0-or-later): a Pi engine binary is
+ therefore distributed under GPL version 3, which GPL-2.0-or-later allows. The Pi 5 kernel also links Circle's
+ addon/rp1dsi (the DSI display and touch driver, GPL-3.0-or-later).
++
++Local DTSC I04 prototype overlay (scripts/i04_prepare_circle.sh):
++  dt_control/mdkit*.{c,h}: mdkit TRX-B2 and public headers, CC0-1.0,
++    https://github.com/soejrd/mdkit at 96157fe4fbda17bf4cae3168f52437d8232e6570.
++  dt_control/r05_resampler.{c,h}: local streaming converter, CC0-1.0.
++  dt_control/trx_voice.{c,h}: local host wrapper, GPL-2.0-or-later.

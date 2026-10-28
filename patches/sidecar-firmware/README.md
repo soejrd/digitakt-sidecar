@@ -50,3 +50,13 @@ sources from this repository. No firmware-derived adapter code is copied into
 the dependency. `bash scripts/test_i03_integration.sh` checks the real Output
 consumer gate and the portable device/host exchange. The patched Pi 4 kernel
 cross-builds with the existing `rytm-circle` toolchain image; no SD was written.
+
+## 0006-i04-trx-voice.patch
+
+I04 host prototype: gated real TRX-B2, native-rate converter, loss reset and
+third-party NOTICE. Apply **0001–0006** in order at the pinned base, then
+`bash scripts/i04_prepare_circle.sh` (supersedes the I03-only overlay).
+Run `bash scripts/test_i04.sh` and `python3 scripts/test_i04_replay.py`.
+The overlay verifies mdkit's pin and refuses changes to copied tracked sources.
+See [I04](../../docs/I04-external-trx-voice.md) for timing, filter-quality and
+hardware acceptance limits. No firmware assets or SD image are deliverables.

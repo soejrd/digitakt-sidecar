@@ -20,6 +20,9 @@ build/i03/output_gate
 for unit in link host_link circle_link_adapter; do
   "${CC:-cc}" "${CFLAGS[@]}" -c "control/$unit.c" -o "build/i03/glue_$unit.o"
 done
+for unit in audio/trx_voice.c tools/r05_resampler.c deps/mdkit/src/trx/b2/mdkit_trx_b2.c; do
+  "${CC:-cc}" "${CFLAGS[@]}" -Iaudio -Itools -Ideps/mdkit/include -Ideps/mdkit/src/trx/b2 -c "$unit" -o "build/i03/glue_$(basename "$unit").o"
+done
 "${CXX:-c++}" -std=c++17 -O1 -Wall -Wextra -Werror -fsanitize=address,undefined \
   -Itests/circle -Icontrol -Ideps/sidecar-firmware/pi/engine -Ideps/sidecar-firmware/core \
   tests/i03_circle_glue.cpp deps/sidecar-firmware/pi/engine/dt_link.cpp \

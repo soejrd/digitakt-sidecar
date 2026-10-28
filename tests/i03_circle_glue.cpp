@@ -23,7 +23,11 @@ static void hello(unsigned id,unsigned block) {
 }
 static void start(unsigned id,unsigned block) {
   uint8_t b[SC_WIRE_SIZE]; sc_frame f={}; f.session=id; f.sequence=1;
+#ifdef I04_RENDER_TEST
+  f.block=block; f.voice=1; f.flags=SC_START; f.params[0]=60<<8; f.params[1]=65<<8; f.params[3]=62<<8; f.params[4]=91<<8;
+#else
   f.block=block; f.voice=1; f.flags=SC_START; f.params[0]=60<<8;
+#endif
   assert(sc_encode(b,&f)); assert(dt_link::SysEx(b,sizeof b));
   auto c=reply(); assert(c.kind==SC_ACTIVATE && c.value==block);
 }
@@ -39,7 +43,22 @@ int main() {
   assert(!(g_Output.ControlToken()&1));
   hello(41,10); assert(!dt_link::State(&f)); start(41,11); dt_link::Poll(2);
   assert(dt_link::State(&f) && f.params[0]==60<<8 && (g_Output.ControlToken()&1));
+#ifdef I04_RENDER_TEST
+  silent(); // diagnostic tone still needs explicit enable
+  dt_link::RenderVoice(pcm,32);
+  unsigned synth_nonzero=0;
+  for(unsigned block=0; block<100; ++block) {
+    dt_link::RenderVoice(pcm,32);
+    for(auto &row:pcm) {
+      synth_nonzero += row[0]!=0;
+      assert(row[0]>=-4095 && row[0]<=4095);
+      for(unsigned ch=1;ch<8;++ch) assert(row[ch]==0);
+    }
+  }
+  assert(synth_nonzero>100);
+#else
   silent(); // handshake never enables the tone implicitly
+#endif
   assert(dt_link::TestToneCommand(true));
   dt_link::RenderTestTone(pcm,32); assert(pcm[0][0]==0);
   for(auto &row:pcm) assert(row[0]>=-2 && row[0]<=2);
@@ -59,6 +78,10 @@ int main() {
   assert(dt_link::TestToneCommand(true));
   dt_link::Lost(); assert(!(g_Output.ControlToken()&1)); dt_link::Poll(3);
   silent(); assert(!dt_link::TestToneCommand(true));
+#ifdef I04_RENDER_TEST
+  dt_link::RenderVoice(pcm,32);
+  for(auto &row:pcm) for(auto x:row) assert(x==0);
+#endif
   assert(!dt_link::State(&f));
   hello(42,20); start(42,21); dt_link::Poll(4); assert(dt_link::State(&f));
   silent(); // reconnect needs a new explicit tone enable
@@ -71,6 +94,10 @@ int main() {
   dt_link::AdvanceFrames(32); dt_link::Poll();
   assert(!(g_Output.ControlToken()&1) && !dt_link::State(&f));
   silent(); assert(!dt_link::TestToneCommand(true));
+#ifdef I04_RENDER_TEST
+  dt_link::RenderVoice(pcm,32);
+  for(auto &row:pcm) for(auto x:row) assert(x==0);
+#endif
   while(g_MidiOut.size()) pop();
   while(g_MidiOut.size()<kMidiOutBytes-1) g_MidiOut.push(0);
   uint8_t b[SC_CONTROL_WIRE_SIZE]; sc_control c={43,1,30,SC_HELLO};

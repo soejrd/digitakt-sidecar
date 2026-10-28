@@ -1,0 +1,76 @@
+{
+  "task": "I04",
+  "date_utc": "2026-10-28",
+  "scope": "host executable production-source tests and Pi cross-build; no hardware access",
+  "status": "BLOCKED at physical acceptance; host prototype passes",
+  "dependency_pins": {
+    "sidecar-firmware": "6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457",
+    "mdkit": "96157fe4fbda17bf4cae3168f52437d8232e6570"
+  },
+  "checks": [
+    {
+      "command": "bash scripts/test_i04.sh",
+      "result": "PASS",
+      "instrumentation": "ASan/UBSan",
+      "coverage": [
+        "real TRX-B2 PCM block invariance",
+        "48000 output frames consume 44131 native frames including priming",
+        "note/velocity-independent host PCM",
+        "START call counts and tail/reset",
+        "mono channel and +/-4095 ceiling",
+        "actual production native bridge/Circle link/Output gate",
+        "synthesis silence after loss and timeout",
+        "congested ACK/reconnect"
+      ]
+    },
+    {
+      "command": "python3 scripts/test_i04_replay.py",
+      "result": "PASS",
+      "scope": "six patches apply to pinned archive; production I04 files and NOTICE equal dependency"
+    },
+    {
+      "command": "bash scripts/test_i03.sh",
+      "result": "PASS"
+    },
+    {
+      "command": "bash scripts/test_i03_handshake.sh",
+      "result": "PASS"
+    },
+    {
+      "command": "bash deps/sidecar-firmware/pi/engine/build.sh",
+      "result": "PASS",
+      "target": "Pi 4 AArch64 Circle",
+      "kernel_bytes": 2472056,
+      "kernel_sha256": "91d074a02a784214c65d45e1321d1660b8f56e7d11ab26f6b9b18cec5ae6ecf6",
+      "deployment": "none"
+    }
+  ],
+  "source_sha256": {
+    "audio/trx_voice.c": "bad4ba719eb6f37b49c9e001c09bc0725664a9eb6f7b12a17cd29977fc94b647",
+    "audio/trx_voice.h": "e8afe4b8aab06d4c508307821f21b2542dc8cbf711a4b83b9bfa3de2a0af04d5",
+    "tools/r05_resampler.c": "bf3abbd07d11cb0c816491f6273285c66fb31e8bada5fe02648def9a4fb729d4",
+    "tools/r05_resampler.h": "316b0d4b6b4c98afa4d69073fcd300c6a40fc3d195fa3244189850b3dc60b0d5",
+    "patches/sidecar-firmware/0006-i04-trx-voice.patch": "b9c12b1190e3f154e64184c89685744a383e0e7fd903383900b4fc9c732fcaa2",
+    "scripts/i04_prepare_circle.sh": "3c45d699b0151afa5c9ec5e52b75abbf067c648b892daa1df3a26b8438bacdc3",
+    "tests/i04_voice.c": "c432e09b6c36f55b29fa418c563a2d082329bf583fb1e74d71651f1212a7d390",
+    "tests/i03_circle_glue.cpp": "a6c0e0a9e86c45c3ce85ee73c6deba21aa7c2294e941680b4d0a8388a5d2139a"
+  },
+  "policy": {
+    "note": "ignored; SRC PTCH authoritative",
+    "velocity": "unity host gain; physical local AMP behavior unverified",
+    "prototype_gain": 0.125
+  },
+  "unmeasured": [
+    "physical TRX-B2 SRC/locks/LFO/local processing",
+    "integrated latency/jitter",
+    "Pi worst-case CPU and queues",
+    "physical velocity curve",
+    "distinct audible dense retriggers"
+  ],
+  "limitations": [
+    "arrival-time event application; device timestamps not scheduled; pending engine STARTs can coalesce before render",
+    "R05 32-tap converter unchanged; prior host 22 kHz rejection -26.3 dB",
+    "prototype ceiling can clip converter overshoot"
+  ],
+  "release_condition": "qualify timestamped bounded playout and filter; human hardware session with recoverable candidate and silence-first lowered-speaker protocol, then physical acceptance and measured timing/headroom"
+}

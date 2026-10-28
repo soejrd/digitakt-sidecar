@@ -4,14 +4,13 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 ## Ready
 
-| ID | Work | Status | Dependencies | Acceptance |
-| --- | --- | --- | --- | --- |
-| I04 | External TRX-B2 voice | READY | H02 accepted complete; I03/R05 passed; engine/resampling remains host-benchmark evidence | One audio track controls Pi synthesis through SRC/locks/LFOs and local processing; explicit note/velocity policy and timing evidence. |
+No independent READY tasks. I04 has a checked host prototype; see its release conditions below.
 
 ## Waiting
 
 | ID | Work | Status | Release condition / dependencies | Acceptance |
 | --- | --- | --- | --- | --- |
+| I04 | External TRX-B2 voice | BLOCKED — Codex, 2026-10-28 07:00 UTC; host prototype checked | Human hardware session after prior stop/Pi off; qualify timestamped playout and filter, then measure integrated latency/jitter/Pi headroom | One track physically plays TRX-B2 through SRC/locks/LFO/local processing with verified note/velocity policy and measured acceptable timing. [Report](docs/I04-external-trx-voice.md), [host evidence](evidence/i04/host.json) |
 | V01 | Persistence and stress | BLOCKED | I04 | Save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and dense modulation regressions. |
 | X01 | More voices | DEFERRED | V01 + transport capacity decision | Establish independent-channel capacity and measured worst-case margin before scaling. |
 | X02 | Teensy port | DEFERRED | V01 + proven architecture | Measure USB, conversion and DSP capacity; state supported voice count. |
