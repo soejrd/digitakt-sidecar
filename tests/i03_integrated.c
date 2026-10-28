@@ -11,6 +11,11 @@
 #include "../mods/usb-track/usb_track.c"
 #include "../mods/usb-track/worker.c"
 #include "../control/circle_link_adapter.h"
+#ifdef I04_ENGINE_PEER
+#include "playout.h"
+static sc_playout playout;
+static int16_t rendered[32][8];
+#endif
 
 uint32_t fw_io_selector,fw_io_mode,fw_io_sync;
 volatile int32_t fw_io_halves[128];
@@ -38,9 +43,18 @@ static void collect(const uint8_t *p,uint32_t n)
 }
 static int install(void *ctx,const struct sc_frame *f)
 {
-    assert(ctx==&host); installed=*f; ++frames; if(f->flags&SC_START) ++starts; return 1;
+    assert(ctx==&host);
+#ifdef I04_ENGINE_PEER
+    if (!sc_playout_enqueue(&playout,f)) return 0;
+#endif
+    installed=*f; ++frames; if(f->flags&SC_START) ++starts; return 1;
 }
-static void clear(void *ctx) { assert(ctx==&host); memset(&installed,0,sizeof installed); }
+static void clear(void *ctx) {
+    assert(ctx==&host); memset(&installed,0,sizeof installed);
+#ifdef I04_ENGINE_PEER
+    sc_playout_init(&playout);
+#endif
+}
 static int reply(void *ctx,const uint8_t *p,uint32_t n)
 {
     assert(ctx==&host && !irq_depth);
@@ -68,6 +82,9 @@ static void step(unsigned n)
         for(i=32;i<256;++i) assert(blocks[i]==7654321);
         if(!usb_track_gate && fw_render_machine[0]==121) { assert(blocks[0]==0); ++blocked; }
         if(usb_track_clock%tick_period==0) { usb_track_tick(0); pump(); }
+#ifdef I04_ENGINE_PEER
+        if(sc_circle_audio_allowed(&host)) assert(sc_playout_render(&playout,rendered,32));
+#endif
     }
 }
 int main(void)
@@ -118,4 +135,5 @@ int main(void)
     test_restore_observer=0;
     assert(!irq_depth);
     puts("production render + worker + native ABI bridge + Circle: activation, controls, adjacent starts, modulation, ACK loss, reconnect, congestion: PASS");
+    return 0;
 }

@@ -23,3 +23,5 @@ build/i04/circle_glue
   tools/i04_bench.c audio/playout.c audio/trx_voice.c audio/src_44148.c \
   deps/mdkit/src/trx/b2/mdkit_trx_b2.c -lm -o build/i04/bench
 build/i04/bench evidence/i04/playout-benchmark.json
+
+bash scripts/test_i04_generation.sh

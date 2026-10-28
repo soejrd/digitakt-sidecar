@@ -12,7 +12,7 @@ void sc_trx_init(sc_trx_voice *v) { sc_trx_clear(v); }
 int sc_trx_install(sc_trx_voice *v, const struct sc_frame *f)
 {
     unsigned i;
-    if (f->voice != 1u || ((f->flags & SC_START) && v->engine.pending_trigger)) return 0;
+    if (!f->voice || ((f->flags & SC_START) && v->engine.pending_trigger)) return 0;
     for (i = 0; i < 8; ++i) {
         int x = f->params[i] / 256;
         if (x < 0) x = 0;

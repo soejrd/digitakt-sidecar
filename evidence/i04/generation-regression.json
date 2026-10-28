@@ -1,0 +1,28 @@
+{
+  "task": "I04",
+  "scope": "physical muted single-tap diagnostic; corrected kernel not yet tested physically",
+  "human_action": "exactly one USB1 track-1 tap; sequencer stopped",
+  "baseline": "evidence/i04/diagnostic-baseline.json",
+  "fault": {
+    "code": 1,
+    "sender_block": 106307,
+    "flags": 1,
+    "block_delta": 1,
+    "render_now": 2644884,
+    "render_due": 0
+  },
+  "playout_fault_count": 1,
+  "fifo_underruns": 17,
+  "streaming": true,
+  "finding": "code 1 invalid snapshot at START; deployed I04 rejected generation != 1",
+  "source_fact": "mods/usb-track/worker.c increments voice on each START; track identity is implicit",
+  "host_red_command": "bash scripts/test_i04_generation.sh",
+  "host_red": "native hit 2: session retained 0, installed generation 1, consumed 0; session/gate assertion failed (exit 134)",
+  "host_fix": "accept nonzero hit generations in scheduled playout and TRX wrapper; reject zero; document wire semantics",
+  "host_green": [
+    "native hit 2: session retained 1, installed generation 2, consumed 2",
+    "native hit 3: session retained 1, installed generation 3, consumed 3",
+    "native hit 4: session retained 1, installed generation 4, consumed 4"
+  ],
+  "scope_limit": "Root mismatch reproduced/fixed at real compiled firmware worker -> native transport -> host scheduler -> actual engine seam. Physical corrected-kernel listening/timing remains pending."
+}

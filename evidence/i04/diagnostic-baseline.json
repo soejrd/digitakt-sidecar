@@ -1,0 +1,22 @@
+{
+  "task": "I04",
+  "scope": "physical diagnostic boot baseline before human taps; audio muted",
+  "build": "Oct 28 2026 07:38:07",
+  "uptime_seconds": 38,
+  "streaming": true,
+  "link": "usb",
+  "fifo_underruns": 16,
+  "status": {
+    "armed": 0,
+    "queue": 2,
+    "peak": 2,
+    "faults": 0,
+    "applied": 823,
+    "starts": 1,
+    "consumed": 1,
+    "frame": 1685412
+  },
+  "last_fault_code": 0,
+  "human_report": "No triggers pressed since boot",
+  "next": "one manual USB1 track-1 trig while muted, sequencer stopped"
+}

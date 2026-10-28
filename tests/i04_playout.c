@@ -7,7 +7,7 @@ static int16_t burst[4096][8], timed[4096][8], scratch[4096][8];
 static struct sc_frame event(unsigned n) {
     struct sc_frame f={0};
     const int defaults[]={60,65,41,62,91,44,56,58};
-    f.session=9; f.sequence=n+1; f.block=0xfffffffdu+n; f.voice=1;
+    f.session=9; f.sequence=n+1; f.block=0xfffffffdu+n; f.voice=1+n/2;
     f.flags=(n%2)==0 ? SC_START : 0;
     for(unsigned i=0;i<8;++i) f.params[i]=(defaults[i]+(n%8))*256;
     return f;

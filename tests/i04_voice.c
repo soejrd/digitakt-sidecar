@@ -42,6 +42,7 @@ int main(void) {
     assert(sc_trx_install(&a,&f) && sc_trx_install(&b,&f));
     sc_trx_render(&a,whole,48000); sc_trx_render(&b,ragged,48000);
     assert(!memcmp(whole,ragged,sizeof whole));
-    f.voice=2; assert(!sc_trx_install(&a,&f));
+    f.voice=2; assert(sc_trx_install(&a,&f));
+    f.voice=0; assert(!sc_trx_install(&a,&f));
     puts("I04 real TRX-B2: ragged PCM equality, exact rate, note/velocity policy, retriggers, bounds, reset: PASS");
 }

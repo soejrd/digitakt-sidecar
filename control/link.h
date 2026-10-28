@@ -40,7 +40,7 @@ enum sc_deactivate_reason {
 };
 
 struct sc_frame {
-    uint32_t session, sequence, block, voice;
+    uint32_t session, sequence, block, voice; /* voice = hit generation, NOT track ID */
     int32_t note;                 /* Digitakt 16.16; no pitch policy here */
     int16_t params[8], velocity;  /* Digitakt signed 8.8 */
     uint8_t flags;

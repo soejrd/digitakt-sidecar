@@ -1,6 +1,6 @@
 # I04 — external TRX-B2 voice
 
-Status: **physical taps silent; BLOCKED pending diagnostic SD swap** (2026-10-28).
+Status: **generation-rejection bug fixed on host; BLOCKED on corrected physical retest** (2026-10-28).
 Owner: Codex; scheduling/filter follow-up claimed 07:11 UTC.
 The SD candidate is installed/read-back verified and physically booted; explicit
 TRX enable was accepted, but the human heard no taps; 37 playout faults disarmed
@@ -92,7 +92,7 @@ now includes TRX rendering, so later Pi measurements do not omit its work.
 [dense host benchmark](../evidence/i04/playout-benchmark.json).
 
 - ASan/UBSan: whole/ragged engine PCM equality, note/velocity policy, exact rate,
-  clipping bounds, native START consumption, reset and unsupported voice checks.
+  clipping bounds, native START consumption, reset and zero-generation checks.
 - Timestamp tests: exact output-sample application, burst versus delayed-arrival
   PCM equality, timestamp wrap, 64 queued snapshots with 32 separately consumed
   STARTs, and fail-closed capacity/late/order/session/horizon/too-close cases.
@@ -246,3 +246,35 @@ into powered-off Pi, boot muted and inspect counters before controlled taps.
 Rollback the kernel and full manifest from the matching `before-diagnostic-1`
 backup pair to restore the immediately previous I04 state; verified H02 rollback
 remains available separately.
+
+## Single-tap diagnosis and generation fix — 2026-10-28
+
+[Baseline](../evidence/i04/diagnostic-baseline.json): diagnostic build booted muted,
+zero playout faults, 16 startup FIFO underruns. One human tap while stopped
+produced exactly one fault: code 1, START flags 1, sender block 106307, delta 1,
+render frame 2644884. USB stayed streaming; underruns became 17. The fault was
+an invalid-frame rejection, not the deadline or minimum-START-spacing guard.
+
+[Regression evidence](../evidence/i04/generation-regression.json): the production
+firmware worker increments wire `voice` for each START. It is a **hit generation,
+not a track ID**; track identity is implicit in this single-track protocol. I04
+incorrectly required `voice == 1` in both queue admission and engine installation.
+The first recovery START worked, but the next native hit advanced the generation
+and invalidated/disarmed the session. This explains the silent physical path;
+per-session START counts reset during that invalidation.
+
+The new regression invokes the real firmware render/queue/worker and native
+transport with the scheduled real engine as its host installer. Before the fix,
+`bash scripts/test_i04_generation.sh` failed on hit 2 with session reset. After
+accepting nonzero generations in both layers, hits 2, 3 and 4 retain the same
+session and each is consumed by TRX-B2. Zero remains rejected. Wire field
+semantics are now explicit in `control/link.h`; scheduler tests advance generation
+instead of freezing it at 1. The prior isolated engine/queue tests used constant
+1 and therefore missed this integration error. Full host suite/eight-patch replay
+pass; physical correction remains to be tested.
+
+No timing, spacing or filter policy was relaxed. Diagnostic metadata is retained
+for the physical retest; it is bounded operational fault evidence, not temporary
+per-render logging. Next: corrected SD installation/read-back with fresh backup,
+muted boot and controlled taps, then explicitly enable faded audio and confirm
+human listening and modulation/local processing before any acceptance claim.

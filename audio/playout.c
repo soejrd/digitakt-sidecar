@@ -17,7 +17,7 @@ int sc_playout_enqueue(sc_playout *p, const struct sc_frame *f)
 {
     uint64_t due;
     if (p->fault) return 0;
-    if (f->voice!=1 || !f->session || !f->sequence || (f->flags & ~SC_START))
+    if (!f->voice || !f->session || !f->sequence || (f->flags & ~SC_START))
         return fault(p,SC_PF_INVALID,f,0);
     if (!p->anchored) {
         if (!(f->flags&SC_START)) return fault(p,SC_PF_INVALID,f,0);
