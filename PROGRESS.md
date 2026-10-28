@@ -17,9 +17,9 @@ Task status/claims: [TASKBOARD.md](TASKBOARD.md). Pins: sources.json. Read AGENT
 - Installed Pi build `Oct 28 2026 13:38:57`, SHA256 `c057f063c24770a520b842e66d4d7e10655bdda3d45de05e1b67edc85d34a0f2`. Card rollback `kernel8-rpi4.before-event-worker.img` / `SHA256SUMS.before-event-worker`; local `private/i04/sd-backup-event-worker/`. [Deployment](evidence/i04/event-worker-sd-deployment.json).
 - Last timing setup: right output→left input cable, input monitoring off, disposable pattern USB1 right/native track2 left. User may change routing after closure. Raw WAVs/logs/projects/firmware stay ignored/private.
 
-## Next: V01 READY, unclaimed
+## Next: V01 IN PROGRESS — plan only
 
-First reproduce aggressive-LFO failure with numeric speed/depth, bounded private trace and controller/host timing; establish supported modulation budget and responsive UI. Then persistence, copy/paste/undo, mutes/sound locks, restart/reconnect and sustained stress. No more testing requested this session.
+Claimed by Codex `2026-10-28T15:51:11Z`; **no tests or hardware actions in this planning turn**. [V01 plan](docs/V01-persistence-stress.md) pre-registers evidence classes, dense-LFO reproduction/sweep, layer-isolation hypotheses, supported-budget criteria, persistence matrix, reconnect/stress matrix, and the human hardware gate. Next action: Phase 0 inventory plus read-only source/emulator persistence inspection; do not contact hardware until the release condition in the plan is met.
 
 `trxtrace=on` forces mute; collect status before `trxtrace` dump (printing can stall output). For installed buffer use analyzer **`--delay 128`**, not historical2048 default. Preserve fail-closed deadlines/order/STARTs; do not mask overload with coalescing or rebasing.
 
