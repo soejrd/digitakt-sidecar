@@ -75,7 +75,13 @@ void usb_track_ui_tick(void *ctrl)
         fw_rtos_sem_init(&worker_sem,0);
         /* Priority14 below render IRQs; service blocks again after each batch.
          * Stack/TCB belong to linker BSS; no allocation or OS timer changes. */
-        if (!fw_rtos_task_create(&worker_task,entry,14,worker_stack.words,sizeof worker_stack.words)) {
+        if (!fw_rtos_task_create(&worker_task,entry,
+#ifdef V01_WORKER_PRIORITY
+            V01_WORKER_PRIORITY,
+#else
+            14,
+#endif
+            worker_stack.words,sizeof worker_stack.words)) {
             ++usb_track_worker_guard_faults; return;
         }
         usb_track_control_set_wakeup(wake);

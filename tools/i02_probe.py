@@ -109,7 +109,12 @@ def candidate_prepare(args):
                 if source.suffix in ('.c', '.h', '.s'):
                     shutil.copyfile(source, overlay/'mods/usb-track'/source.name)
             manifest = json.loads((ROOT/'mods/usb-track/mod.json').read_text())
-            manifest['cflags'] = manifest.get('cflags', []) + ['-DUSB_TRACK_DIAGNOSTIC']
+            cflags = ['-DUSB_TRACK_DIAGNOSTIC']
+            if getattr(args, 'no_self_wake', False):
+                cflags.append('-DV01_NO_SELF_WAKE')
+            if getattr(args, 'worker_priority', None) is not None:
+                cflags.append(f'-DV01_WORKER_PRIORITY={args.worker_priority}')
+            manifest['cflags'] = manifest.get('cflags', []) + cflags
             (overlay/'mods/usb-track/mod.json').write_text(json.dumps(manifest, indent=2)+'\n')
             track_mod = str(overlay/'mods/usb-track')
         for mod in ('deps/elekloader/mods/core','deps/elekloader/mods/machine-pages','mods/usb-midi',track_mod):
@@ -128,11 +133,11 @@ def candidate_prepare(args):
     os.environ.update(p.env())
     first_run(p,progress=lambda e:print(e.step,e.kind,flush=True) if e.kind in ('start','done') else None)
     assign_project(p,root)
-    write_candidate_metadata(root,p,version,args.diagnostic,getattr(args,'label',None))
+    write_candidate_metadata(root,p,version,args.diagnostic,getattr(args,'label',None),getattr(args,'no_self_wake',False),getattr(args,'worker_priority',None))
     print('CANDIDATE BOOTED AND ASSIGNED',flush=True)
 
 
-def write_candidate_metadata(root,p,version,diagnostic=False,label=None):
+def write_candidate_metadata(root,p,version,diagnostic=False,label=None,no_self_wake=False,worker_priority=None):
     artifacts=root/'artifacts'
     (root/'fixture.json').write_text(json.dumps({
         'firmware_root':str(Path(p.root).relative_to(root)),
@@ -141,7 +146,9 @@ def write_candidate_metadata(root,p,version,diagnostic=False,label=None):
         'stock_main_sha256':MAIN_SHA,
         'usb_track_version':version,
         'firmware_label':label or ('H02F' if diagnostic else ('I02A' if version=='0.1' else 'I03P')),
-        'compiler_defines':['USB_TRACK_DIAGNOSTIC'] if diagnostic else [],
+        'compiler_defines':(['USB_TRACK_DIAGNOSTIC'] if diagnostic else []) +
+            (['V01_NO_SELF_WAKE'] if no_self_wake else []) +
+            ([f'V01_WORKER_PRIORITY={worker_priority}'] if worker_priority is not None else []),
         'source_hashes':{str(f.relative_to(ROOT)):r03.sha(f) for f in
             sorted(set([p for folder in ('mods/usb-track','mods/usb-midi')
                         for p in (ROOT/folder).glob('*')
@@ -438,6 +445,8 @@ def main():
     p.add_argument('--stock', type=Path, required=True)
     p.add_argument('--fixture', type=Path, required=True)
     p.add_argument('--diagnostic', action='store_true', help='H02F: corrected native mode with SRC diagnostics')
+    p.add_argument('--no-self-wake', action='store_true', help='V01 diagnostic: disable worker self-reschedule')
+    p.add_argument('--worker-priority', type=int, help='V01 diagnostic: override USB worker priority')
     p.add_argument('--label', help='explicit private candidate four-character firmware label')
     args = ap.parse_args()
     {'prepare':prepare,'candidate':candidate_prepare,'check':check}[args.command](args)

@@ -1,0 +1,71 @@
+{
+  "status": "verified",
+  "level": "compiled OS 1.54 + native serializer; USB DMA/PCM modelled",
+  "hardware_test": false,
+  "candidate": {
+    "firmware_label": "V01N",
+    "usb_track_version": "0.5",
+    "syx_sha256": "a75084c4c23891b335941f4fe35feb58f0d686bcdc4602e7725e754cb4b9b4a4",
+    "stock_main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
+    "source_hashes": {
+      "control/device_link.c": "802f7a4ec99634e475b07e0139ebd466a89c77e37d1df03525ea7139e20bd170",
+      "control/device_link.h": "a2cc8967016b7fd5f07ab0efa4ad79a337d811fde86fd574a61b5b1715aefc93",
+      "control/dt1_transport.c": "91383c3c0096fe71dbd83c38615a18593f55ceec6bdeaaeb800bd309f7b67b41",
+      "control/dt1_transport.h": "36605565ed400c442817a64e2782f4d365555ed1e36dd24f714e9e1e18653162",
+      "control/link.c": "62327cdda3c9d30c865c3faad4d8275de00f16142103d8b0e20446ccdb384dac",
+      "control/link.h": "52dd5c5186ab590f1d9fbcfe13ed7a520f293e56a34f85f5d1a1afa8c8e67540",
+      "control/sc_memory.h": "f45d7f79fe37f563581f751f9330709b35d912d9ddc68a42a7453dbbb2ed5ca1",
+      "control/sysex_split.c": "edfcffa64dea00fd50be0f909f27ce8d1a843eceb1888b2fe98a712751b425d4",
+      "control/sysex_split.h": "bdc3f393187f792419b955514e56c6704811ea4e0e64332dab4916276f09580d",
+      "control/usbmidi.c": "1e8d69223b593ca5c6293e5931d617aa2c46806b0a2ff1fcb0b10fb03fbdd93b",
+      "control/usbmidi.h": "1d7479908f0bf4ac186fc37978a758bebf18bc5f16e4296d017ed1973830e82d",
+      "mods/usb-midi/mod.json": "42237ba9db973bb9de4aafcb426b0effd881800a39e611c13a0a8ab6a835ea1c",
+      "mods/usb-midi/usb_midi.c": "e2e6cb486259310f8ffec0ed7c0c48f959f173ae859745175bc9890c84a8dfe4",
+      "mods/usb-midi/usb_midi.h": "12db1c576ba6802319589615bae93c4a2a1ef473938cef30e118bc7187709e8f",
+      "mods/usb-track/core_candidate_rtos.h": "60714763f69eb908aa63b360729182176a0f96c3a9b0cc087f19026ccb27a7bd",
+      "mods/usb-track/core_candidate_rtos.s": "a85a8ed629996aa4ef674ef7ac278d5fcd8fc2e0dace20d3f5e9bc6e590c9e65",
+      "mods/usb-track/mod.json": "c3674d72e22e18c74ab6f5b33fa218145e3c87f8e9fb6cc2740cf555e3044f6e",
+      "mods/usb-track/src_queue.c": "2de5d0209e05151065d6f9a4af09967b904b95c6b13e9ab7427eb90f5d7a79ab",
+      "mods/usb-track/src_queue.h": "577dbad5a473c637234ce3874b57669e3005b654a353c78ddc64481303e007cf",
+      "mods/usb-track/task_worker.c": "a44f1a1a83a45b1d6d3baf826acadf9232b7a2a561b77c48b44a47d2d8e977e1",
+      "mods/usb-track/usb_track.c": "48d9795ed6903a54268d13cd80b951230f4a8d4f24e5ad2e14fa8f3ac4cbad6a",
+      "mods/usb-track/usb_track.h": "b59075f116e2e50a966807aa5a0bfd265a73c05ebb816cd2d6053d7802f87eb9",
+      "mods/usb-track/worker.c": "cfe13aaec00159c79ec1d8cd31fb07ecd3fd99b5598ac601c4b48d0300d9ce23"
+    }
+  },
+  "checks": [
+    "native serializer and two-argument compiled RX bridge",
+    "silence before ACTIVATE; fresh PCM after stale-half flush",
+    "panel SRC reaches host final 8.8 value",
+    "repeated native starts reach host",
+    "ACK loss closes gate; fresh session recovers",
+    "link loss/reconnect recovers",
+    "preflight and sender run in one native critical section",
+    "sustained every-block modulation with completion progress",
+    "stalled native completions close gate; fresh session recovers"
+  ],
+  "counters": {
+    "up": true,
+    "drop": false,
+    "tx": 3328,
+    "rx": 3118,
+    "silent": 2544,
+    "audible": 14461,
+    "sends_masked": true,
+    "stall": false,
+    "dense": false,
+    "native_event_task": true,
+    "signal_interrupt_levels": {
+      "0": 393,
+      "5": 4386,
+      "7": 14
+    },
+    "task_context_entries": 4739,
+    "native_stack_used_bytes": 1176,
+    "artificial_worker_waits": 0
+  },
+  "limits": [
+    "No physical USB/DMA, Circle scheduling or hardware timing measured.",
+    "USB descriptor submission/completion and already-decoded PCM are modelled."
+  ]
+}

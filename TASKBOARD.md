@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Status | Dependencies / first action | Acceptance |
 | --- | --- | --- | --- | --- |
-| V01 | Persistence and stress | IN PROGRESS — Codex 2026-10-28T15:51:11Z (Phase 2 measured UI starvation) | [Phase 2](evidence/v01/phase2-device-diagnostic.json): 32/32 no new maxima; 64/64 `UGAP 7781→8469ms`, `WGAP 562ms`, `BATCH 94ms`, `FAULT 0`; Play ~15s, LEDs not visibly updating. Supports UI starvation/CPU contention; exact worker cause unproven. V01D installed, voice muted. Next: restore I04R, then offline controlled self-wake/priority variant. [Plan](docs/V01-persistence-stress.md). | Document supported dense-modulation budget, responsive UI and no audio/deadline failure; save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and sustained stress regressions. |
+| V01 | Persistence and stress | IN PROGRESS — Codex 2026-10-28T15:51:11Z (Phase 2 UI starvation measured; priority-5 variant ready) | [Phase 2](evidence/v01/phase2-device-diagnostic.json): 64/64 `UGAP 7781→8469ms`, `WGAP 562ms`, `BATCH 94ms`, `FAULT 0`; Play ~15s. Supports UI starvation/CPU contention; exact worker cause unproven. `V01P` priority-5 `21365ad…c6580` is emulator-verified, not installed. Next: human install/restore gate, then muted 64/64 vs 32/32 on V01P; restore I04R. [Plan](docs/V01-persistence-stress.md). | Document supported dense-modulation budget, responsive UI and no audio/deadline failure; save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and sustained stress regressions. |
 
 ## Waiting
 

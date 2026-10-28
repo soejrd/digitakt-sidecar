@@ -299,6 +299,29 @@ starvation; a controlled priority/self-wake variant is still needed. The
 diagnostic maxima include startup/page interaction, so they are not a calibrated
 UI latency measurement. V01D remains installed until the human restores I04R.
 
+### Phase 2 isolation variants — prepared
+
+Two diagnostic-only variants keep the protocol and `V01 DIAG` counters constant
+while changing one worker behavior:
+
+| Variant | Change | Emulator checks |
+| --- | --- | --- |
+| `V01N` | Worker no longer self-reschedules when its queue remains non-empty | Diagnostic page and dense compiled exchange pass |
+| `V01P` | Worker runs at priority 5, below the stock priority-6 UI task; self-wake unchanged | Diagnostic page, UI, native runtime and dense compiled exchange pass |
+
+The no-self-wake variant still drains through render, RX and the UI watchdog;
+the compiled exchange passed with the same dense stream. A deliberate
+worker-starvation regression also confirms the active queue latches fail-closed
+on overflow, not silent loss. These are emulator results, not hardware timing.
+
+`V01P` is staged at `private/v01/firmware-V01P/` (firmware SHA256
+`21365ad…c6580`) with the same I04R/I04Q/H02F/stock recovery chain. The
+physical comparison is `32/32` control versus `64/64` under V01P, read from
+`V01 DIAG`, with the Pi voice muted. If `UGAP` falls to normal while dense
+records still drain, priority/preemption is implicated; if it remains large,
+lowering priority alone is insufficient. `V01N` follows only if needed to
+separate self-rescheduling from CPU demand.
+
 ## Phase 3 — fix and qualify a modulation budget
 
 Fix the root cause at the responsible layer while preserving fail-closed

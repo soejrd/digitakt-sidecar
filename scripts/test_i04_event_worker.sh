@@ -15,4 +15,5 @@ if [[ "${1:-}" == legacy ]]; then
 else
   build/i04/event_worker event 1
   build/i04/event_worker event 3
+  build/i04/event_worker event 1 starvation
 fi

@@ -41,4 +41,15 @@ int main(int argc,char **argv)
     drop_acks=1;step(1500);assert(!usb_track_gate);
     drop_acks=0;step(2000);assert(usb_track_gate && device.session!=session);
     printf("event worker cadence %u: dense integer SRC, 64 STARTs, ACK loss/recovery: PASS\n",worker_cadence);
+    if (argc > 3 && strcmp(argv[3], "starvation") == 0) {
+        const uint32_t active=device.session;
+        worker_pending=0;
+        for (unsigned n=0;n<UT_QUEUE_CAPACITY+2;++n) {
+            fw_voice_params[n%8]=(int16_t)(((n/8)%127+1)<<8);
+            usb_track_render(blocks);
+        }
+        assert(usb_track_control_failed());
+        assert(device.session==active);
+        puts("worker-service starvation: active queue overflow latches fail-closed; no silent loss");
+    }
 }

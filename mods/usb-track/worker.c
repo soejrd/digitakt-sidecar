@@ -124,6 +124,8 @@ void usb_track_tick(void *ctrl)
     usbmidi_tick(ctrl);
     /* Continue a bounded batch only when records can progress. Never spin on
      * WAIT_ACTIVATE: the USB reply or the UI watchdog will wake us. */
+#ifndef V01_NO_SELF_WAKE
     if (device.state==SC_DEVICE_ACTIVE && usb_track_control_peek(&r))
         usb_track_control_wake();
+#endif
 }

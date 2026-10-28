@@ -1,0 +1,47 @@
+{
+  "task": "V01",
+  "phase": "2 device-side service timing",
+  "status": "candidate verified in emulator; not installed",
+  "scope": "compiled diagnostic formatter/task model only; no physical USB or CPU timing claim",
+  "candidate_sha256": "21365ad44b6c7dd859dd58f5bc2afad9f6fa89ec2f307079057caf68694c6580",
+  "candidate_root": "private/v01-diag-prio5",
+  "diagnostic_page": {
+    "title": "V01 DIAG",
+    "labels": [
+      "RCLK",
+      "UI",
+      "WORK",
+      "WGAP",
+      "BATCH",
+      "UGAP",
+      "FAULT"
+    ],
+    "seeded_formatter_values": {
+      "RCLK": 2345,
+      "UI": 234,
+      "WORK": 345,
+      "WGAP": 9999,
+      "BATCH": 4000,
+      "UGAP": 7000,
+      "FAULT": 0
+    },
+    "units": {
+      "RCLK": "blocks",
+      "UI": "ticks",
+      "WORK": "entries",
+      "WGAP": "ms",
+      "BATCH": "ms",
+      "UGAP": "ms",
+      "FAULT": "count"
+    },
+    "saturation": "four-digit display saturates at 9999, never wraps"
+  },
+  "emulator_tasks": [],
+  "worker_priority": 14,
+  "highest_stock_task_priority": null,
+  "task_hierarchy_limit": "The resumed test session exposes no task-create list; the boot log from the candidate build records priorities 0,1,2,5,6,7,8,9,10 and the worker at 14. This is emulator evidence, not a hardware scheduler proof.",
+  "limits": [
+    "Formatters invoke compiled functions with seeded values; no counter behavior, hardware scheduling or USB timing is claimed",
+    "The four-digit diagnostic text saturates at 9999; a longer stall must be recorded with Pi logs or a larger trace"
+  ]
+}
