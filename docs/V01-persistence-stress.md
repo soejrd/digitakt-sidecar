@@ -1,8 +1,8 @@
 # V01 — persistence and stress qualification plan
 
-Status: **IN PROGRESS — planning only**, claimed by Codex at
-`2026-10-28T15:51:11Z`. No tests were run and no hardware was contacted for
-this plan. Acceptance is not claimed.
+Status: **IN PROGRESS — Phase 0 complete**, claimed by Codex at
+`2026-10-28T15:51:11Z`. Phase 0 was offline provenance verification only; no
+device was contacted and no audio test ran. Acceptance is not claimed.
 
 Target: Digitakt mk1 OS 1.54, Raspberry Pi 4B/Circle, one USB1 voice. The scope
 is the existing I04R one-voice prototype: dense modulation, persistence and
@@ -122,6 +122,33 @@ powered/available, speakers or headphones are lowered, a disposable project and
 backups are ready, routing is known, and a paired candidate/recovery has been
 reviewed. Until then V01 continues with independent source, host and emulator
 work only.
+
+### Phase 0 result — PASS (2026-10-28T15:57:51Z)
+
+[Preflight record](../evidence/v01/phase0-preflight.json), reproducible with
+`python3 tools/v01_phase0.py --output evidence/v01/phase0-preflight.json`.
+
+| Check | Result |
+| --- | --- |
+| Installed Digitakt firmware | I04R SHA256 `6a04ae9…f7fa2b`, corroborated by the separate human-installation and SD-deployment records |
+| Installed Pi kernel | SHA256 `c057f06…4a0f2`, 2474600 bytes, 128-frame playout |
+| Frozen implementation sources | 50/50 hashes match `evidence/i04/event-worker-candidate.json` |
+| Dependency patches | Ten patches replay at `sidecar-firmware` `6cff67b…a0457`; replay script passes |
+| Dependency pins | All five `sources.json` revisions match; only the expected `sidecar-firmware` overlay is dirty |
+| Firmware recovery | I04R, I04Q, H02F and stock 1.54 `.syx` files present and hash-verified |
+| Pi recovery | Installed rollback `0c544fb…070ed` and pre-I04 `a46476a…28a82` images present and hash-verified; rollback `SHA256SUMS` present |
+| Private assets | Firmware/kernel artifacts ignored; zero private or firmware/audio binaries tracked |
+
+**Limits recorded by Phase 0:** the local full-SD backup is represented by its
+rollback kernel and manifest, not an enumerated card image. The private I04R
+manifest's `scope` still says “not installed”; installation is established by
+the separate human-installation/deployment evidence, not that stale label.
+Phase 0 did not resolve the dense-LFO bottleneck, persistence locations or
+supported modulation budget.
+
+**Release still required:** human confirmation of Pi/Digitakt availability,
+lowered speakers or headphones, a disposable project with backups, known
+routing, and reviewed paired candidate/recovery. No hardware action occurred.
 
 ## Phase 1 — reproduce the dense-LFO failure
 

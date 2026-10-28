@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Status | Dependencies / first action | Acceptance |
 | --- | --- | --- | --- | --- |
-| V01 | Persistence and stress | IN PROGRESS — Codex 2026-10-28T15:51:11Z (plan only) | Follow [plan](docs/V01-persistence-stress.md). No tests/hardware in this turn; next complete Phase 0 inventory and source persistence probe. First physical action later: reproduce exact-setting PTCH LFO audio stop + sluggish Digitakt with private trace. [I04 handoff](evidence/i04/v01-dense-lfo-handoff.json) | Document supported dense-modulation budget, responsive UI and no audio/deadline failure; save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and sustained stress regressions. |
+| V01 | Persistence and stress | IN PROGRESS — Codex 2026-10-28T15:51:11Z (Phase 0 PASS) | [Plan](docs/V01-persistence-stress.md) and [Phase 0 preflight](evidence/v01/phase0-preflight.json) pass; no hardware contact. Next: read-only 1.54 persistence probe and freeze dense-LFO sweep/UI/soak thresholds. First physical action later: exact-setting PTCH LFO failure with private trace. [I04 handoff](evidence/i04/v01-dense-lfo-handoff.json) | Document supported dense-modulation budget, responsive UI and no audio/deadline failure; save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and sustained stress regressions. |
 
 ## Waiting
 
