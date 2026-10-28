@@ -119,16 +119,19 @@ bash deps/sidecar-firmware/pi/engine/build.sh kernel
 
 ## Hardware state, release condition and recovery
 
-The generation-fix kernel is currently on the physical Pi, explicitly muted
-after PTCH failure. Existing SD updates were read-back verified, safely ejected,
+The batch-fix kernel is now installed on the SD and safely ejected; physical
+boot is pending. The prior generation-fix was muted after PTCH failure. Existing SD updates were read-back verified, safely ejected,
 and preserved settings and previous backups:
 [initial](../evidence/i04/sd-deployment.json),
 [diagnostic](../evidence/i04/diagnostic-sd-deployment.json),
 [generation fix](../evidence/i04/generation-fix-sd-deployment.json).
 
-Next: human powers Pi off and returns SD; verify current kernel/manifest, back
-up both under fresh names, install/read-back the batch-fix candidate and safely
-eject. Boot muted, capture baseline, test hits and SRC edits muted for faults,
+[Batch-fix SD deployment](../evidence/i04/batch-fix-sd-deployment.json) verified
+current/new kernel and manifests with all other files/settings preserved. Fresh
+backup pair is `kernel8-rpi4.before-batch-fix.img` / `SHA256SUMS.before-batch-fix`
+on card and `private/i04/sd-backup-batch-fix/` locally. User notes 43 ms is long
+and agrees to testing first; no timing acceptance is inferred. Next: human
+reinserts card with Pi off and boots muted; capture baseline, test hits and SRC edits muted for faults,
 then explicitly enable limited/faded audio with speakers lowered. Verify actual
 SRC A–H, locks/LFOs/retriggers, note/velocity, local filter/AMP/sends and unaffected
 neighboring track. Identify a usable capture channel before deriving latency;

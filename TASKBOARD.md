@@ -10,7 +10,7 @@ No independent READY tasks. I04 has a checked host prototype; see its release co
 
 | ID | Work | Status | Release condition / dependencies | Acceptance |
 | --- | --- | --- | --- | --- |
-| I04 | External TRX-B2 voice | BLOCKED — Codex; three hits audible, PTCH edit caused late fault; host batch fix checked | Deploy batch-fix (2,048-frame/256-event) candidate and requalify SRC; measure/calibrate additional latency, locks/LFO/local processing and Pi headroom | Physical native track plays TRX-B2 through SRC/locks/LFO/local processing, verified note/velocity and acceptable measured timing. [Report](docs/I04-external-trx-voice.md), [PTCH failure](evidence/i04/ptch-failure.json) |
+| I04 | External TRX-B2 voice | BLOCKED — Codex; three hits audible, PTCH edit caused late fault; batch-fix SD installed/read-back verified/ejected; boot pending | Boot batch-fix (2,048-frame/256-event) candidate and requalify SRC; measure/calibrate additional latency, locks/LFO/local processing and Pi headroom | Physical native track plays TRX-B2 through SRC/locks/LFO/local processing, verified note/velocity and acceptable measured timing. [Report](docs/I04-external-trx-voice.md), [PTCH failure](evidence/i04/ptch-failure.json) |
 | V01 | Persistence and stress | BLOCKED | I04 | Save/load, copy/paste, undo, mutes, sound locks, restart/reconnect and dense modulation regressions. |
 | X01 | More voices | DEFERRED | V01 + transport capacity decision | Establish independent-channel capacity and measured worst-case margin before scaling. |
 | X02 | Teensy port | DEFERRED | V01 + proven architecture | Measure USB, conversion and DSP capacity; state supported voice count. |

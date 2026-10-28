@@ -1,0 +1,27 @@
+{
+  "task": "I04",
+  "date_utc": "2026-10-28T08:07:13.444770+00:00",
+  "scope": "Batch-fix kernel update/read-back; host fix checked; physical boot/audio pending",
+  "old_kernel_sha256": "784729cfe8f9500f2b12dc783aaf45c71cbde4751a8cd2a4285369565d4988e6",
+  "new_kernel_sha256": "c22e7b6191190bea85971d5e62cf7c2bf4d91de5951064c226af38d8bb6dab3e",
+  "new_kernel_bytes": 2474312,
+  "backup_kernel": "kernel8-rpi4.before-batch-fix.img",
+  "backup_manifest": "SHA256SUMS.before-batch-fix",
+  "assertions": {
+    "human_confirmed_pi_off_speakers_lowered": true,
+    "existing_manifest_verified": true,
+    "local_and_card_backup_verified": true,
+    "candidate_readback_verified": true,
+    "updated_manifest_verified": true,
+    "other_files_unchanged": true
+  },
+  "boot_verified": false,
+  "safely_ejected": true,
+  "rollback": "With Pi off restore kernel8-rpi4.before-batch-fix.img as kernel8-rpi4.img and SHA256SUMS.before-batch-fix as SHA256SUMS.",
+  "configuration": {
+    "playout_delay_frames": 2048,
+    "playout_delay_ms": 42.666666666666664,
+    "event_capacity": 256
+  },
+  "timing_acceptance": false
+}
