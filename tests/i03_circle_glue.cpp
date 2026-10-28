@@ -126,8 +126,11 @@ int main() {
   assert(!dt_link::State(&f) && !(g_Output.ControlToken()&1));
   unsigned stats[8]; dt_link::VoiceStatus(stats);
   assert(stats[0]==0 && stats[1]==0 && stats[3]==1);
+  unsigned ft[6]; dt_link::VoiceFault(ft);
+  assert(ft[0]==6 && ft[1]==32 && ft[2]==SC_START && ft[3]==1);
   assert(!dt_link::VoiceCommand(true));
   hello(45,40); start(45,41); dt_link::Poll(758);
+  dt_link::VoiceFault(ft); assert(ft[0]==6); // survives session clear
   dt_link::RenderVoice(pcm,32);
   for(auto &row:pcm) for(auto x:row) assert(x==0);
 #endif

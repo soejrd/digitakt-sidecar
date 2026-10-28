@@ -1,0 +1,33 @@
+{
+  "task": "I04",
+  "date_utc": "2026-10-28T07:39:15.014334+00:00",
+  "scope": "physical failure observation; not a corrected or accepted audio result",
+  "human_report": "Tapped track quite a few times; no audible sound",
+  "measured_status": {
+    "armed": 0,
+    "queue": 1,
+    "queue_peak": 2,
+    "playout_faults": 37,
+    "applied_snapshots": 774,
+    "starts": 1,
+    "consumed_starts": 1,
+    "render_frame": 1585056
+  },
+  "fifo_underruns": {
+    "boot_baseline": 8,
+    "after_report": 1828
+  },
+  "mitigation": "Explicit trx=off accepted; voice left muted",
+  "reproduction": {
+    "private_command": "python3 private/i04/check_live.py",
+    "result": "RED",
+    "output": "TRX armed=0, faults=37, starts=1, consumed=1; physical playout-fault assertion failed"
+  },
+  "finding": "Playback invalidation/disarm explains muted state, but the deployed total fault counter does not distinguish causes",
+  "hypotheses_not_measurements": [
+    "Late event relative to fixed playout deadline",
+    "Native START spacing guard rejects adjacent-block START flags",
+    "Host scheduling stall causes both underruns and late snapshots"
+  ],
+  "release_condition": "Install diagnostic-1 kernel on powered-off Pi; boot muted and read fault reason/timestamps during one tap, then repeated taps; fix/retest identified cause before audible qualification"
+}

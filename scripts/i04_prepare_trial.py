@@ -2,13 +2,20 @@
 """Stage only a private, silent-by-default Pi kernel and verified H02 rollback.
 Never mount media, write an SD card, contact hardware or flash firmware.
 """
+import argparse
+import re
 import hashlib
 import json
 import pathlib
 
 root = pathlib.Path(__file__).resolve().parent.parent
 sha = lambda data: hashlib.sha256(data).hexdigest()
-evidence = json.loads((root / 'evidence/i04/host.json').read_text())
+ap = argparse.ArgumentParser(description=__doc__)
+ap.add_argument('--evidence', default='evidence/i04/host.json')
+ap.add_argument('--trial-name', default='trial')
+args = ap.parse_args()
+assert re.fullmatch(r'[a-zA-Z0-9_-]+', args.trial_name), 'invalid private trial name'
+evidence = json.loads((root / args.evidence).read_text())
 build = next(item for item in evidence['checks'] if item.get('target') == 'Pi 4 AArch64 Circle')
 for name, expected in evidence['source_sha256'].items():
     assert sha((root / name).read_bytes()) == expected, f'stale source evidence: {name}'
@@ -34,7 +41,7 @@ files = {
     'manifest.json': (json.dumps(manifest, indent=2)+'\n').encode(),
 }
 # Compare everything before writing anything. Refuse to overwrite a prior trial.
-folder = root / 'private/i04/trial'
+folder = root / 'private/i04' / args.trial_name
 for name, data in files.items():
     path = folder / name
     assert not path.exists() or path.read_bytes() == data, f'existing trial differs: {name}'

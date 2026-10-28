@@ -1,0 +1,59 @@
+{
+  "task": "I04",
+  "date_utc": "2026-10-28",
+  "scope": "diagnostic instrumentation only; not a fix for physical silence",
+  "checks": [
+    {
+      "command": "bash scripts/test_i04.sh",
+      "result": "PASS",
+      "scope": "ASan/UBSan and native/Circle glue; reject reason captured and preserved across invalidation"
+    },
+    {
+      "command": "python3 scripts/test_i04_replay.py",
+      "result": "PASS",
+      "scope": "eight patches at pinned base match dependency"
+    },
+    {
+      "command": "bash deps/sidecar-firmware/pi/engine/build.sh kernel",
+      "result": "PASS",
+      "target": "Pi 4 AArch64 Circle",
+      "kernel_sha256": "d10b9ddff3c667fbd4a6b0b95352e44cd1362b60db82d16660af568efe9a750d",
+      "kernel_bytes": 2474312,
+      "deployment": "not yet"
+    }
+  ],
+  "source_sha256": {
+    "audio/playout.c": "1d7dceea4bed3c976c6ab30f046b64450845ed67c6a2e274a16c31ea286d98d7",
+    "audio/playout.h": "2e20b679fc0a7afd3b4fd338add75522adc7d451be122b966b047d8b04b8522a",
+    "audio/src_44148.c": "17e34f1a05ab474336837fe85b1c75d6a56859de9780b2bb0f0bb15d592070b7",
+    "audio/src_44148.h": "23ae3ecde4ab9b059209b2266301e5df18eb700a7cace29e4cabf2e5899b5f97",
+    "audio/trx_voice.c": "aeaaf99ac1685d09a3867288ae0abddba72ac366c0882e8cf3692a9004725cbc",
+    "audio/trx_voice.h": "6e32ed345d6a418e58821fe013bf91410066518176392bcd12c3d6cc6b8a6c99",
+    "patches/sidecar-firmware/0001-directional-overbridge-layout.patch": "87fecfb46737ddf85bed736cf245caf0976c4d3b671478e26297ef5ff352be39",
+    "patches/sidecar-firmware/0002-static-capture-marker.patch": "455b1c1d08189f2ec5e21e8173176508da46569fe6cd1758a0f5aa9286c97e5e",
+    "patches/sidecar-firmware/0003-dtsc-control-link.patch": "fb6e8de487359ee515f4e6b849674c1982203e3801e557f239fac35cdb6db85c",
+    "patches/sidecar-firmware/0004-h02-gated-test-tone.patch": "42f3c9df1a41d0ec42d9005324924b780c48f4e87583c747a40b688d145f936c",
+    "patches/sidecar-firmware/0005-monotonic-control-clock.patch": "fb478754766b1975f14b57a43d1aaf709e07360bfe186e7f791089bf14236afc",
+    "patches/sidecar-firmware/0006-i04-trx-voice.patch": "b9c12b1190e3f154e64184c89685744a383e0e7fd903383900b4fc9c732fcaa2",
+    "patches/sidecar-firmware/0007-i04-scheduled-playout.patch": "e998f473d360e3beb8eed6f04aa13aea55858245f7be971622cf69f700569a1b",
+    "patches/sidecar-firmware/0008-i04-playout-fault-reason.patch": "f86f9d316705a097c485a5e2c31372a3ef70f5a544d66ba06fe8b842c30969ae",
+    "scripts/i04_prepare_circle.sh": "abf9c25c34fbbbb803426e00f4a2e717a4424c251b061c59c1ceb80b3e5ee213",
+    "scripts/i04_prepare_trial.py": "09441dfd88926f3f59cc9ae87317296bc97744b8bf1e310e85dd4c3676e8d83e",
+    "scripts/test_i04.sh": "d1ee9bd674fce31f0a5110346ef36bb1184f4bf8e4627002f5758ee949643631",
+    "scripts/test_i04_replay.py": "bea908e9664f21c0a0e48ceaa31ab69a3f5cc1e6c63d465e646e244314308804",
+    "tests/i03_circle_glue.cpp": "537c6d87844cd07f589d76a1bcfc52320704bf42ee0e1956517bcd7b52a0ac89",
+    "tests/i04_playout.c": "da902950164cf9828931c99208cb17b1c40f765dd7070108578c32fb679f7bcc"
+  },
+  "fault_codes": {
+    "1": "invalid frame",
+    "2": "order/session",
+    "3": "late arrival",
+    "4": "future horizon",
+    "5": "queue capacity",
+    "6": "START spacing",
+    "7": "engine install / pending trigger",
+    "8": "missed render deadline"
+  },
+  "diagnostics": "trxstatus adds last fault code, device block/flags/delta, low 32 bits of host render now/due; fixed storage, no logging in render/install",
+  "physical_result": "pending diagnostic deployment and repetition; active previous candidate is muted"
+}

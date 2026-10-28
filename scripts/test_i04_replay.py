@@ -17,4 +17,4 @@ with tempfile.TemporaryDirectory(prefix="i04-replay-") as directory:
                  "pi/engine/cores.cpp", "NOTICE"]:
         assert (pathlib.Path(directory) / name).read_bytes() == (
             root / "deps/sidecar-firmware" / name).read_bytes(), name
-print("Seven patches replay at pinned base; I04 production files match: PASS")
+print("Eight patches replay at pinned base; I04 production files match: PASS")

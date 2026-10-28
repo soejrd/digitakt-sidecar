@@ -54,6 +54,10 @@ int main(void) {
         if(scenario==5) f.flags=SC_START;
         if(scenario==6) f.block+=0x80000000u;
         assert(!sc_playout_enqueue(&a,&f));
+        const unsigned codes[]={SC_PF_CAPACITY,SC_PF_LATE,SC_PF_ORDER,SC_PF_ORDER,
+                                SC_PF_HORIZON,SC_PF_START_SPACING,SC_PF_ORDER};
+        assert(a.failure.code==codes[scenario] && a.failure.block==f.block);
+        assert(a.failure.clock==a.clock);
         memset(scratch,0x55,sizeof scratch);
         assert(!sc_playout_render(&a,scratch,4096));
         for(unsigned i=0;i<4096;++i) for(unsigned ch=0;ch<8;++ch) assert(scratch[i][ch]==0);

@@ -71,3 +71,12 @@ trigger/R05-converter behavior. `python3 scripts/test_i04_replay.py` checks all
 seven patches; the I04 suite checks scheduled deadlines and separately consumed
 native STARTs. The 1,024-frame buffer is experimental; adjacent-block STARTs
 fail closed. Hardware timing remains unqualified; see the current I04 report.
+
+## 0008-i04-playout-fault-reason.patch
+
+Diagnostic follow-up to physical silence: 37 playout faults disarmed the initial
+candidate. Retain exact last rejection metadata across session resets and report
+it with `:trxstatus`, without logging in render/install. Apply after 0001–0007
+and use the current I04 overlay. Host tests assert reason/reset behavior; eight
+patches replay and Pi kernel build pass. This is instrumentation, not a root-cause
+fix or an audio acceptance result. Diagnostic-1 remains to be deployed.

@@ -1,9 +1,10 @@
 # I04 — external TRX-B2 voice
 
-Status: **software candidate checked; BLOCKED on physical acceptance** (2026-10-28).
+Status: **physical taps silent; BLOCKED pending diagnostic SD swap** (2026-10-28).
 Owner: Codex; scheduling/filter follow-up claimed 07:11 UTC.
 The SD candidate is installed/read-back verified and physically booted; explicit
-TRX enable is accepted. Human listening and timing acceptance remain pending.
+TRX enable was accepted, but the human heard no taps; 37 playout faults disarmed
+the session. TRX is explicitly muted. Listening/timing acceptance has failed so far.
 No Digitakt firmware was flashed.
 
 ## Candidate behavior
@@ -189,3 +190,46 @@ session-bound enable. FIFO underruns stayed at startup baseline 8 through enable
 This is not a zero-underrun boot or stress proof. Human was asked to select the
 existing USB1 track and tap trigs; audible behavior is not yet confirmed. Leave
 speakers low; audio is currently enabled, level-limited and subject to loss disarm.
+
+## Physical silence and diagnostic follow-up — 2026-10-28
+
+[Failure evidence](../evidence/i04/physical-silence.json): human reported many
+manual taps with no audible sound. Focused live counter check was RED:
+`armed=0, faults=37, starts=1, consumed=1`. FIFO underruns increased from startup
+8 to 1,828. START counters are for the latest session only; invalidations reset
+them, so they do not count all human taps. Explicit `trx=off` was accepted.
+No audible success or physical timing result is claimed.
+
+Ranked hypotheses, not findings: late events relative to fixed deadlines;
+adjacent-block START rejection; host scheduling stalls contributing both late
+events and FIFO starvation. The installed counter has no reason field, so none
+can be selected as the root cause yet. The private live assertion reproduces
+physical invalidation; it is not an unattended acoustic measurement.
+
+Patch 0008 adds bounded last-fault metadata, retained separately across resets.
+`:trxstatus` reports code, sender block/flags/delta and low 32 bits of render
+clock/deadline. Codes 1–8 are invalid frame, order/session, late, future horizon,
+capacity, START spacing, engine install/pending-trigger, missed render deadline.
+Metadata storage occurs at failure; printing occurs only on the status command.
+No extra audio-callback logging is added. Host tests assert exact reason codes
+and preservation across actual Circle invalidation/reconnect. This is diagnostic
+instrumentation, **not a fix**. Eight-patch replay and Pi build pass.
+
+[Diagnostic candidate](../evidence/i04/diagnostic-candidate.json) pins sources and
+kernel. It is staged in ignored `private/i04/diagnostic-1/` with verified H02
+rollback. Stage/recheck it with:
+
+```sh
+python3 scripts/i04_prepare_trial.py \
+  --evidence evidence/i04/diagnostic-candidate.json --trial-name diagnostic-1
+```
+
+The original trial and host source-hash evidence remain historical; their staging
+check deliberately refuses current changed sources. The diagnostic supports a
+separate named private trial without overwriting that original candidate.
+
+Release condition: human powers Pi off and returns SD; back up its current
+kernel/manifest, deploy/read-back diagnostic-1, eject and boot muted. Capture
+fault metadata during one tap, then repeated taps. Turn that observed failing
+scenario into a correct host regression, fix the identified cause, and repeat
+physical listening/transport checks. No other independent READY task exists.
