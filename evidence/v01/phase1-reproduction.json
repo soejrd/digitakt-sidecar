@@ -1,0 +1,141 @@
+{
+  "task": "V01",
+  "phase": "1 dense-LFO reproduction",
+  "status": "FAILED — reproduced; root cause not yet proven",
+  "date_utc": "2026-10-28T16:20:25Z",
+  "scope": "Physical Digitakt mk1 OS 1.54 I04R + Pi 4B 128-frame kernel, one USB1 voice on track 1; disposable project; speakers lowered",
+  "release_gate": {
+    "human_confirmed": true,
+    "hardware_available": true,
+    "speakers_lowered": true,
+    "disposable_project": true,
+    "firmware_good": true,
+    "agent_flashed_firmware": false,
+    "agent_changed_bootloader_or_wiring": false
+  },
+  "installed_pair": {
+    "digitakt_firmware": "I04R",
+    "firmware_sha256": "6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b",
+    "pi_kernel_sha256": "c057f063c24770a520b842e66d4d7e10655bdda3d45de05e1b67edc85d34a0f2",
+    "pi_build": "Oct 28 2026 13:38:57",
+    "playout_delay_frames": 128
+  },
+  "baseline": {
+    "destination": "PTCH",
+    "spd": 48,
+    "dep": 35,
+    "mult": "BPM16",
+    "fade": "x",
+    "wave": "triangle",
+    "sph": 0,
+    "mode": "free",
+    "note": "C5",
+    "velocity": 100,
+    "result": "PASS",
+    "duration_seconds_approx": 10,
+    "fifo_underruns_before": 12,
+    "fifo_underruns_after": 12,
+    "playout_faults": 0,
+    "starts_before": 52,
+    "starts_after": 72,
+    "consumed_after": 72,
+    "queue_peak": 3,
+    "usb_gaps_or_errors": 0,
+    "human_observation": "No stop or sluggishness reported"
+  },
+  "rows": [
+    {
+      "row": "S1",
+      "spd": 32,
+      "dep": 32,
+      "result": "PASS",
+      "fifo_underruns_before": 12,
+      "fifo_underruns_after": 12,
+      "playout_faults": 0,
+      "starts_before": 72,
+      "starts_after": 83,
+      "consumed_after": 83,
+      "queue_peak": 5,
+      "usb_gaps_or_errors": 0,
+      "human_observation": "Audio and UI reported normal"
+    },
+    {
+      "row": "S2",
+      "spd": 64,
+      "dep": 64,
+      "result": "FAIL — UI/transport responsiveness",
+      "audible_pass": {
+        "fifo_underruns_before": 12,
+        "fifo_underruns_after": 12,
+        "playout_faults": 0,
+        "starts_before": 83,
+        "starts_after": 107,
+        "consumed_after": 107,
+        "queue_after": 3,
+        "queue_peak": 5,
+        "usb_gaps_or_errors": 0,
+        "pi_core3_busy_percent_max_observed": 4.3,
+        "pi_control_pass_max_us_observed": 19,
+        "pi_engine_block_max_us_observed": 10
+      },
+      "trace_pass": {
+        "voice_muted_by_design": true,
+        "retained_rows": 128,
+        "frozen_on_rejection": false,
+        "accepted_rows": 128,
+        "rejected_rows": 0,
+        "effective_engine_updates": 128,
+        "minimum_slack_frames": 80,
+        "queue_peak": 2,
+        "fifo_frames_min": 85,
+        "fifo_frames_max": 96,
+        "source_block_delta": {
+          "min": 1,
+          "median": 1,
+          "max": 12,
+          "one_block_rows": 65,
+          "two_block_rows": 61,
+          "twelve_block_rows": 1
+        },
+        "ring_time_span_ms_approx": 133,
+        "observed_event_rate_per_second_approx": 965,
+        "compact_evidence": "evidence/v01/phase1-s2-64-64-trace.json"
+      },
+      "human_observation": "DEP control became very sluggish above about 32, regardless of speed; Play lagged several seconds; Stop took about 8 seconds to take effect. Repeated with trace on and voice muted: same encoder lag, multi-second parameter response, and about 7-second Play/Stop delay.",
+      "interpretation": "The failure reproduces with the Pi voice muted and no Pi playout fault, new FIFO underrun, or USB gap/error. It is therefore device-side control/UI service contention or a Digitakt CPU-load effect, not a Pi audio deadline failure. This supports the human's CPU-overtasking hypothesis but does not yet prove which native task/path is starved."
+    }
+  ],
+  "stop_decision": "Stopped at first UI/transport failure per preregistered rules. No S3/S4 rows were run.",
+  "instrumentation_limit": {
+    "trace_mutes_voice": true,
+    "trace_ring_coverage_ms": 133,
+    "trace_cannot_cover_full_7_second_stall": true,
+    "fifo_rise": "12 -> 63",
+    "fifo_rise_cause": "Isolated to the trace dump: FIFO was 12 through 00:10:00, then the next engine row reported a 3003 us control pass and FIFO 0/63. This is an instrumentation side effect, not counted as part of the UI-failure interval.",
+    "raw_logs_are_private": true
+  },
+  "evidence_classes": {
+    "physical_measurement": "Pi counters, USB telemetry, FIFO, playout faults, retained trace",
+    "human_observation": "DEP/encoder sluggishness, Play/Stop delays, audio continuity",
+    "source_fact": "trxtrace forces mute; final SRC values come from the render hook",
+    "hypothesis": "Digitakt native control/service or CPU is overtasked by dense effective updates; exact path unproven"
+  },
+  "limitations": [
+    "No precise DEP threshold was measured; human estimate is above about +32 and possibly symmetric near -32",
+    "The 128-row trace covers only about133 ms, so it cannot establish the cause of the multi-second UI stall",
+    "No native CPU/task timing instrument was captured during the stall",
+    "No calibrated UI latency measurement exists; delays are human-observed seconds",
+    "The FIFO rise after the trace dump is excluded from the failure interval but leaves a higher baseline for later runs"
+  ],
+  "recovery": {
+    "voice_muted": true,
+    "final_arm_state": 0,
+    "playout_faults": 0,
+    "starts": 136,
+    "consumed_starts": 136,
+    "final_fifo_underruns": 63,
+    "recorder_idle_and_defaults_restored": true,
+    "pi_or_digitakt_restart_required": false
+  },
+  "next_action": "Phase 2 device-side isolation: capture native task/IRQ service timing and effective-update cadence over a multi-second stall, then test whether the capture/control worker is starving the UI task. Do not attribute the cause to Pi playback or adopt a larger buffer/coalescing workaround before that evidence exists."
+}

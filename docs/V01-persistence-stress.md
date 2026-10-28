@@ -1,8 +1,8 @@
 # V01 — persistence and stress qualification plan
 
-Status: **IN PROGRESS — Phase 0 complete**, claimed by Codex at
-`2026-10-28T15:51:11Z`. Phase 0 was offline provenance verification only; no
-device was contacted and no audio test ran. Acceptance is not claimed.
+Status: **IN PROGRESS — Phase 0 PASS; Phase 1 reproduced failure**, claimed by
+Codex at `2026-10-28T15:51:11Z`. Phase 1 physical testing is recorded below;
+the root cause and supported budget remain unresolved. Acceptance is not claimed.
 
 Target: Digitakt mk1 OS 1.54, Raspberry Pi 4B/Circle, one USB1 voice. The scope
 is the existing I04R one-voice prototype: dense modulation, persistence and
@@ -183,6 +183,35 @@ to mute, so audible and trace passes are paired rather than conflated. The runbo
 also defines the numeric grid, required telemetry, stop rules and the physical
 release gate. It is prepared but **not executed** as of
 `2026-10-28T15:59:00Z`.
+
+### Phase 1 result — FAILED, reproduced (2026-10-28T16:20:25Z)
+
+[Physical evidence](../evidence/v01/phase1-reproduction.json). The accepted
+baseline (`SPD 48`, `DEP 35`, `BPM16`, triangle, free, C5/100) and `SPD 32 /
+DEP 32` passed with no new FIFO underruns, faults or USB gaps. At `SPD 64 /
+DEP 64`, the human reported DEP control becoming very sluggish above roughly
+32 regardless of speed, a several-second Play delay and an approximately
+8-second Stop delay.
+
+The same UI/transport stall reproduced with the voice muted and the diagnostic
+trace enabled. The Pi recorded **0 playout faults**, FIFO stayed **12 -> 12**
+through the stall, queue peak `5`, and USB gaps/errors `0`. The retained
+128-row trace had **128/128 accepted** events, minimum slack `80` frames, queue
+peak `2`, and did not freeze on a rejection. The ring covers only about 133 ms
+(~965 updates/s), so it explains the admission path but not the multi-second UI
+stall.
+
+**Measured conclusion:** this is a device-side control/UI-service failure, not
+a Pi audio deadline failure. It supports the human's CPU/service-overtasking
+hypothesis, but does not yet prove which native task or path is starved. The
+FIFO rise from 12 to 63 occurred only when the 128-row trace was dumped (engine
+pass `3003 us`), after the stall interval; it is recorded as an instrumentation
+side effect, not as part of the failure.
+
+The sweep stopped at the first failure; no S3/S4 rows ran. The Pi voice and
+trace are off, the recorder is idle, and no restart was required. Phase 2 must
+capture native task/IRQ service timing across a multi-second stall before any
+fix, buffer increase or coalescing change is considered.
 
 ## Phase 2 — isolate the bottleneck
 
