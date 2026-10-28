@@ -31,5 +31,14 @@
     "Listening verification, not calibrated velocity curve or timbre equivalence measurement",
     "Fixed 2048-frame buffering and local-envelope alignment remain unresolved",
     "No worst-case Pi render/headroom qualification"
-  ]
+  ],
+  "timing_session_end": {
+    "uptime_seconds": 1665,
+    "starts": 325,
+    "consumed_starts": 325,
+    "playout_faults": 0,
+    "fifo_underruns": 14,
+    "recorder_settings_restored": true,
+    "explicitly_muted": true
+  }
 }

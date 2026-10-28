@@ -1,0 +1,200 @@
+{
+  "task": "I04",
+  "hardware_test": true,
+  "scope": "120 BPM simultaneous T1 USB1 and T2 native-click relative audio-onset offsets",
+  "sample_rate_hz": 48000,
+  "reference_hits": 21,
+  "stats": {
+    "source_offset_frames": {
+      "min_ms": 110.4375,
+      "median_ms": 110.8125,
+      "max_ms": 111.10416666666667,
+      "range_ms": 0.6666666666666714
+    },
+    "analog_offset_frames": {
+      "min_ms": 115.41666666666667,
+      "median_ms": 115.83333333333333,
+      "max_ms": 116.10416666666667,
+      "range_ms": 0.6875
+    },
+    "return_path_lag_frames": {
+      "min_ms": 4.979166666666667,
+      "median_ms": 5.0,
+      "max_ms": 5.0,
+      "range_ms": 0.020833333333333037
+    }
+  },
+  "rows": [
+    {
+      "reference_frame": 501352,
+      "source_offset_frames": 5319,
+      "analog_offset_frames": 5561,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9948596498378603
+    },
+    {
+      "reference_frame": 525352,
+      "source_offset_frames": 5324,
+      "analog_offset_frames": 5565,
+      "return_path_lag_frames": 239,
+      "correlation": 0.9950675153994591
+    },
+    {
+      "reference_frame": 549352,
+      "source_offset_frames": 5323,
+      "analog_offset_frames": 5562,
+      "return_path_lag_frames": 239,
+      "correlation": 0.9952666810660479
+    },
+    {
+      "reference_frame": 573352,
+      "source_offset_frames": 5322,
+      "analog_offset_frames": 5560,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9946956590426793
+    },
+    {
+      "reference_frame": 597352,
+      "source_offset_frames": 5318,
+      "analog_offset_frames": 5558,
+      "return_path_lag_frames": 239,
+      "correlation": 0.995254504909785
+    },
+    {
+      "reference_frame": 621352,
+      "source_offset_frames": 5315,
+      "analog_offset_frames": 5556,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9948295716979909
+    },
+    {
+      "reference_frame": 645352,
+      "source_offset_frames": 5314,
+      "analog_offset_frames": 5554,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9950670468264429
+    },
+    {
+      "reference_frame": 669352,
+      "source_offset_frames": 5313,
+      "analog_offset_frames": 5551,
+      "return_path_lag_frames": 239,
+      "correlation": 0.9953468189865029
+    },
+    {
+      "reference_frame": 693352,
+      "source_offset_frames": 5310,
+      "analog_offset_frames": 5549,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9946785387404194
+    },
+    {
+      "reference_frame": 717352,
+      "source_offset_frames": 5307,
+      "analog_offset_frames": 5547,
+      "return_path_lag_frames": 239,
+      "correlation": 0.9951280761098642
+    },
+    {
+      "reference_frame": 741352,
+      "source_offset_frames": 5305,
+      "analog_offset_frames": 5545,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9949899587865753
+    },
+    {
+      "reference_frame": 765352,
+      "source_offset_frames": 5304,
+      "analog_offset_frames": 5543,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9949807109526018
+    },
+    {
+      "reference_frame": 789352,
+      "source_offset_frames": 5301,
+      "analog_offset_frames": 5540,
+      "return_path_lag_frames": 239,
+      "correlation": 0.9953988148421753
+    },
+    {
+      "reference_frame": 813352,
+      "source_offset_frames": 5333,
+      "analog_offset_frames": 5573,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9946149276804368
+    },
+    {
+      "reference_frame": 837352,
+      "source_offset_frames": 5330,
+      "analog_offset_frames": 5572,
+      "return_path_lag_frames": 239,
+      "correlation": 0.9950568112162474
+    },
+    {
+      "reference_frame": 861352,
+      "source_offset_frames": 5330,
+      "analog_offset_frames": 5569,
+      "return_path_lag_frames": 239,
+      "correlation": 0.9952221321670631
+    },
+    {
+      "reference_frame": 885352,
+      "source_offset_frames": 5328,
+      "analog_offset_frames": 5566,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9948618440812655
+    },
+    {
+      "reference_frame": 909352,
+      "source_offset_frames": 5325,
+      "analog_offset_frames": 5564,
+      "return_path_lag_frames": 239,
+      "correlation": 0.9952756929354116
+    },
+    {
+      "reference_frame": 933352,
+      "source_offset_frames": 5322,
+      "analog_offset_frames": 5562,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9947871109602064
+    },
+    {
+      "reference_frame": 957352,
+      "source_offset_frames": 5320,
+      "analog_offset_frames": 5561,
+      "return_path_lag_frames": 240,
+      "correlation": 0.9949464195088249
+    },
+    {
+      "reference_frame": 981352,
+      "source_offset_frames": 5319,
+      "analog_offset_frames": 5557,
+      "return_path_lag_frames": 239,
+      "correlation": 0.9953321322774522
+    }
+  ],
+  "method": {
+    "native_reference": "first sample exceeding 10% absolute peak, >=250 ms refractory",
+    "remote_onsets": "1 ms trailing RMS first crossing max(10% post-reference peak, 3x pre-reference baseline); 50 ms pre-reference baseline, 250 ms search",
+    "return_match": "200 ms normalized waveform correlation, 0..100 ms search, >=0.9 required"
+  },
+  "recorder": {
+    "frames": 1883336,
+    "drops": 0,
+    "silence": 0,
+    "outShort": 21,
+    "error": ""
+  },
+  "capture_sha256": {
+    "04_SD.wav": "49f77dd7a7465564aad0c8ec96531f209ede5f94c06d029b3dbe476845171121",
+    "13_VOICE1.wav": "edc326662eea950ba878b7f62ea076bb59228033fc5bc1f583c3a17dabd1dfb1",
+    "11_IN_L.wav": "8d0bfd6be43d22a091019f1322d362c1256ca1483bcf6515f1f7c4d41b35a409"
+  },
+  "limits": [
+    "Native sample onset/leading silence is not calibrated to the sequencer trigger; these are observable relative audio offsets",
+    "RMS threshold and different attack shapes bias onset values; no exact event-to-audio claim",
+    "Analog and native reference are same-clock IN channels; OUT FIFO alignment uncertainty applies to the Pi source reference only (up to112 frames/2.333ms)",
+    "Short 21-hit run does not establish worst-case or long-run jitter",
+    "No manual-key latency or Pi render CPU margin measurement"
+  ]
+}

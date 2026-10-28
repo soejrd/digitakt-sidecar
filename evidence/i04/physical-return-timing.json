@@ -1,0 +1,131 @@
+{
+  "task": "I04",
+  "hardware_test": true,
+  "scope": "recorder-relative Pi voice source to USB MAIN and analog loopback; excludes trigger/control and scheduler delay",
+  "sample_rate_hz": 48000,
+  "frames": 2175852,
+  "source_hits": 5,
+  "template_start_reference_frames": [
+    1586400,
+    1666080,
+    1747200,
+    1831680,
+    1920480
+  ],
+  "channels": {
+    "01_MAIN_L.wav": {
+      "measurement_available": true,
+      "matches": [
+        {
+          "lag_frames": 149,
+          "correlation": 0.9959285318571962
+        },
+        {
+          "lag_frames": 149,
+          "correlation": 0.9960227302973946
+        },
+        {
+          "lag_frames": 149,
+          "correlation": 0.9959077470270637
+        },
+        {
+          "lag_frames": 149,
+          "correlation": 0.9958622422347668
+        },
+        {
+          "lag_frames": 149,
+          "correlation": 0.9959586136607741
+        }
+      ],
+      "min_ms": 3.1041666666666665,
+      "median_ms": 3.1041666666666665,
+      "max_ms": 3.1041666666666665,
+      "range_ms": 0.0
+    },
+    "02_MAIN_R.wav": {
+      "measurement_available": true,
+      "matches": [
+        {
+          "lag_frames": 149,
+          "correlation": 0.9959285304487936
+        },
+        {
+          "lag_frames": 149,
+          "correlation": 0.9960227320253751
+        },
+        {
+          "lag_frames": 149,
+          "correlation": 0.9959077510339277
+        },
+        {
+          "lag_frames": 149,
+          "correlation": 0.9958622317463596
+        },
+        {
+          "lag_frames": 149,
+          "correlation": 0.9959585974619684
+        }
+      ],
+      "min_ms": 3.1041666666666665,
+      "median_ms": 3.1041666666666665,
+      "max_ms": 3.1041666666666665,
+      "range_ms": 0.0
+    },
+    "11_IN_L.wav": {
+      "measurement_available": true,
+      "matches": [
+        {
+          "lag_frames": 241,
+          "correlation": 0.9925972845689229
+        },
+        {
+          "lag_frames": 242,
+          "correlation": 0.9925849086833123
+        },
+        {
+          "lag_frames": 241,
+          "correlation": 0.9924865681038009
+        },
+        {
+          "lag_frames": 239,
+          "correlation": 0.9926608572165015
+        },
+        {
+          "lag_frames": 241,
+          "correlation": 0.9925232286300877
+        }
+      ],
+      "min_ms": 4.979166666666667,
+      "median_ms": 5.020833333333333,
+      "max_ms": 5.041666666666667,
+      "range_ms": 0.0625
+    },
+    "12_IN_R.wav": {
+      "measurement_available": false,
+      "peak_abs_correlation": 0.07024841148945879,
+      "reason": "No consistent >=0.9 waveform match inside the 0..100 ms search window"
+    }
+  },
+  "capture_sha256": {
+    "13_VOICE1.wav": "f55e013dc6f032988628a83e9111febf2cded18e1de6a34cdc56db8a2459afae",
+    "01_MAIN_L.wav": "412aae962c9db04e964c6152fa4f03a8546237ca888d886b6a4841415509471d",
+    "02_MAIN_R.wav": "93366f7979809a2a21530027c3549fc4a5103c438a944d3ee5a4e9b9e3b05083",
+    "11_IN_L.wav": "6d479aa80129273446ba1f63d6c1afe0329990523a6dd9f1681967d226b99838",
+    "12_IN_R.wav": "183aadf9538e1daaf85d0c9abd87c4c1526f6591f757b2f0b8a88eabc64dfd63"
+  },
+  "recorder": {
+    "frames": 2175852,
+    "drops": 0,
+    "silence": 0,
+    "outShort": 14,
+    "error": ""
+  },
+  "source_alignment_bound_ms": 2.3333333333333335,
+  "limits": [
+    "OUT reference FIFO may lead by up to 112 frames (2.333 ms); not calibrated USB-bus timestamps",
+    "OUT-side short frames are counted separately; high correlation does not remove alignment uncertainty",
+    "Lag fits 200 ms waveforms at integer-sample resolution; five matches do not establish long-run jitter",
+    "Analog loopback includes DAC/ADC and local processing; it is not a pure output-only delay",
+    "No trigger-to-audio, control-delivery, 2048-frame buffer, or SRC filter delay measurement follows from this take"
+  ]
+}
