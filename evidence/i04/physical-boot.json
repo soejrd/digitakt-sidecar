@@ -1,0 +1,44 @@
+{
+  "task": "I04",
+  "date_utc": "2026-10-28T07:34:22.624745+00:00",
+  "scope": "physical Pi boot/USB/control and explicit arm; listening/timing acceptance pending",
+  "build": "Oct 28 2026 07:20:19",
+  "build_matches_expected": true,
+  "streaming": true,
+  "link": "usb",
+  "out": "main",
+  "baseline_uptime_seconds": 60,
+  "armed_uptime_seconds": 89,
+  "baseline_fifo_underruns": 8,
+  "armed_fifo_underruns": 8,
+  "playout_status": [
+    {
+      "armed": 0,
+      "queue": 1,
+      "queue_peak": 2,
+      "playout_faults": 0,
+      "applied_snapshots": 1585,
+      "starts": 1,
+      "consumed_starts": 1,
+      "render_frame": 3245568
+    },
+    {
+      "armed": 1,
+      "queue": 2,
+      "queue_peak": 2,
+      "playout_faults": 0,
+      "applied_snapshots": 2016,
+      "starts": 1,
+      "consumed_starts": 1,
+      "render_frame": 4129716
+    }
+  ],
+  "explicit_enable_accepted": true,
+  "listening_result": null,
+  "latency_ms": null,
+  "limitations": [
+    "8 startup FIFO underruns are present; not a zero-underrun boot claim",
+    "matching boot build string plus SD read-back; no runtime kernel hash attestation",
+    "no human audible-control or integrated timing acceptance yet"
+  ]
+}

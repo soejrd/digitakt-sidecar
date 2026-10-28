@@ -2,8 +2,9 @@
 
 Status: **software candidate checked; BLOCKED on physical acceptance** (2026-10-28).
 Owner: Codex; scheduling/filter follow-up claimed 07:11 UTC.
-The SD candidate is installed/read-back verified and safely ejected; boot and
-audio remain pending. No Digitakt firmware was flashed.
+The SD candidate is installed/read-back verified and physically booted; explicit
+TRX enable is accepted. Human listening and timing acceptance remain pending.
+No Digitakt firmware was flashed.
 
 ## Candidate behavior
 
@@ -176,3 +177,15 @@ audio are not yet tested. Restore the pre-I04 card kernel and complete pre-I04
 manifest together for exact rollback. Next: human inserts SD into powered-off
 Pi, connects Digitakt as before and powers up; inspect silent session before
 explicitly enabling audio.
+
+## Physical boot and first enable — 2026-10-28
+
+[Boot evidence](../evidence/i04/physical-boot.json): the human installed the SD,
+connected/powered the devices and confirmed speakers lowered. HTTP status reports
+expected build `Oct 28 2026 07:20:19`, USB streaming and MAIN output. Muted TRX
+status had arm 0, queue 1, peak 2, zero playout faults, and one START consumed.
+Explicit `trx=on` was accepted; subsequent arm 1 / zero-fault status confirms
+session-bound enable. FIFO underruns stayed at startup baseline 8 through enable.
+This is not a zero-underrun boot or stress proof. Human was asked to select the
+existing USB1 track and tap trigs; audible behavior is not yet confirmed. Leave
+speakers low; audio is currently enabled, level-limited and subject to loss disarm.

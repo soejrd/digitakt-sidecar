@@ -15,7 +15,8 @@
     "updated_manifest_verified": true,
     "other_files_unchanged": true
   },
-  "boot_verified": false,
+  "boot_verified": true,
   "safely_ejected": true,
-  "rollback": "With Pi off restore kernel8-rpi4.before-i04.img as kernel8-rpi4.img and SHA256SUMS.before-i04 as SHA256SUMS."
+  "rollback": "With Pi off restore kernel8-rpi4.before-i04.img as kernel8-rpi4.img and SHA256SUMS.before-i04 as SHA256SUMS.",
+  "boot_evidence": "evidence/i04/physical-boot.json"
 }
