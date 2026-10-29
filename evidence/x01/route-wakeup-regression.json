@@ -1,0 +1,35 @@
+{
+  "scope": "X01-only worker wake regression; compiled model and booted OS1.54 emulator; no hardware",
+  "before": {
+    "source_revision": "363ca88",
+    "renderer_sha256": "79736bc948ac7bac5a714a57f992272e57dbc2d93c8234f586f62ca46ba10fdf",
+    "candidate_sha256": "224534159213a04b6f88006366e5b69d209257f2a654d7f4901a4f88a5d504d6",
+    "native_observation": {
+      "action": "remove third USB1 machine, wait1200ms without another panel event",
+      "selected_tracks": [
+        0,
+        1
+      ],
+      "packed_lanes": 256,
+      "route_available": true,
+      "device_gate": false,
+      "host_allowed": false
+    },
+    "compiled_regression": "With UI fallback wakes disabled, recovery assertion failed after unsupported third track was removed."
+  },
+  "after": {
+    "renderer_sha256": "169fa6c3e85de93e0aef6c20d5abb5abb2f0b70ba8171dd4ee2c3ef9ba824db0",
+    "candidate_sha256": "81af6b065104ffeb10546b994ad140a556a52598ebbcbc37178b02a7934e4c38",
+    "fix": "Post the existing bounded worker semaphore on lane-map or route-availability edges.",
+    "compiled_command": "bash scripts/test_x01_transport.sh",
+    "compiled_result": "PASS: third-track and empty-route recovery without modelled UI fallback wakes; ASan/UBSan and ColdFire import checks pass.",
+    "native_command": "PYTHONPATH=private/r03-runtime:deps/digiemu deps/digiemu/.venv/bin/python tools/x01_integrated_probe.py --candidate private/x01-routes --route-probe",
+    "native_result": "PASS: all9 phases; exact PCM lane checks and closed-gate silence at all observed render boundaries.",
+    "native_evidence": "evidence/x01/routes-154.json"
+  },
+  "limits": [
+    "Default one-voice firmware and V01 worker unchanged.",
+    "Not a V01-A freeze fix or physical USB/timing qualification."
+  ],
+  "pass": true
+}

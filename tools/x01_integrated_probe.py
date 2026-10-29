@@ -19,7 +19,7 @@ import r03_probe as r03
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def run(candidate, output, lfo_probe=False, locks_probe=False, copy_probe=False, sound_lock_probe=False):
+def run(candidate, output, lfo_probe=False, locks_probe=False, copy_probe=False, sound_lock_probe=False, route_probe=False):
     from emu.session import Session
     from emu.harness import call
     from unicorn import UC_HOOK_CODE
@@ -43,6 +43,8 @@ def run(candidate, output, lfo_probe=False, locks_probe=False, copy_probe=False,
     state = {'up': True, 'drop': False, 'stall': False, 'tx': 0, 'rx': 0,
              'silent': [0, 0], 'audible': [0, 0], 'halves': [0, 0],
              'other_track_checks': 0, 'sends_masked': True, 'worker_entries': 0}
+    route_trace = []
+    route_audio = [0]*8
     pending = bytearray()
     pcm = (ctypes.c_int32*64)()
     others = None
@@ -97,12 +99,28 @@ def run(candidate, output, lfo_probe=False, locks_probe=False, copy_probe=False,
             assert selector < 2
             peer.peer_render(pcm)
             cpu.mem_write(0x80001f60+256*selector, struct.pack('>64i', *pcm))
-            others = bytes(cpu.mem_read(0x80001a18+256, 768))
+            others = {t:bytes(cpu.mem_read(0x80001a18+128*t,128)) for t in range(8)
+                      if cpu.mem_read(sym('fw_render_machine')+t,1)[0]!=121}
         elif address == 0x40077fc0:
-            assert others == bytes(cpu.mem_read(0x80001a18+256, 768))
+            assert all(block==bytes(cpu.mem_read(0x80001a18+128*t,128)) for t,block in others.items())
             state['other_track_checks'] += 1
             selector = get(cpu, 0x4199f134)
             state['halves'][selector] += 1
+            if route_probe:
+                selected=[t for t in range(8) if cpu.mem_read(sym('fw_render_machine')+t,1)[0]==121]
+                signature=(get(cpu,sym('x01_route_lanes')),get(cpu,sym('usb_track_route')),
+                           get(cpu,sym('usb_track_gate')),peer.peer_session())
+                if not route_trace or tuple(route_trace[-1]['state'])!=signature:
+                    route_trace.append({'block':get(cpu,sym('usb_track_clock')),'selected_tracks':selected,'state':signature})
+                for lane,t in enumerate(selected):
+                    block=bytes(cpu.mem_read(0x80001a18+128*t,128))
+                    if not get(cpu,sym('usb_track_gate')):
+                        assert block==bytes(128), 'selected track escaped closed route gate'
+                    else:
+                        assert len(selected)<=2
+                        expected=struct.pack('>32i',*[pcm[2*i+lane] for i in range(32)])
+                        assert block==expected, ('wrong lane',selected,t)
+                        if block!=bytes(128): route_audio[t]+=1
             for track in range(2):
                 if cpu.mem_read(sym('fw_render_machine')+track, 1)[0] != 121: continue
                 block = bytes(cpu.mem_read(0x80001a18+128*track, 128))
@@ -187,6 +205,16 @@ def run(candidate, output, lfo_probe=False, locks_probe=False, copy_probe=False,
         assert get(session.m.uc, sym('usb_track_gate')) and peer.peer_allowed(), (state, peer.peer_reason(), peer.peer_fault())
         assert get(session.m.uc, sym('x01_route_lanes')) == 0x100
         generation = peer.peer_session()
+        if route_probe:
+            from x01_native_routes import exercise
+            diagnostic=exercise(session,step,peer,symbols,route_trace,route_audio)
+            diagnostic['candidate']=dynamic._candidate_summary(meta)
+            diagnostic['probe_source_sha256']={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest()
+                for name in ('tools/x01_integrated_probe.py','tools/x01_native_routes.py')}
+            diagnostic['peer_source_sha256']={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in sources}
+            (ROOT/'evidence/x01/routes-154.json').write_text(json.dumps(diagnostic,indent=2)+'\n')
+            assert diagnostic['pass'],diagnostic
+            print(json.dumps(diagnostic,indent=2)); return
         if copy_probe or sound_lock_probe:
             from x01_native_edits import copy_src, sound_lock
             if sound_lock_probe:
@@ -302,6 +330,7 @@ if __name__ == '__main__':
     p.add_argument('--locks-probe',action='store_true',help='separate two-track native lock/restore scenario')
     p.add_argument('--copy-probe',action='store_true',help='separate native SRC page copy/paste scenario')
     p.add_argument('--sound-lock-probe',action='store_true',help='separate seeded native sound-pool lock/restore scenario')
+    p.add_argument('--route-probe',action='store_true',help='native machine changes, remapping and unsupported third voice')
     a = p.parse_args()
-    if sum((a.lfo_probe,a.locks_probe,a.copy_probe,a.sound_lock_probe))>1: p.error('select one scenario')
-    run(a.candidate,a.output,a.lfo_probe,a.locks_probe,a.copy_probe,a.sound_lock_probe)
+    if sum((a.lfo_probe,a.locks_probe,a.copy_probe,a.sound_lock_probe,a.route_probe))>1: p.error('select one scenario')
+    run(a.candidate,a.output,a.lfo_probe,a.locks_probe,a.copy_probe,a.sound_lock_probe,a.route_probe)

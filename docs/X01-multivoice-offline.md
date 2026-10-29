@@ -153,7 +153,7 @@ firmware adapter. The X01 snapshot codec's fixed stack copy is now freestanding.
   ASan/UBSan pass for 100 simultaneous START pairs, 1,000 per-track control
   updates, ACK loss/replays, lost handshake replies, selection/map changes,
   third-track rejection, disconnect/reconnect, stalled TX and refused replies.
-  2,436 frames and 2,540 worker passes in this model. Focused
+  2,465 frames and 2,569 worker passes in this model. Focused
   [session tests](../tests/x01_session.c) also cover wrong maps, unsupported
   versions, conflicting replays, retired IDs, full credit windows and overtaken
   keepalive echoes. ColdFire objects have no allocator/wait/libc imports.
@@ -165,9 +165,9 @@ firmware adapter. The X01 snapshot codec's fixed stack copy is now freestanding.
 - [Full OS 1.54 exchange](../evidence/x01/integrated-154.json): emulator-only
   X01E boots and both USB1 machines are selected through the native UI. Both
   engines consume simultaneous native manual triggers. A PTCH panel edit
-  changes only the selected track. 17,815 render boundaries preserve the other
+  changes only the selected track. 17,811 render boundaries preserve the other
   six source buffers; both returned engine lanes are observed in their track
-  buffers. 667 outgoing frames / 621 delivered replies include intentional loss
+  buffers. 681 outgoing frames / 635 delivered replies include intentional loss
   tests. ACK loss, unplug/reconnect and stalled native submission all close the
   gate and recover. The native worker runs at IPL0, its semaphore wait is not
   faked, sender calls are masked, and stack-guard fault count stays zero.
@@ -186,14 +186,14 @@ python3 scripts/test_x01_host.py
 # New private destination required; this builds/boots but never flashes.
 PYTHONPATH=private/r03-runtime:deps/digiemu \
   deps/digiemu/.venv/bin/python tools/x01_build_candidate.py \
-  --root private/x01-control --stock private/i02-fixture/Digitakt_OS1.54.syx
+  --root private/x01-routes --stock private/i02-fixture/Digitakt_OS1.54.syx
 PYTHONPATH=private/r03-runtime:deps/digiemu \
   deps/digiemu/.venv/bin/python tools/x01_integrated_probe.py \
-  --candidate private/x01-control
+  --candidate private/x01-routes
 ```
 
 The build uses the existing hash-pinned private I02 stock fixture. Output is
-`private/x01-control/artifacts/I02.syx`, firmware label **X01E**, with hashes,
+`private/x01-routes/artifacts/I02.syx`, firmware label **X01E**, with hashes,
 source provenance, map and private boot snapshot. It is emulator-only and is
 not a flash candidate. The host preparation command is
 `python3 scripts/x01_prepare_host.py --output <new-directory>`; no normal Pi
@@ -216,7 +216,7 @@ or fix V01-A.
 
 ```sh
 PYTHONPATH=private/r03-runtime:deps/digiemu deps/digiemu/.venv/bin/python \
-  tools/x01_integrated_probe.py --candidate private/x01-control --lfo-probe
+  tools/x01_integrated_probe.py --candidate private/x01-routes --lfo-probe
 ```
 
 The `--locks-probe` scenario seeds four native sequencer steps on both tracks,
@@ -229,7 +229,7 @@ fixtures, not project persistence or panel lock entry.
 
 ```sh
 PYTHONPATH=private/r03-runtime:deps/digiemu deps/digiemu/.venv/bin/python \
-  tools/x01_integrated_probe.py --candidate private/x01-control --locks-probe
+  tools/x01_integrated_probe.py --candidate private/x01-routes --locks-probe
 ```
 
 The `--copy-probe` scenario changes all eight source SRC controls through the
@@ -258,10 +258,48 @@ loading or saved-project persistence and does not pass V01-B.
 
 ```sh
 PYTHONPATH=private/r03-runtime:deps/digiemu deps/digiemu/.venv/bin/python \
-  tools/x01_integrated_probe.py --candidate private/x01-control --copy-probe
+  tools/x01_integrated_probe.py --candidate private/x01-routes --copy-probe
 PYTHONPATH=private/r03-runtime:deps/digiemu deps/digiemu/.venv/bin/python \
-  tools/x01_integrated_probe.py --candidate private/x01-control --sound-lock-probe
+  tools/x01_integrated_probe.py --candidate private/x01-routes --sound-lock-probe
 ```
+
+## Native route changes and worker wakeup
+
+The `--route-probe` scenario uses the native machine chooser to move from
+tracks1/2 to a single track2, then tracks2/3, an unsupported third external
+track, back to tracks1/2, an empty route, and recovery. It verifies fresh
+sessions for supported mappings, exact USB lane PCM at every selected source,
+zero selected-source PCM behind a closed gate, and preservation of every
+unselected source buffer. [Evidence](../evidence/x01/routes-154.json).
+The bank's stopped status1 is expected while output is closed; every active
+phase requires status0. Physical timing and sequencer playback during these
+manual machine changes are not qualified.
+
+This exposed an X01-only recovery bug: retirement of an unsupported/empty
+route ends its capture traffic, so returning to a valid map could leave the
+worker asleep until another UI/RX wake. The native test first remained gated
+closed after removing the third external machine. Adding another panel event
+could mask this, so the final probe waits for recovery without that extra
+input. The compiled transport regression also disables all modelled UI
+fallback wakes and reproduced failed recovery before the fix.
+[Before/after record](../evidence/x01/route-wakeup-regression.json).
+
+The opt-in renderer now posts its existing bounded worker semaphore once when
+the lane map or route availability changes. It still performs no USB operation,
+allocation or wait in render context. The regression covers both third-track
+and empty-route recovery without UI polling. The normal one-voice renderer,
+V01 worker and Pi host code are unchanged. This is not a V01-A freeze fix.
+
+```sh
+PYTHONPATH=private/r03-runtime:deps/digiemu deps/digiemu/.venv/bin/python \
+  tools/x01_integrated_probe.py --candidate private/x01-routes --route-probe
+bash scripts/test_x01_transport.sh
+```
+
+The fresh **X01E** fixture is `private/x01-routes`; only the opt-in renderer
+input differs from the earlier `private/x01-control` fixture. The latter's
+hash-checked sources are historical; use the fresh fixture with the current
+checkout. Both remain emulator-only, never hardware flash candidates.
 
 ## Next work and remaining gates
 
@@ -295,7 +333,7 @@ runtime heap, stack peaks, CPU margin and USB timing remain unmeasured. Cached
 Circle libraries are reused; this is not a clean rebuild of every third-party
 library. The image remains an experimental build, not a hardware candidate.
 
-1. Offline: exercise machine/route changes and full track/pattern copy;
+1. Offline: exercise full track/pattern copy; machine/route changes now pass;
    seeded sound locks and native SRC-page copy now pass in addition to
    manual triggers, panel edits, seeded LFO and per-track stored locks.
    Measure runtime/stack footprint and worst-case margin when hardware is available.

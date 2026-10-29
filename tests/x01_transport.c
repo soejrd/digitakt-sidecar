@@ -28,6 +28,7 @@ static int16_t previous_pcm[32][8];
 static int32_t track_blocks[256];
 static uint64_t heard[8];
 static unsigned worker_passes;
+static unsigned fallback_wakes=1;
 static void wake(void) { worker_pending=1; ++wakes; }
 static void stock(const uint8_t *p,uint32_t n) { (void)p; foreign_bytes+=n; }
 static void collect(const uint8_t *p,uint32_t n)
@@ -67,7 +68,7 @@ static void step(unsigned count)
                 if (track_blocks[t*32+i]) ++heard[t];
             }
         }
-        if (usb_track_clock%50u==0) worker_pending=1;
+        if (fallback_wakes && usb_track_clock%50u==0) worker_pending=1;
         unsigned budget=0;
         while (worker_pending) {
             assert(++budget<20); worker_pending=0; ++worker_passes;
@@ -137,8 +138,18 @@ int main(int argc,char **argv)
     step(150); assert(usb_track_gate && x01_device.session!=session && x01_device.mask==1);
     fw_render_machine[5]=121; step(150);
     assert(usb_track_gate && x01_device.mask==33);
-    fw_render_machine[7]=121; step(100); assert(!usb_track_gate && !usb_track_route);
+    /* Route edges must wake the real worker without relying on UI polling.
+     * In particular, after retiring an unsupported third voice there may be
+     * no live capture or RX traffic left to produce another semaphore post. */
+    fallback_wakes=0;
+    fw_render_machine[7]=121; step(1000);
+    assert(!usb_track_gate && !usb_track_route && !sc_track_host_allowed(&peer));
     fw_render_machine[7]=0; step(200); assert(usb_track_gate);
+    fw_render_machine[0]=fw_render_machine[5]=0; step(1000);
+    assert(!usb_track_gate && !usb_track_route && !sc_track_host_allowed(&peer));
+    fw_render_machine[5]=121; step(200); assert(usb_track_gate && x01_device.mask==32);
+    fw_render_machine[0]=121; step(200); assert(usb_track_gate && x01_device.mask==33);
+    fallback_wakes=1;
     session=x01_device.session;
     test_ready=0; sc_track_host_stop(&peer,SC_REASON_TRANSPORT);
     step(1000); assert(!usb_track_gate && !sc_track_host_allowed(&peer));
@@ -155,7 +166,7 @@ int main(int argc,char **argv)
         FILE *out=fopen(argv[1],"w"); assert(out);
         fprintf(out,"{\n  \"scope\": \"actual opt-in render/worker and existing native ABI adapter with MMIO/USB completion model, portable Pi peer, real engines; no hardware\",\n"
                     "  \"frames\": %u, \"worker_passes\": %u, \"wakes\": %u,\n"
-                    "  \"checks\": [\"100 simultaneous native START pairs\", \"1000 per-track SRC changes\", \"lost/duplicate ACKs\", \"handshake retry\", \"stable map/new session on selection changes\", \"third external track rejected\", \"disconnect/reconnect\", \"bounded stalled TX\", \"refused host replies\"],\n"
+                    "  \"checks\": [\"100 simultaneous native START pairs\", \"1000 per-track SRC changes\", \"lost/duplicate ACKs\", \"handshake retry\", \"stable map/new session on selection changes\", \"third external track rejected\", \"third/empty route recovery without UI fallback wakes\", \"disconnect/reconnect\", \"bounded stalled TX\", \"refused host replies\"],\n"
                     "  \"pass\": true\n}\n",frames_seen,worker_passes,wakes);
         assert(!fclose(out));
     }

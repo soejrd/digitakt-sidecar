@@ -45,7 +45,7 @@ maximum is8.657ms, and the native-span observer matches firmware totals
 [Report/commands](docs/X01-multivoice-offline.md). Opt-in v5/v4 two-track native
 capture/worker, portable peer, Circle glue and independent Output lanes pass
 host/ASan/UBSan/ColdFire checks. The booted OS1.54 exchange preserves other
-sources through 17,815 render boundaries, simultaneous hits, panel edits,
+sources through 17,811 render boundaries, simultaneous hits, panel edits,
 ACK loss, reconnect and stalled TX ([evidence](evidence/x01/integrated-154.json)).
 Session regressions cover single-lane mapping, timestamp/lease wrap and stalled
 ACKs despite valid keepalives. Earlier 1/2/8-engine host benchmark remains valid
@@ -67,7 +67,18 @@ adapter's target headers; the actual Circle host regression passes.
 [Build evidence](evidence/x01/pi-build.json): image2,482,984 bytes,
 ELF BSS1,530,433 bytes, peer static68,032 bytes. Cached libraries reused;
 runtime heap/stack peaks, CPU margin and physical timing remain unmeasured.
-Next offline: dynamic machine/route changes and full track/pattern copy.
+Native machine/route changes now pass9 phases, including a shifted pair,
+unsupported third track, empty route and recovery. Exact selected-source PCM
+matches negotiated lanes; unselected sources stay intact and closed gates
+remain silent ([routes](evidence/x01/routes-154.json)). A new regression
+reproduced worker sleep after route retirement with UI fallback wakes disabled.
+The X01 renderer now posts its existing bounded semaphore on route edges;
+third/empty recovery passes without another panel input
+([before/after](evidence/x01/route-wakeup-regression.json)). No USB/allocation/wait
+was added to render; normal one-voice and V01 paths remain unchanged. This does
+not fix V01-A. Current rebuilt emulator-only fixture: `private/x01-routes`,
+label X01E; old `private/x01-control` belongs to the previous source hashes.
+Next offline: full track/pattern copy.
 Hardware expansion still needs V01-A, measured X01a margin and reviewed recovery.
 Private X01E remains emulator-only. No installed firmware/kernel changed.
 

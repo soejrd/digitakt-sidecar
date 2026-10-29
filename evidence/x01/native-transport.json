@@ -1,6 +1,6 @@
 {
   "scope": "actual opt-in render/worker and existing native ABI adapter with MMIO/USB completion model, portable Pi peer, real engines; no hardware",
-  "frames": 2436, "worker_passes": 2540, "wakes": 4842,
-  "checks": ["100 simultaneous native START pairs", "1000 per-track SRC changes", "lost/duplicate ACKs", "handshake retry", "stable map/new session on selection changes", "third external track rejected", "disconnect/reconnect", "bounded stalled TX", "refused host replies"],
+  "frames": 2465, "worker_passes": 2569, "wakes": 4912,
+  "checks": ["100 simultaneous native START pairs", "1000 per-track SRC changes", "lost/duplicate ACKs", "handshake retry", "stable map/new session on selection changes", "third external track rejected", "third/empty route recovery without UI fallback wakes", "disconnect/reconnect", "bounded stalled TX", "refused host replies"],
   "pass": true
 }

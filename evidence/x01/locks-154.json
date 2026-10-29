@@ -58,7 +58,7 @@
   "candidate": {
     "firmware_label": "X01E",
     "usb_track_version": "0.6",
-    "syx_sha256": "224534159213a04b6f88006366e5b69d209257f2a654d7f4901a4f88a5d504d6",
+    "syx_sha256": "81af6b065104ffeb10546b994ad140a556a52598ebbcbc37178b02a7934e4c38",
     "stock_main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
     "source_hashes": {
       "control/dt1_transport.c": "7660dd4f8bea7580029e297c0bb31f0f533526e76857586e8829ee5cab6fb6e2",
@@ -85,12 +85,12 @@
       "mods/usb-track/src_queue.h": "577dbad5a473c637234ce3874b57669e3005b654a353c78ddc64481303e007cf",
       "mods/usb-track/task_worker.c": "3dc91a68c8615b69489240cfa3e074df06978bd2aecc9b032dc02572792eb6f7",
       "mods/usb-track/usb_track.h": "2f42d53a93197f86878b5b97fbc586316483e1aa7e2e4a5cbfe60e0dd55c5e8a",
-      "mods/usb-track/x01_render.c": "79736bc948ac7bac5a714a57f992272e57dbc2d93c8234f586f62ca46ba10fdf",
+      "mods/usb-track/x01_render.c": "169fa6c3e85de93e0aef6c20d5abb5abb2f0b70ba8171dd4ee2c3ef9ba824db0",
       "mods/usb-track/x01_track.h": "605b4cdc12704f129784a2cafab16bd69cbf81c44a70b84fd02226a24e222eac",
       "mods/usb-track/x01_worker.c": "623acdd39e2b8a644883e286a8deec93bc4f6141bd62b33f3319023fb4fa0746"
     }
   },
-  "probe_sha256": "2a791a8c216c1b044fc7e7fbfc36824cfd814308f9809633cb7fa680c8ba9302",
+  "probe_sha256": "19fc5f5d98db2cbe09edb25996b9cc4c227cde0a2ca24b8ee73a9159e6fcca67",
   "peer_source_sha256": {
     "tests/x01_emulator_peer.c": "202283327881e1b4146e8976d9eaca8a32a2dcd6f0ccc28cc319bfcf81a7c7cf",
     "control/link.c": "a77605f80a299c502c7a39d36db2287682f133210bf924ab3567b64933294f43",

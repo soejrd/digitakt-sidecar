@@ -61,6 +61,7 @@ void usb_track_render(int32_t *blocks)
 {
     uint8_t lanes[2]={SC_TRACK_UNUSED,SC_TRACK_UNUSED};
     unsigned selected=0,mask=0;
+    const uint32_t previous_lanes=x01_route_lanes,previous_route=usb_track_route;
     ++usb_track_clock;
     for (unsigned t=0;t<8;++t) if (fw_render_machine[t]==121) {
         if (selected<2) lanes[selected]=(uint8_t)t;
@@ -102,6 +103,11 @@ void usb_track_render(int32_t *blocks)
         for (unsigned t=0;t<8;++t) if (mask&(1u<<t))
             for (unsigned i=0;i<32;++i) blocks[t*32+i]=0;
     }
+    /* A retired/empty route has no capture traffic to wake the worker. Post
+     * once on a route edge so recovery does not depend on UI fallback ticks.
+     * This is the existing bounded semaphore signal; no USB runs in render. */
+    if (previous_lanes!=x01_route_lanes || previous_route!=usb_track_route)
+        usb_track_control_wake();
 }
 static int32_t x01_control_text(char *buf,int32_t value,int32_t ctx,int32_t machine)
 {
