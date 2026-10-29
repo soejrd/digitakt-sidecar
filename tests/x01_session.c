@@ -120,8 +120,42 @@ static void window_and_echo(void)
     assert(!sc_track_host_receive(&h,keepalive,sizeof keepalive,37));
     assert(!h.opened && !sc_track_host_allowed(&h)); refuse=0;
 }
+static void lease_and_wrap(void)
+{
+    uint8_t wire[SC_TRACK_WIRE_SIZE],control[SC_TRACK_CONTROL_SIZE];
+    const uint8_t lanes[]={3,SC_TRACK_UNUSED};
+    sc_track_host_init(&h,send,0,128,750);
+    assert(sc_track_dev_open(&d,51,0xfffffff0u,lanes,control));
+    assert(sc_track_host_receive(&h,control,SC_TRACK_CONTROL_SIZE,0xfffffff0u));
+    assert(sc_track_dev_receive(&d,answer,sizeof answer,0xfffffff0u));
+    struct sc_track_frame f=frame(3,0xfffffffeu,1,1);
+    assert(sc_track_dev_send(&d,&f,0xfffffffeu,wire));
+    assert(sc_track_host_receive(&h,wire,sizeof wire,0xfffffffeu));
+    assert(sc_track_dev_receive(&d,answer,sizeof answer,0xfffffffeu));
+    assert(sc_track_dev_allowed(&d) && sc_track_host_allowed(&h));
+    f=frame(3,0,2,1);
+    assert(sc_track_dev_send(&d,&f,0,wire));
+    assert(sc_track_host_receive(&h,wire,sizeof wire,0));
+    /* Deliberately lose this ACK. Valid echoes for the preceding tuple must
+     * not keep an unacknowledged snapshot alive beyond its own lease. */
+    for (unsigned now=64;now<750;now+=64) {
+        assert(sc_track_dev_keepalive(&d,control));
+        assert(sc_track_host_receive(&h,control,SC_TRACK_CONTROL_SIZE,now));
+        assert(sc_track_dev_receive(&d,answer,sizeof answer,now));
+        assert(!sc_track_dev_tick(&d,now,750));
+    }
+    assert(sc_track_dev_tick(&d,750,750) && !sc_track_dev_allowed(&d));
+    assert(d.failed==SC_REASON_TIMEOUT);
+    /* Host inactivity expiry also uses unsigned elapsed time across wrap. */
+    sc_track_host_tick(&h,1500);
+    assert(!sc_track_host_allowed(&h));
+    /* A retired session's exact HELLO remains rejected after that timeout. */
+    assert(sc_track_dev_open(&d,51,0xfffffff0u,lanes,control));
+    assert(!sc_track_host_receive(&h,control,SC_TRACK_CONTROL_SIZE,1501));
+}
 int main(void)
 {
-    codec(); negotiation(); window_and_echo();
+    codec(); negotiation(); window_and_echo(); lease_and_wrap();
+    puts("X01 single-lane mapping, timestamp/lease wrap, stalled ACK despite live keepalives, timeout retirement: PASS");
     puts("X01 session: explicit v5/v4 negotiation, cumulative tuples, duplicate/conflicting replays, stale sessions/maps/echoes, full window, refused replies: PASS");
 }

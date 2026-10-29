@@ -55,6 +55,11 @@ Next offline work: per-track native locks/LFO/sound/copy tests and isolated Pi
 kernel cross-build. Physical timing/margin and V01-A remain open; X01/X01a are
 not complete. No hardware accessed or installed firmware/kernel changed.
 
+X01 follow-up: single-lane mapping, timestamp/lease wrap and stalled ACKs despite
+valid keepalives pass the session regressions. Pi build preflight is blocked by
+the stopped local Docker daemon (missing socket); start Docker to release it.
+Native lock/LFO tests remain independent offline work.
+
 **Installed:** V01K (frozen); restore I04R before normal use. Pi kernel
 unchanged by V01K. Packages and recovery hashes are in the report. No new
 hardware candidate is ready.

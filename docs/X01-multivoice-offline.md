@@ -201,6 +201,19 @@ overlay, SD card or installed kernel is changed by it.
 
 ## Next work and remaining gates
 
+Follow-up regression: `tests/x01_session.c` now also proves a single mapped
+track on lane 0, timestamp wrap from `0xfffffffe` to zero, timeout retirement,
+and the important stalled-delivery case where valid keepalive replies continue
+but an outstanding snapshot never receives its ACK. The outstanding frame's
+own lease still closes the device gate. `bash scripts/test_x01_transport.sh`
+passes with these cases under ASan/UBSan and the ColdFire import checks.
+
+Pi cross-build preflight is currently blocked: the local Docker socket is
+absent and `docker image inspect rytm-circle` cannot reach a running daemon.
+Release condition: start the local Docker daemon, then build the isolated X01
+host tree; no ARM kernel build result is claimed. Native lock/LFO coverage can
+proceed independently.
+
 1. Offline: add two-track native p-lock/LFO/sound-lock/copy semantics coverage;
    the current new native controls test covers manual triggers and a panel edit.
    Cross-build the isolated Pi kernel and inspect target memory/stack footprint.
