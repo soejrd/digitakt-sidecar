@@ -22,7 +22,13 @@ it was **not** this hang. The RX/ACK interrupt path is the remaining suspect.
    interrupt context.
 3. Reproduce or refute the remaining RX hypothesis in the emulator, then one
    short muted candidate. Do not flash on "the last hypothesis was wrong".
-4. Keep DTIM2's external rate unresolved: firmware selects T2IN, but does not
+4. Still open from before the freeze: does render preemption explain the
+   physical worker wall-time growth? Capture per-batch elapsed and nested render
+   time (totals/maxima and overlap count). If subtracting render time removes
+   most excess, investigate scheduling; otherwise worker execution or other
+   preemption. The 74% worker figure in item 1 makes this more relevant, not
+   less.
+5. Keep DTIM2's external rate unresolved: firmware selects T2IN, but does not
    establish the board signal. Snapshot PLL registers are zero; do not infer a
    core clock from them, and do not invent clock rates or memory delays.
 
@@ -37,7 +43,7 @@ condition.
 | [Freeze vs LFO speed](../evidence/v01/2k-attach-freeze.json), [capture](../evidence/v01/2k-freeze-live-2026-10-29.txt) | LFO at maximum speed with USB detached: fully responsive. Attach plus routing: freeze. Last healthy counters small (UI gap34ms, batch4ms, guards0), then every device counter stopped together: a stop, not saturation. Native LFO cost is excluded. |
 | [Destination-OFF test](../evidence/v01/2k-attach-freeze.json) | Attached, USB1 selected, LFO at maximum speed, destination NONE: fully responsive. Attach and enumeration alone are harmless; the trigger is per-snapshot traffic. |
 | [V01K hardware](../evidence/v01/v01k-freeze.json), [capture](../evidence/v01/v01k-freeze-live-2026-10-29.txt) | Flashed the masked-preflight fix: freeze reproduced at ~256/512 and survived 30s cable removal. **The masked-send race is falsified as the cause.** Worker elapsed 74% of elapsed at ~410 sends/s (was ~25% at ~816 sends/s): the deferral change needs a bound. |
-| [Sender waits](../evidence/i03/transport-anchors-154.json), [send path](../mods/usb-midi/usb_midi.c) | Source fact: `0x40004990` spins in two unbounded waits (`0x400049D0` wrap, `0x400049FE` capacity) drained only by the completion interrupt at `0x40004404`. The in-mask preflight fix is kept for correctness, not as this bug's fix. |
+| [Sender waits](../evidence/i03/transport-anchors-154.json), [send path](../mods/usb-midi/usb_midi.c) | Source facts: `0x40004990` spins in two unbounded waits (`0x400049D0` wrap, `0x400049FE` capacity) on `0x40610478`/`0x4061047C`, drained only by the completion interrupt at `0x40004404`. `fw_send` used to check those counters unlocked, then mask interrupts (`irq_save`) and call the sender **without re-checking**, so any queue growth in that window became a permanent hang — the old comment claiming the critical section closed the race was wrong. Fixed by re-running the preflight inside the mask; kept for correctness, not as this bug's fix. |
 | Regression value | Host test asserts the native sender is never entered past either limit; it fails on the pre-fix adapter and passes now. [Emulator](../evidence/v01/masked-preflight-fix-emulator.json): one session, gate1, drained queue, continuous audio. |
 | Index guard (reverted) | An early "stay below `0xFFF`" guard stalled traffic: only our own sends advance the staging index, so a refusal band below `0xFBF` never ends. The native wrap at `0x400049C2` already covers it. Do not re-add. |
 | [G 32/32](../evidence/v01/compact-baseline.json), [64/32](../evidence/v01/compact-speed-result.json), [64/48](../evidence/v01/compact-depth48-result.json) | Short baseline stable; slight sluggishness at 64/32; quite laggy at 64/48 despite Pi fault/guards0 and FIFO11 unchanged; ~816 dense sends/s. |
@@ -72,14 +78,34 @@ Fixed500ms audio+periodic+MIDI profiles, eight panel edges each (candidate G):
 | 200MHz |32/32|119|3431|7.280ms|
 | 200MHz |~64/48|353|3431|8.657ms|
 
-All have750 render blocks, continuous audio, matching return credits,
-gate1/session1, no decoder mismatch or artificial wait. Output stays
-`Gate A NOT SCORED`: dispatch-pass completion is not visible-screen latency.
-The model omits external DTIM2 input, cache/DDR/USB contention, enumeration,
-real Pi scheduling and the complete physical project. Snapshot setup uses
-shortcuts; native replay does not validate that history. The assumed132MHz
-diagnostic timer is not proof of CPU frequency. `i03_integrated_probe.py`
-passes use synthetic completions and cannot establish responsiveness.
+All have750 render blocks, continuous audio counters, matching return credits,
+gate1/session1, no decoder mismatch, artificial worker wait or modeled render
+overrun; 23 focused V01 tests pass. Periodic-only dense panel maximum was3.240ms.
+Native descriptor completion regressions cover full, short and chained transfers.
+`i03_integrated_probe.py` passes use synthetic completions and
+context-injected replies and cannot establish responsiveness.
+
+Clock and cost detail: diagnostic DTCN0 reads use instruction-position time within
+precharged blocks — the regression moved from0 to the expected97 cycles between
+two native reads; the [replayable patch](../patches/digiemu/README.md) passes28
+clock/checkpoint tests and leaves legacy stepping unchanged; counter-wrap and
+post-end-read preemption tests pass (23 V01 checks total). The corrected200MHz
+run still does not reproduce physical lag.
+[Cost comparison](../evidence/v01/clock-cost-comparison.json): masked native sends
+average8.6–8.8µs in the model versus14.9–15.1µs in hardware captures. The native
+worker-span observer matches firmware elapsed totals exactly and leaves all prior
+per-profile measurements unchanged. Baseline/dense runs have138/372 complete
+batches; only2 overlap rendering in each. Maximum non-render time stays94.3/94.2µs,
+versus~626µs maximum elapsed including rendering. Non-render time still includes
+other preemption and is an upper bound on CPU. Hardware's normalized worker
+elapsed rises121–129→304–344µs/send while masked send cost stays~15µs; that
+discrepancy motivated the measurement in item 4 and does not prove CPU saturation.
+
+Output stays `Gate A NOT SCORED`: dispatch-pass completion is not visible-screen
+latency. The model omits external DTIM2 input, physical cache/DDR/USB contention,
+full USB enumeration, real Pi scheduling and the complete physical project.
+Snapshot setup uses shortcuts; native replay does not validate that history. The
+assumed132MHz diagnostic bus timer is not proof of CPU frequency.
 
 ```sh
 PYTHONPATH=private/r03-runtime:deps/digiemu \
@@ -140,6 +166,11 @@ explicit listening acceptance, reproducible patches and verified rollback.
 
 - **V01K is installed and has frozen; restore I04R before normal use.** Fixes
   live in `private/` and are not deliverables until replayed as patches.
+- Last pre-V01K capture state: muted, trace off, voice fault0/FIFO11
+  ([G boot verified](../evidence/v01/compact-boot.json)). USB
+  unplug/recovery confirmation and boot→active FIFO0→11 remain unresolved. Both
+  trial watchers are stopped; the V01K trial showed a clean boot baseline
+  (FIFO96/96, underruns0) before the freeze.
 - Pi kernel SHA256 `2b027a172e089af8fc273e4b2351d7fd72a7223b92f8ac6dfc8b20c491e2df5f`
   (build `Oct 29 2026 12:31:45`), unchanged by V01K, which is firmware-only.
 - Agent Pi HTTP: `http://192.168.1.15`; POST `/cmd` form `c=trx=off`,
@@ -147,8 +178,9 @@ explicit listening acceptance, reproducible patches and verified rollback.
   Muting leaves synthesis running. Do not dump full traces during timing tests.
   Playout/analyzer delay is128 frames.
 - Packages: `private/v01/firmware-V01K/` (candidate + I04R/I04Q/H02F/stock
-  recoveries, all hash-verified); pre-G Pi backups in
-  `private/v01/sd-backup-before-compact/`. Restore I04R
+  recoveries, all hash-verified); earlier G package `private/v01/firmware-V01G/`;
+  pre-G Pi backups in `private/v01/sd-backup-before-compact/`. I04R recovery also
+  exists at `private/v01/firmware-V01P/Digitakt-I04R-previous.syx`. Restore I04R
   (`6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b`) before
   normal use. Human handles Transfer/SD insertion.
 - Follow `AGENTS.md` for lowered speakers, backups and hardware boundaries.
