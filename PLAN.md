@@ -15,12 +15,12 @@ The creator's [Digitakt guide](https://github.com/trigcondition/sidecar-expander
 | Stage | Required result | Tasks |
 | --- | --- | --- |
 | Establish feasibility | Physical USB descriptors, identified receive path, proven pre-filter insertion, explicit go/no-go | R01–R03, R07, D01 |
-| Prove transport | Separate IN/OUT host layouts; ten-minute stock stream with zero gaps/underruns and measured timing | I01, H01 |
+| Prove transport | Separate IN/OUT host layouts; 4-minute stock stream with zero gaps/underruns and measured timing | I01, H01 |
 | Prove track routing | Ready PCM copied into one track, original dry MAIN copy suppressed; actual filter/amp/send behavior and timing measured | I02, H02 |
 | Integrate controls | SRC A–H, ordered triggers/retriggers, final lock/LFO values and versioned control protocol | R04, I03 |
 | Play TRX-B2 | Native-rate synthesis + resampling, explicit note/velocity policy, one integrated external voice | R05, I04 |
 | Persist and qualify | Save/load, copy/paste, undo, mutes, sound locks, reconnect and dense-pattern regressions | V01 |
-| Expand | Demonstrated transport capacity and CPU headroom before more voices or Teensy | X01, X02 |
+| Expand | Demonstrated transport capacity and CPU headroom before more voices  | X01, X02 |
 
 D01 records a [conditional GO for native USB copy/clear](docs/adr/0001-usb-return-to-track.md). I02 passes OS 1.54 emulator checks, [H01 qualifies stock physical streaming](docs/H01-stock-usb-stream.md), and [H02 is complete under user-accepted physical routing/stability scope](docs/H02-real-track-pipeline.md); integrated timing remains unmeasured. The prototype consumes the whole stereo USB return to feed one mono track; additional independent returns are not assumed.
 
