@@ -1,0 +1,119 @@
+{
+  "scope": "actual compiled ColdFire helper; synthetic buffers; no firmware boot/DMA/hardware timing",
+  "command": "PYTHONPATH=private/r03-runtime:deps/digiemu deps/digiemu/.venv/bin/python tools/x01_route_probe.py",
+  "source_sha256": "af154add6212cd76f9cfc0d2ea189beabbcbe24ffdb0f9d7c23428c649abf25d",
+  "code_sha256": "73161b0381e065860d2c5a4cef29de6abd890afa0d60b418fcefb6867ae53ad9",
+  "code_bytes": 298,
+  "undefined_symbols": [],
+  "cases": [
+    {
+      "selector": 0,
+      "ready": 1,
+      "lane_tracks": [
+        0,
+        3
+      ],
+      "active": true,
+      "exact_pcm": true,
+      "bounds_intact": true,
+      "compiled_instructions": 1090
+    },
+    {
+      "selector": 1,
+      "ready": 1,
+      "lane_tracks": [
+        7,
+        2
+      ],
+      "active": true,
+      "exact_pcm": true,
+      "bounds_intact": true,
+      "compiled_instructions": 1090
+    },
+    {
+      "selector": 0,
+      "ready": 0,
+      "lane_tracks": [
+        0,
+        3
+      ],
+      "active": false,
+      "exact_pcm": true,
+      "bounds_intact": true,
+      "compiled_instructions": 1282
+    },
+    {
+      "selector": 1,
+      "ready": 0,
+      "lane_tracks": [
+        0,
+        3
+      ],
+      "active": false,
+      "exact_pcm": true,
+      "bounds_intact": true,
+      "compiled_instructions": 1282
+    },
+    {
+      "selector": 2,
+      "ready": 1,
+      "lane_tracks": [
+        0,
+        3
+      ],
+      "active": false,
+      "exact_pcm": true,
+      "bounds_intact": true,
+      "compiled_instructions": 1282
+    },
+    {
+      "selector": 0,
+      "ready": 1,
+      "lane_tracks": [
+        -1,
+        3
+      ],
+      "active": true,
+      "exact_pcm": true,
+      "bounds_intact": true,
+      "compiled_instructions": 664
+    },
+    {
+      "selector": 0,
+      "ready": 1,
+      "lane_tracks": [
+        0,
+        0
+      ],
+      "active": false,
+      "exact_pcm": true,
+      "bounds_intact": true,
+      "compiled_instructions": 416
+    },
+    {
+      "selector": 0,
+      "ready": 1,
+      "lane_tracks": [
+        0,
+        8
+      ],
+      "active": false,
+      "exact_pcm": true,
+      "bounds_intact": true,
+      "compiled_instructions": 409
+    },
+    {
+      "selector": 0,
+      "ready": 1,
+      "lane_tracks": [
+        -2,
+        3
+      ],
+      "active": false,
+      "exact_pcm": true,
+      "bounds_intact": true,
+      "compiled_instructions": 402
+    }
+  ],
+  "pass": true
+}

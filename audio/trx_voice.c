@@ -42,29 +42,32 @@ int sc_trx_install(sc_trx_voice *v, const struct sc_frame *f)
     }
     return 1;
 }
+int16_t sc_trx_render_mono(sc_trx_voice *v)
+{
+    float y = 0;
+    /* At most one native sample is needed per output sample. */
+    if (!sc_src_read(&v->converter, &y)) {
+        float x;
+        const unsigned pending=v->engine.pending_trigger;
+        mdkit_voice_trx_b2.render(&v->engine, &x, 1);
+        if (pending && !v->engine.pending_trigger) ++v->consumed_starts;
+        ++v->native_frames;
+        sc_src_push(&v->converter, x);
+        sc_src_read(&v->converter, &y);
+    }
+    /* Prototype ceiling -18 dBFS, including converter overshoot. Scale
+     * velocity after limiting: changing velocity changes gain rather than
+     * how much the return limiter clips. Only START latches this gain. */
+    y *= 0.125f;
+    if (y > 0.125f) y = 0.125f;
+    if (y < -0.125f) y = -0.125f;
+    ++v->frames;
+    return (int16_t)(y * v->velocity_gain * 32767.0f);
+}
 void sc_trx_render(sc_trx_voice *v, int16_t (*out)[8], unsigned frames)
 {
-    unsigned i;
-    for (i = 0; i < frames; ++i) {
-        float y = 0;
-        /* At most one native sample is needed per output sample. */
-        if (!sc_src_read(&v->converter, &y)) {
-            float x;
-            const unsigned pending=v->engine.pending_trigger;
-            mdkit_voice_trx_b2.render(&v->engine, &x, 1);
-            if (pending && !v->engine.pending_trigger) ++v->consumed_starts;
-            ++v->native_frames;
-            sc_src_push(&v->converter, x);
-            sc_src_read(&v->converter, &y);
-        }
-        /* Prototype ceiling -18 dBFS, including converter overshoot. Scale
-         * velocity after limiting: changing velocity changes gain rather than
-         * how much the return limiter clips. Only START latches this gain. */
-        y *= 0.125f;
-        if (y > 0.125f) y = 0.125f;
-        if (y < -0.125f) y = -0.125f;
+    for (unsigned i = 0; i < frames; ++i) {
         memset(out[i], 0, sizeof out[i]);
-        out[i][0] = (int16_t)(y * v->velocity_gain * 32767.0f);
-        ++v->frames;
+        out[i][0] = sc_trx_render_mono(v);
     }
 }

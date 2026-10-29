@@ -37,6 +37,12 @@ headroom, but multivoice worst-case margin is unmeasured. Offline benchmarking
 and protocol/routing design can proceed while V01-A is parked; X01 hardware
 expansion remains deferred under the taskboard's gates.
 
+The [first X01 offline milestone](docs/X01-multivoice-offline.md) now passes:
+1/2/8 real host engines, track-aware playback, and compiled two-lane insertion
+through native OS1.54 AMP/filter processing. Actual multitrack capture/worker/
+handshake integration and Pi/device margin are still open; the production path
+remains one voice.
+
 ## Design requirements
 
 - Control semantic voice events and final modulated values, rather than forwarding every button. Keep normal navigation/filter/amp controls local. USB MIDI/SysEx may carry internal events without dedicating MIDI sequencer tracks.

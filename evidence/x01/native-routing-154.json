@@ -1,0 +1,86 @@
+{
+  "scope": "full stock OS1.54 render; actual compiled helper via RAM-only gateway; synthetic USB PCM; HLE enabled",
+  "not_proven": [
+    "USB DMA/transport",
+    "track-aware firmware capture/worker/handshake",
+    "native multitrack machine selection/persistence",
+    "hardware timing"
+  ],
+  "main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
+  "gateway_sha256": "b659cdc6340a54f2bb2cc0373fcee747d5a3ae7f9f70d6f9a6bd13680bdf6531",
+  "cases": [
+    {
+      "name": "both",
+      "muted_track": null,
+      "closed_filter_track": null,
+      "tone_amplitudes": {
+        "750": 834.4404916415383,
+        "3000": 221.37078657017128
+      },
+      "checks": {
+        "exact_blocks": 825,
+        "halves": [
+          413,
+          412
+        ],
+        "dry_suppression": 825
+      },
+      "halted": null
+    },
+    {
+      "name": "amp0",
+      "muted_track": 0,
+      "closed_filter_track": null,
+      "tone_amplitudes": {
+        "750": 0.3021403602629799,
+        "3000": 218.56608832087593
+      },
+      "checks": {
+        "exact_blocks": 2659,
+        "halves": [
+          1330,
+          1329
+        ],
+        "dry_suppression": 2659
+      },
+      "halted": null
+    },
+    {
+      "name": "amp1",
+      "muted_track": 1,
+      "closed_filter_track": null,
+      "tone_amplitudes": {
+        "750": 833.5043570773937,
+        "3000": 0.12485474347651103
+      },
+      "checks": {
+        "exact_blocks": 2659,
+        "halves": [
+          1330,
+          1329
+        ],
+        "dry_suppression": 2659
+      },
+      "halted": null
+    },
+    {
+      "name": "filter0",
+      "muted_track": null,
+      "closed_filter_track": 0,
+      "tone_amplitudes": {
+        "750": 0.3178518744079951,
+        "3000": 225.84714973869896
+      },
+      "checks": {
+        "exact_blocks": 2659,
+        "halves": [
+          1330,
+          1329
+        ],
+        "dry_suppression": 2659
+      },
+      "halted": null
+    }
+  ],
+  "pass": true
+}

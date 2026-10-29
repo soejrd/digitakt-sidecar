@@ -41,15 +41,18 @@ replayable patch (28 dependency/23 V01 tests), corrected200MHz dense panel
 maximum is8.657ms, and the native-span observer matches firmware totals
 ([comparison](evidence/v01/clock-cost-comparison.json)).
 
-**X01a desk study recorded; not a capacity acceptance pass.** The current
-return provides two full-rate mono lanes, making a left/right two-track design
-plausible. Eight Pi engines mixed onto those lanes differ from eight independent
-Digitakt track returns; the latter require transport research. One-voice Pi
-observations suggest headroom but do not establish multivoice worst-case margin.
-[Study](docs/X01a-multivoice-capacity.md),
-[derived evidence](evidence/x01a/capacity.json). Next independent desk work:
-1/2/8-engine benchmark harness and track-aware protocol/scheduler design, including
-simultaneous same-block hits. No runtime, dependency or hardware changes made.
+**X01 first offline milestone passes; production remains one voice.**
+[Report/commands](docs/X01-multivoice-offline.md). Experimental v4 track codec
+and shared-clock eight-engine bank pass independent PCM/simultaneous-hit/fault
+checks; 1/2/8-engine desktop profiles retain every START. Eight-engine dense:
+120,000 snapshots, 60,000 consumed STARTs, zero faults; desktop timing is not Pi
+margin. Compiled ColdFire lane helper passes nine cases and 8,802 full OS1.54
+render blocks with native per-track AMP/filter isolation and dry suppression.
+The full-render gateway bypasses machine selection/handshake; no installed mod
+or hardware candidate. Next: v4 capability/session contract, actual track-aware
+capture/worker/Pi glue, native UI selection and lifecycle proofs. Two mono lanes
+are the first physical design; eight independent returns remain research.
+X01a stays partial pending measured Pi/device worst-case margin. V01 unchanged.
 
 **Installed:** V01K (frozen); restore I04R before normal use. Pi kernel
 unchanged by V01K. Packages and recovery hashes are in the report. No new

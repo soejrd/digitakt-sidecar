@@ -20,6 +20,7 @@ typedef struct sc_trx_voice {
 void sc_trx_init(sc_trx_voice *v);
 void sc_trx_clear(sc_trx_voice *v);
 int sc_trx_install(sc_trx_voice *v, const struct sc_frame *f);
+int16_t sc_trx_render_mono(sc_trx_voice *v);
 void sc_trx_render(sc_trx_voice *v, int16_t (*out)[8], unsigned frames);
 #ifdef __cplusplus
 }
