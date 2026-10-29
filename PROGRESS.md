@@ -41,6 +41,16 @@ replayable patch (28 dependency/23 V01 tests), corrected200MHz dense panel
 maximum is8.657ms, and the native-span observer matches firmware totals
 ([comparison](evidence/v01/clock-cost-comparison.json)).
 
+**X01a desk study recorded; not a capacity acceptance pass.** The current
+return provides two full-rate mono lanes, making a left/right two-track design
+plausible. Eight Pi engines mixed onto those lanes differ from eight independent
+Digitakt track returns; the latter require transport research. One-voice Pi
+observations suggest headroom but do not establish multivoice worst-case margin.
+[Study](docs/X01a-multivoice-capacity.md),
+[derived evidence](evidence/x01a/capacity.json). Next independent desk work:
+1/2/8-engine benchmark harness and track-aware protocol/scheduler design, including
+simultaneous same-block hits. No runtime, dependency or hardware changes made.
+
 **Installed:** V01K (frozen); restore I04R before normal use. Pi kernel
 unchanged by V01K. Packages and recovery hashes are in the report. No new
 hardware candidate is ready.

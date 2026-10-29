@@ -24,6 +24,19 @@ The creator's [Digitakt guide](https://github.com/trigcondition/sidecar-expander
 
 D01 records a [conditional GO for native USB copy/clear](docs/adr/0001-usb-return-to-track.md). I02 passes OS 1.54 emulator checks, [H01 qualifies stock physical streaming](docs/H01-stock-usb-stream.md), and [H02 is complete under user-accepted physical routing/stability scope](docs/H02-real-track-pipeline.md); integrated timing remains unmeasured. The prototype consumes the whole stereo USB return to feed one mono track; additional independent returns are not assumed.
 
+## Expansion feasibility (X01a desk study)
+
+The current 48 kHz return carries two sample lanes. Two external mono tracks
+are a plausible next implementation using left/right separately; eight Pi
+engines mixed into those lanes are a different feature from eight independent
+Digitakt track returns. Eight full-rate independent returns require a new or
+modified transport, not just more engine instances. See the
+[capacity study](docs/X01a-multivoice-capacity.md) and
+[derived evidence](evidence/x01a/capacity.json). Pi one-voice observations suggest
+headroom, but multivoice worst-case margin is unmeasured. Offline benchmarking
+and protocol/routing design can proceed while V01-A is parked; X01 hardware
+expansion remains deferred under the taskboard's gates.
+
 ## Design requirements
 
 - Control semantic voice events and final modulated values, rather than forwarding every button. Keep normal navigation/filter/amp controls local. USB MIDI/SysEx may carry internal events without dedicating MIDI sequencer tracks.

@@ -1,0 +1,67 @@
+{
+  "task": "X01a",
+  "scope": "Derived from recorded hardware evidence; no new hardware or multivoice measurement",
+  "inputs": [
+    "evidence/r02-endpoints-2026-10-26.json",
+    "evidence/h01/linux-stability.json",
+    "evidence/i04/physical-acceptance.json"
+  ],
+  "framing": {
+    "header_bytes": 32,
+    "frames_per_packet": 7,
+    "bytes_per_sample_slot": 4,
+    "host_to_device_packet_bytes": 88,
+    "independent_full_rate_sample_lanes": 2,
+    "measured_rate_hz": 47999.484785
+  },
+  "calculations": [
+    {
+      "mono_lanes": 1,
+      "packet_bytes_same_framing": 60,
+      "pcm_bytes_per_second": 191997.93914,
+      "fits_current_packet": true
+    },
+    {
+      "mono_lanes": 2,
+      "packet_bytes_same_framing": 88,
+      "pcm_bytes_per_second": 383995.87828,
+      "fits_current_packet": true
+    },
+    {
+      "mono_lanes": 8,
+      "packet_bytes_same_framing": 256,
+      "pcm_bytes_per_second": 1535983.51312,
+      "fits_current_packet": false
+    }
+  ],
+  "observed_one_voice": {
+    "scope": "13 existing one-second stats rows spanning timed pattern, uptime117..130s; not worst-case guarantee",
+    "stats_rows": 13,
+    "output_block_frames": 12,
+    "output_block_budget_us": 250,
+    "max_observed_block_us": 10,
+    "max_observed_control_pass_us": 18,
+    "max_core3_busy_percent": 3.5,
+    "fifo_min": 78,
+    "fifo_max": 96
+  },
+  "illustrative_linear_projection": [
+    {
+      "voices": 2,
+      "block_us": 20,
+      "block_budget_percent": 8.0
+    },
+    {
+      "voices": 8,
+      "block_us": 80,
+      "block_budget_percent": 32.0
+    }
+  ],
+  "projection_warning": "Short one-voice observations are not worst-case bounds; shared overhead, event bursts, contention and thermal effects are unmeasured. No multivoice CPU pass.",
+  "acceptance": {
+    "capacity_under_current_framing_established": true,
+    "two_track_routing_proven": false,
+    "multivoice_worst_case_margin_measured": false,
+    "X01a_complete": false
+  }
+}
