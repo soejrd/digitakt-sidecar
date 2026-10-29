@@ -10,61 +10,38 @@ Task status/claims: [TASKBOARD.md](TASKBOARD.md). Pins: sources.json. Read AGENT
 
 **Known failure explicitly deferred to V01:** increasing LFO speed/amount (e.g. PTCH) can stop TRX audio and make Digitakt sluggish. Captured code3 late parameter event **260frames/5.417ms late**; host disarmed. Retained fault 1, FIFO later 29 versus clean 3; interval includes later listening/high modulation, no precise boundary. No OS crash dump; sender CPU/transport/host scheduling cause unisolated. [Failure/reproduction lead](evidence/i04/v01-dense-lfo-handoff.json).
 
-## V01 — F reproduces lag; compact full-snapshot G candidate
+## V01 — Gate A emulator reproduction and causal isolation
 
-V01 IN PROGRESS, Codex owner. [Plan](docs/V01-persistence-stress.md).
-B/C fail; V01P priority reduction rejected. No-self-wake alone insufficient.
-E severe SPD64/DEP100 gave ~3 fps, FIFO growth before unplug and late faults.
-[Result](evidence/v01/remote-severe-result.json). Corrected diagnostic clock is
-1500 blocks/s; old D/N/P displays overstate ms by 46.875×.
+**V01 IN PROGRESS, Codex owner.** Authoritative next-work sequence:
+[Gate A emulator investigation](docs/V01-persistence-stress.md#current-next-work--emulator-reproduction-and-causal-isolation).
+This is part of V01, not V02. Gates B persistence/edit semantics and C recovery/
+soak remain required. No proven root cause or solution; CPU saturation is not
+established. Existing functional emulator passes do not assert panel latency
+and simplify USB completions/ACK execution context.
 
-**Installed F pair verified:** [boot](evidence/v01/duty-boot.json),
-[32/32 baseline](evidence/v01/duty-baseline.json),
-[dense result](evidence/v01/duty-dense-result.json). At SPD64, lag generally above
-DEP32 and obvious around DEP55 (approximate human ramp, final value unrecorded).
-USB removal restored responsiveness. Pi muted, faults 0, FIFO 17 stable, guards 0.
-Native render elapsed ~83→85%, worker ~3.6→33–36% at ~850–912 sends/s. Brackets
-overlap under preemption; never sum as CPU utilization. Masked send ~1.6%,
-max ~24.7 us; no proof of a single dominant mechanism. USB now disconnected.
+**Latest hardware result:** [G SPD64/DEP48 fails](evidence/v01/compact-depth48-result.json),
+quite laggy with fault/guards0 and FIFO11 stable. [32/32](evidence/v01/compact-baseline.json)
+short counter baseline passed; [64/32](evidence/v01/compact-speed-result.json)
+felt slightly sluggish. Compact snapshots did not solve lag. Earlier B/C fail;
+P lower priority improved UI but failed delivery. [F](evidence/v01/duty-dense-result.json)
+and [E](evidence/v01/remote-severe-result.json) retain useful negative findings.
+Worker/render elapsed brackets overlap; never sum as CPU utilization. UI tick
+gaps are not panel latency. Old D/N/P ms displays were inflated by46.875×.
 
-**G candidate:** preserves every event/full state/START/timestamp/order, reduces
-integer-SRC snapshots 61→45 SysEx bytes (native encoded bytes 84→60). Exact v1
-fallback for fractional/negative SRC. Sender replay keeps original format;
-matching Pi accepts v1/v3. F telemetry, priority14/no-self-wake, deadlines and
-128-frame playout unchanged. Hardware must show improvement; no fix claimed.
-[Verified G pair](evidence/v01/compact-candidate.json), staged in
-`private/v01/firmware-V01G/`. G Pi SD now written/read-back verified and
-safely ejected; [deployment](evidence/v01/compact-sd-deployment.json).
-[G boot verified](evidence/v01/compact-boot.json); human confirms G Digitakt flash.
-USB disconnected, FIFO/fault 0, voice muted and trace off. Full sanitizer host suite, compact
-codec/worker/scheduler/recovery, twelve-patch replay and compiled exchange pass
-(12 remote packets, 0 malformed, stack 1368 B); paired Pi kernel builds.
+**Next work, offline:** audit emulator substitutions; run native routines with
+cycle timing assumptions recorded; reproduce dense input→UI dispatch latency;
+attribute self execution, IRQs and runnable/blocked time; isolate wake/dispatch,
+ACK processing, native USB and UI backlog one path at a time. Planned probe
+`tools/v01_contention_probe.py` does not exist yet. Establish a deterministic
+failing panel-service test before claiming a fix. If emulation disagrees,
+document the concrete missing model behavior and justify one targeted hardware
+measurement. No speculative new firmware or repeated depth sweep. Full steps,
+hypothesis predictions, deliverables and physical exit criteria live in Gate A.
 
-**G active baseline:** [12-second counter check](evidence/v01/compact-baseline.json)
-passes: accepted controls and 2 STARTs consumed, fault/guards 0, FIFO11 stable,
-UI gap34 ms. Boot→active FIFO0→11 remains unresolved startup behavior, outside
-this measured stable interval. Raw timer ~132MHz; worker ~3.4–3.7%, native render
-~82.9% (overlap), native sends ~284/s. No dense or audible G pass.
-
-**G SPD64/DEP32:** [speed result](evidence/v01/compact-speed-result.json),
-human says maybe slightly sluggish, not super laggy. Fault/guards0 and FIFO11
-stable across 31 samples. Settled sends ~540–543/s, worker elapsed ~8–9%, render
-~83.7–83.9%, masked ~0.82% (elapsed brackets overlap). No clear improvement yet.
-
-**G SPD64/DEP48 fails:** [physical result](evidence/v01/compact-depth48-result.json),
-human reports quite laggy. Fault/guards0, FIFO11 stable; UI tick max93 ms.
-Settled sends ~816/s, worker elapsed ~25–28%, native render ~84.6–84.8%,
-masked send ~1.23% (overlapping brackets, not pure CPU). G shorter messages do
-not resolve lag. No numeric G-vs-F speedup established because profiles differ.
-Capture stopped at 28 samples; no further density increase. Human instructed
-to unplug USB; recovery confirmation pending. Installed pair remains G, muted.
-
-**Next:** offline compiled per-update path profiling: separate native task
-wake/dispatch, ACK decode/handling and serializer work; then choose a measured
-intervention. No next hardware candidate prepared, no more depth sweep. Native
-UI input backlog is not measured by periodic UI ticks. Preserve every event,
-deadline and fail-closed behavior; any ACK cadence change needs its own contract
-and tests. Startup/reconnect issue and Gates B/C remain open.
+**Physical state:** G pair installed/boot verified; last captured fault0/FIFO11,
+muted/trace off. Unplug requested; recovery/disconnection confirmation pending.
+Both watch captures are stopped. Boot→active FIFO0→11 remains an open startup
+issue; no audible or dense G acceptance. User's `PLAN.md` edit is preserved.
 
 ## Hardware / recovery
 

@@ -1,9 +1,10 @@
 # V01 — one-voice qualification
 
 **IN PROGRESS.** Ownership renewed by Codex at `2026-10-28T18:41:42Z`.
-Phase 0 preservation passed; Phase 1 reproduced the dense-LFO failure.
-Phase 2 is incomplete. V01P is rejected; V01N is physically untested.
-V01 is not accepted. F was installed and reproduced the lag; G compact full-snapshot pair is verified/staged offline, hardware untested.
+Original Phase 0 preservation passed; Phase 1 reproduced the dense-LFO failure.
+Current Gate A remains incomplete: G was physically installed and failed at
+SPD64/DEP48. V01P is rejected; V01N remains physically untested.
+V01 is not accepted. Next work is the emulator investigation under Gate A.
 
 Target remains Digitakt mk1 OS 1.54 + Pi 4B/Circle, one USB1 voice on track 1.
 More voices, Teensy and a separate persistence database remain outside scope.
@@ -62,63 +63,114 @@ separate. Do not overwrite old evidence to make a new candidate look tested.
 
 ## Gate A — resolve dense-modulation failure
 
-**Offline preparation complete:** corrected, interval-scoped diagnostic
-candidates V01B (priority-14/self-wake baseline) and V01C (same priority, no
-self-wake) build/boot and pass panel, reset, unit-conversion, native-task and
-compiled-exchange checks. The full host regression and ten-patch replay pass.
-Verified recovery packages are staged; both candidates have since had physical diagnostic trials.
-[Candidate evidence](../evidence/v01/gate-a-candidates.json),
-[physical runbook](V01-gate-a-runbook.md).
+### Current next work — emulator reproduction and causal isolation
 
-Selecting another machine then USB1 starts a new diagnostic window. UI/worker
-maxima exclude the previous window; guard faults stay sticky. SECS allows a
-stopwatch comparison before interpreting render-clock durations. Old V01N
-artifacts retain the wrong units; use the rebuilt V01C. Do not call this
-instrumentation change a scheduling fix. Do not print a trace while measuring:
+This investigation remains **part of V01 Gate A**, owned by Codex. It is not a
+new V02 or an additional qualification gate. Gate A has failed physically,
+most recently on G at SPD64/DEP48. Gates B (persistence/edit semantics) and C
+(recovery/soak) remain required afterward. No next hardware candidate is ready.
+
+**Known:** lag grows with effective-update rate; USB removal previously restored
+responsiveness; lowering worker priority improved UI but broke delivery;
+no-self-wake and compact messages did not solve lag. G can lag with Pi fault0
+and stable FIFO11. **Unknown:** dominant execution cost and scheduling/blocking
+mechanism. CPU saturation is a hypothesis, not a measured finding. Worker and
+render elapsed counters overlap; periodic UI ticks do not measure panel latency.
+
+**Existing test gap:** `tools/i03_integrated_probe.py` runs compiled firmware
+and native serialization, but synthesizes USB completions, injects replies using
+saved/restored CPU context and does not assert dense-load panel-event latency.
+`tools/i04_worker_runtime_probe.py` verifies genuine worker sleep/wake, but does
+not reproduce the full contention workload. Their passes establish functional
+properties and cannot establish absence of this performance bug.
+
+Use the following sequence before another optimization or hardware flash:
+
+1. **Audit and configure the execution model.** Use the pinned OS1.54 G build
+   and a reproducible disposable snapshot. Inventory HLE shortcuts, artificial
+   semaphore releases, IRQ sources and USB/ACK substitutions. Use native float
+   and pixel routines (`Session(..., hle=False)`) and the available cycle-clock
+   mode in `deps/digiemu/emu/cftiming.py` where supported. Establish CPU-clock
+   assumptions or report bounded frequency sensitivity; the ~132MHz diagnostic
+   timer is not proof of CPU frequency. The cycle model estimates instruction
+   costs and omits physical cache/DDR/bus effects; report decoder mismatches and
+   timing assumptions explicitly. Keep protocol-only tests as separate checks.
+2. **Build an agent-run panel-latency reproduction.** Drive fixed 32/32 control
+   and 64/48 failing-profile inputs, keeping LFO/tempo/track load and STARTs
+   fixed. Record actual effective event rate; hardware references are ~284/s
+   and ~816/s respectively, not exact emulator acceptance targets. Prefer the
+   native LFO path; label any synthetic event replay as a component experiment.
+   Inject a known button/encoder event at a fixed emulated time and measure
+   enqueue→dispatch→handler completion and visible response where observable.
+   Resolve/verify mk1 OS1.54 UI hooks; the existing `emu/uitrace.py` documents
+   Digitakt II facts and its addresses/layouts must not be assumed compatible.
+   Retain real native task switching and interrupt context. Replace direct
+   context-injected ACK shortcuts with scheduled arrival when testing scheduling.
+3. **Establish the regression verdict.** Provide one reproducible command,
+   planned as `tools/v01_contention_probe.py` (not implemented yet), that runs
+   both profiles and reports panel latency/backlog, task runnable/wait states,
+   audio deadlines, queue occupancy and protocol faults. Repeat fixed inputs
+   to establish determinism. Start with Gate C's proposed 100ms response limit,
+   verify the baseline can meet it and record any justified revision before
+   scoring candidates. The important red signal is the actual panel-service
+   failure; packet delivery alone is insufficient. A cycle estimate alone is
+   not a hardware responsiveness proof.
+4. **Attribute execution and isolate one path at a time.** Capture function/task
+   self instruction counts and estimated cycles separately from inclusive time,
+   interrupt work, blocked time and ready-but-unscheduled UI time. Trace native
+   wake/dispatch, RX/ACK parsing and handling, serializer/USB service and UI
+   dispatch. Use test-only path substitutions, preserving comparable input
+   arrival rates and exposing their effects on sessions/deadlines. Rank these
+   falsifiable hypotheses before experiments:
+
+   | Hypothesis | Prediction to test |
+   | --- | --- |
+   | Task wake/dispatch pressure dominates | Reducing dispatch overhead in the diagnostic harness at the same event workload reduces UI runnable delay; trace attributes the removed cost |
+   | RX/ACK processing dominates | Isolating ACK parse/handling cost at the same scheduled arrivals materially changes panel latency or measured execution cost |
+   | Native USB service/interrupt pressure dominates | Delay follows completion/IRQ scheduling or native service work when event production is held constant |
+   | UI queue/handler backlog dominates | Events arrive but accumulate or spend time in native UI handlers without the predicted loss of CPU service to the worker |
+
+   These are diagnostic experiments, not permission to ship reduced ACK cadence,
+   dropped updates or altered deadlines. Preserve evidence of failed hypotheses.
+5. **Handle emulator disagreement explicitly.** If dense UI lag does not
+   reproduce, report the measured software costs and name the remaining model
+   discrepancy: completion/IRQ timing, stock wait shortcuts, memory contention
+   or another evidenced missing path. Test model changes individually within
+   documented assumptions. Do not tune fake delays until the desired failure
+   appears or claim a root cause from a passing simplified model. Any required
+   hardware probe must measure a specific unresolved variable with an explicit
+   prediction and short stop condition; no repeated broad knob sweeps.
+6. **Fix the identified mechanism and rerun.** Once a causal path is established,
+   keep its failing test, implement the smallest justified change and rerun the
+   original workload, ordering/deadline/reconnect checks and baseline. Only then
+   stage one paired candidate with recovery and a short physical confirmation.
+   If architectural capacity is the limitation, record the supported budget or
+   required architecture change explicitly instead of weakening acceptance.
+
+**Investigation deliverable:** a repeatable probe, compact attribution/ablation
+report with exact revisions/model assumptions, and either a demonstrated causal
+mechanism plus regression or an evidenced emulator gap plus one targeted
+measurement proposal. No emulator reproduction or root cause is claimed yet.
+
+Preserve ordered START identity, full effective state, fail-closed deadlines,
+bounded queues, task-only USB and allocation-free/nonblocking audio callbacks.
+Any change to control cadence, ACK policy, latency or event semantics needs an
+explicit contract and audio/ordering evidence. Do not cycle arbitrary priorities,
+enlarge latency buffers to score a pass, or ask for another speculative flash.
+
+**Gate A exit remains physical:** one paired candidate passes the formerly
+failing case with usable UI, no audio stop, no new deadline/order/overflow fault
+or FIFO underrun, bounded queues and intact guards. Record effective updates/s
+and delivery slack along with the full profile. Emulator results support this
+qualification but do not replace final physical listening/UI acceptance.
+
+### Earlier Gate A trials and evidence
+
+The B/C/E/F/G sections below retain the trial sequence. Their next-step language
+records historical decisions; the emulator investigation above is the current
+next action. Existing SECS/reset/clock correction and recovered firmware proofs
+remain valid. Do not print full traces during physical timing measurements:
 `trxtrace` dumps previously caused FIFO growth.
-
-Ranked hypotheses for the next controlled investigation (not findings):
-
-1. **High-priority readiness/worker contention.** If repeated self-posts starve
-   stock work, removing them at the same priority should improve UI service
-   while preserving delivery slack. Static native inspection shows the wait
-   clears all pending posts, ruling out one-wait-per-old-credit accumulation.
-   Continuous producer signals may still prevent a sleep in either variant.
-2. **Native serializer/USB critical-section pressure.** If interrupt-masked
-   sends or USB backpressure dominate, capture-to-submit/completion age should
-   grow with dense effective changes even when self-posts are removed.
-3. **Stock UI/save/render interaction.** If the UI's own processing or disrupted
-   render cadence dominates, wall-time stalls will persist despite bounded
-   worker readiness; render-block timing may under-report them.
-4. **Host scheduling/deadline margin.** If events arrive promptly but are applied
-   late, compare arrival and due-frame slack with Pi control/render cost. V01P
-   makes this relevant, but does not isolate it.
-
-Use the existing 32/32 control and 64/64 failing case with all other LFO settings,
-note/velocity, routing, project and kernel held constant. Start muted. Compare
-corrected baseline with corrected no-self-wake, changing only that behavior.
-Read counters before/after a short interval; stop on lag, fault or audio failure.
-Do not repeat a broad sweep while this known failure is unexplained. A failed
-V01N result ends that hypothesis trial; choose the next probe from its evidence.
-Do not cycle arbitrary priorities or enlarge latency buffers to obtain a pass.
-
-The current emulator tests can catch ordering, protocol and queue failures.
-They **cannot reproduce the exact hardware responsiveness failure**: native
-exchange synthesizes USB completions and has no dense-run UI latency assertion;
-the host test models worker wake as a boolean, not native semaphore scheduling.
-A hardware trial is presently the red-capable loop for that symptom. Add an
-emulator regression only where it exercises the mechanism actually found.
-
-After identifying a cause, fix that layer and rerun the same failing/control
-pair. Preserve ordered START identity, fail-closed deadlines, bounded queues,
-task-only USB and allocation-free/nonblocking audio callbacks. Any deliberate
-change to control cadence, latency or event semantics needs an explicit contract
-and audio/ordering evidence; it is not an incidental optimization.
-
-**Exit:** one paired candidate passes the formerly failing case with usable UI,
-no audio stop, no new deadline/order/overflow fault or FIFO underrun, bounded
-queues and intact guards. Record effective updates/s and delivery slack as well
-as knob settings. Existing short passes do not establish a supported budget.
 
 ### V01B physical baseline — failure reproduced (2026-10-29)
 
@@ -343,13 +395,16 @@ then; more voices and Teensy stay deferred.
 
 ## Hardware and next action
 
-Current installed pair: **V01F diagnostic** and Pi kernel
-`0276c26b58092490f2b3b3fee89c99d4b4c8309144b0f53b13fbae0104354068`.
-The last test ended USB disconnected and the UI responsive; Pi output muted,
-trace off, FIFO 17 and fault 0. Freshly boot Pi for the next counter baseline.
-G Pi SD is [written/read-back verified and safely ejected](../evidence/v01/compact-sd-deployment.json);
-boot and human G Transfer confirmation remain pending. F is the last boot-verified
-pair. No physical G pass is claimed.
+Installed pair: **V01G diagnostic** and Pi kernel
+`2b027a172e089af8fc273e4b2351d7fd72a7223b92f8ac6dfc8b20c491e2df5f`.
+Human installation and [Pi boot](../evidence/v01/compact-boot.json) are confirmed.
+The G dense trial ended with fault0/FIFO11 stable, Pi output muted, trace off.
+USB unplug was requested; physical disconnection/recovery confirmation is still
+pending. Do not infer current cable state from the earlier disconnected boot.
+F Pi rollback and manifest are preserved in the pre-compact SD/local backups.
+
+Next action is **Gate A's emulator reproduction and causal isolation plan**.
+Hardware trials are on hold pending that investigation; Gates B/C stay open.
 
 Restore I04R before normal use from
 `private/v01/firmware-V01P/Digitakt-I04R-previous.syx` (SHA256
