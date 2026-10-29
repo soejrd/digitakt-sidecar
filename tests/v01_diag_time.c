@@ -5,6 +5,18 @@
 #include "i03_integrated.c"
 #undef main
 #include "../mods/usb-track/task_worker.c"
+#ifdef V01_REMOTE_DIAGNOSTIC
+uint32_t v01_test_clock,v01_test_clock_mode;
+static unsigned remote_observed;
+static void remote_collect(const uint8_t *p,uint32_t n)
+{
+    uint32_t fields[V01_FIELDS];
+    assert(v01_decode(fields,p,n));
+    assert(fields[V01_TIMER_MODE]==0x55 && fields[V01_GUARDS]==2);
+    ++remote_observed;
+    v01_test_clock+=17; /* Native-send cost measured while IRQs are masked. */
+}
+#endif
 
 int fw_rtos_task_create(struct core_rtos_task *t, void (*fn)(void), uint32_t p,
                         void *s, uint32_t n)
@@ -79,5 +91,19 @@ int main(void)
     diag_stamp_exit();
     assert(usb_track_diag_batch_max == 3);
     puts("V01 trial reset, elapsed seconds and sticky-fault preservation: PASS");
+#ifdef V01_REMOTE_DIAGNOSTIC
+    test_ready=test_isr=1; test_rx_slot=(uintptr_t)stock;
+    test_auto_complete=1; test_tx_observer=remote_collect;
+    usbmidi_device_init(0,0); usbmidi_device_open();
+    v01_test_clock_mode=0x55; usb_track_clock=1500;
+    diag_emit(); assert(transport.staged==1);
+    for(unsigned i=0;i<100;++i)diag_emit();
+    assert(transport.staged==1); /* A slow USB path must not build telemetry. */
+    usbmidi_tick(0); assert(remote_observed==1 && v01_send_max==17 && v01_send_ticks==17);
+    usb_track_clock+=1500;
+    diag_emit(); usbmidi_tick(0); assert(remote_observed==2);
+    test_isr=0; usb_track_clock+=1500; diag_emit(); assert(transport.staged==2);
+    puts("V01 remote device: bounded one-Hz queue, link gating and masked-send timing: PASS");
+#endif
     return 0;
 }

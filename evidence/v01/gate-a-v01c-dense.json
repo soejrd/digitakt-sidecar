@@ -64,5 +64,13 @@
     "playout_faults": 0,
     "starts": 0
   },
-  "interpretation": "Disabling worker self-wake at priority 14 did not remove the human-observed setting/UI failure. Self-wake alone is not a sufficient fix; this does not exclude worker/USB contention driven by render producer signals."
+  "interpretation": "Disabling worker self-wake at priority 14 did not remove the human-observed setting/UI failure. Self-wake alone is not a sufficient fix; this does not exclude worker/USB contention driven by render producer signals.",
+  "usb_disconnect_isolation": {
+    "date_utc": "2026-10-29T10:54:00.443785+00:00",
+    "class": "human observation",
+    "action": "unplug USB between Pi and Digitakt while stopped/muted",
+    "observation": "about six seconds very laggy with BPM LED flashing, then responsive again",
+    "confound": "USB removal changes audio streaming, MIDI traffic, task workload and session state together",
+    "conclusion": "Recovery follows link removal; active USB-related work implicated, exact subpath unproven"
+  }
 }

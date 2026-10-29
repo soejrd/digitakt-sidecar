@@ -1,0 +1,25 @@
+{
+  "task": "V01",
+  "scope": "offline Pi diagnostic kernel build; not deployed",
+  "platform": "Pi 4B Circle",
+  "command": "bash deps/sidecar-firmware/pi/engine/build.sh kernel",
+  "result": "PASS",
+  "kernel_bytes": 2476840,
+  "kernel_sha256": "8df83a5a2712d18429948dc2d77b4496a4efab545907b1cf2e9771bf31f2308e",
+  "playout_delay_frames": 128,
+  "source_sha256": {
+    "control/v01_diag.h": "8376854bb2ab47e24bea8616d05339bca6dca69a6420b744a943c43e86636def",
+    "scripts/i03_prepare_circle.sh": "c3c64bf3007d21df46ee130bafdcecc05c19e33b8ffc00320ef68ecdf22d13a4",
+    "patches/sidecar-firmware/0011-v01-remote-diagnostics.patch": "cb8e2cb3925b7c2618e7ad2b42c6227b382fa051f41bb377cf75a80ceb21cd60",
+    "deps/sidecar-firmware/pi/engine/dt_link.cpp": "57f6a51d40a9f33b800e773692e5a2bf76065f36d3fca65d0da608f2bf73819a",
+    "deps/sidecar-firmware/pi/engine/dt_link.h": "17c25e667abdf02e31be2e7bcfc5ff5a0c17694c52e567fa030bd2185633b76f",
+    "deps/sidecar-firmware/pi/engine/cores.cpp": "ef19ebef9898aaed367760dc53d0707381d7a1a5572492340fb90c37fbf2e859",
+    "deps/sidecar-firmware/pi/engine/Makefile": "0cfa15feab464e8f8901c8dec43fc5491de71fa84422a2b4966f7ff2b25e6c6e"
+  },
+  "base_revision": "6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457",
+  "patches": "0001 through 0011 plus tracked protocol/DSP overlay",
+  "limits": [
+    "No deployment or physical diagnostic data yet",
+    "No change to latency/deadline/voice contract; telemetry and command receiver only"
+  ]
+}

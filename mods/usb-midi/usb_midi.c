@@ -4,6 +4,10 @@
 #include "digitakt-mk1/core3.h"
 #include "usb_midi.h"
 #include "../../control/dt1_transport.h"
+#ifdef V01_REMOTE_DIAGNOSTIC
+#include "../usb-track/core_candidate_clock.h"
+volatile uint32_t v01_send_calls,v01_send_ticks,v01_send_max;
+#endif
 
 #ifndef DT1_NATIVE_TEST
 #define USB_READY      (*(volatile uint32_t *)0x40610474u)
@@ -67,6 +71,9 @@ static int fw_can_send(void *ctx, uint32_t n)
 static uint32_t fw_send(void *ctx, const uint8_t *bytes, uint32_t n)
 {
     uint16_t sr = irq_save();
+#ifdef V01_REMOTE_DIAGNOSTIC
+    uint32_t started_at=v01_clock();
+#endif
     uint32_t before, accepted = 0, encoded = 4u * ((n + 2u) / 3u);
     /* One single-core critical section closes the preflight/send race with
      * stock MIDI writers. No task switches, completions or counter changes
@@ -78,6 +85,11 @@ static uint32_t fw_send(void *ctx, const uint8_t *bytes, uint32_t n)
         if (USB_QUEUED - before == encoded) accepted = n;
         else failed = 1; /* descriptor exhaustion/partial submission: no retry */
     }
+#ifdef V01_REMOTE_DIAGNOSTIC
+    uint32_t elapsed=v01_clock()-started_at;
+    ++v01_send_calls; v01_send_ticks+=elapsed;
+    if(elapsed>v01_send_max) v01_send_max=elapsed;
+#endif
     irq_restore(sr);
     return accepted;
 }
@@ -132,6 +144,7 @@ uint32_t usbmidi_device_diag(unsigned field)
     if (field == 1) return transport.submitted;
     if (field == 2) return transport.rx_bytes;
     if (field == 3) return transport.staged;
+    if (field == 4) return transport.tx_head-transport.tx_tail;
     return (opened ? 1u : 0u) | (failed ? 2u : 0u) |
            (USB_READY == 1 ? 4u : 0u) | (USB_ISR_ON ? 8u : 0u) |
            (USB_RX_SLOT ? 16u : 0u) |

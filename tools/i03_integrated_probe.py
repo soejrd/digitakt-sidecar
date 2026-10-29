@@ -166,7 +166,14 @@ def run(candidate, output):
             state['artificial_worker_waits']=s.ev.get('satisfied_by_sem',{}).get(sym('worker_sem'),0)
             assert state['artificial_worker_waits']==0
             assert state.get('signal_interrupt_levels',{}).get('5',0)>0,'render never signalled worker'
-        report={'status':'verified','level':'compiled OS 1.54 + native serializer; USB DMA/PCM modelled',
+        if 'V01_REMOTE_DIAGNOSTIC' in meta.get('compiler_defines',[]):
+            assert peer.peer_remote_count() >= 5, 'remote snapshots missing'
+            assert peer.peer_remote_bad() == 0, 'malformed remote snapshot'
+            assert peer.peer_remote_value(4)>0 and peer.peer_remote_value(5)>0
+            assert peer.peer_remote_value(9)>0, 'native send timing producer not exercised'
+            state['remote_snapshots']=peer.peer_remote_count()
+            state['remote_malformed']=peer.peer_remote_bad()
+        report={'status':'verified' ,'level':'compiled OS 1.54 + native serializer; USB DMA/PCM modelled',
                 'hardware_test':False,'candidate':dynamic._candidate_summary(meta),
                 'checks':['native serializer and two-argument compiled RX bridge',
                           'silence before ACTIVATE; fresh PCM after stale-half flush',

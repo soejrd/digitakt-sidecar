@@ -22,7 +22,7 @@ reset, SECS stopwatch comparison, and sticky guard faults. Both build/boot and
 pass panel, compiled reset/formatter, native sleep/wake/guards, and dense
 compiled exchange/ACK/reconnect checks. Full I04 host regression and ten-patch
 replay pass. Packages: `private/v01/firmware-V01B/` and `firmware-V01C/`, each
-with I04R/I04Q/H02F/stock rollback. Neither is installed or hardware-qualified.
+with I04R/I04Q/H02F/stock rollback. Both have since been installed for diagnostic trials; neither is production-qualified.
 No Pi code/kernel change. Hardware resumed 2026-10-29. Human installed V01B;
 agent controls Sidecar via its existing HTTP /cmd and reads /status and /log.
 Agent confirmed trx=off and trxtrace=off; user only handles Digitakt panel/flash.
@@ -45,11 +45,26 @@ because the panel was nearly unusable. Pi remained fault 0, FIFO 14, queue peak
 4. [Control](evidence/v01/gate-a-v01c-control.json),
 [failure](evidence/v01/gate-a-v01c-dense.json). No-self-wake alone is not a fix.
 
-**Next physical action:** stop demanding panel diagnostic readings. With play
-stopped/Pi muted, a brief USB disconnect and one SRC response observation can
-separate active-link work from a disconnected native/LFO path. No further flash
-is prepared. Future probes should capture device telemetry remotely rather than
-requiring prolonged navigation while starved.
+**USB isolation:** after unplugging USB, human reported about six seconds of
+severe lag/BPM flashing, then normal UI response. Active USB-related work is
+implicated; disconnect changes audio/MIDI/tasks/session together, so it does not
+identify a particular sender call.
+
+**Remote probe ready:** [V01E/Pi pair](evidence/v01/remote-candidate.json),
+[procedure](docs/V01-remote-probe.md). One best-effort snapshot per render-second
+reports UI/worker gaps plus raw DTIM0 ticks around masked native sends, worker
+batches and UI service. Pi `v01status` exposes last snapshot; the agent polls it.
+No manual DIAG extraction. Codec/device/actual Circle tests, full host suite,
+eleven-patch replay, Pi cross-build and compiled emulator transport pass (12
+snapshots, 0 malformed, native stack 1352 B). Neither new image deployed.
+Package `private/v01/firmware-V01E/` contains Digitakt/stock recovery plus paired
+Pi kernel and exact `c057…` pre-probe rollback. Hardware raw timer rate still
+needs calibration; do not infer microseconds from ticks.
+
+**Next physical action:** Pi off and its SD attached to Mac for a backed-up,
+read-back-verified kernel update, then human Transfer flash of V01E. Keep USB
+unplugged until the pair is installed; agent re-mutes/disables trace and first
+checks remote progress/timer against wall time before another dense attempt.
 
 Earlier V01D/N/P times were inflated by 46.875×; UGAP 8469 is ~181 ms, not
 8.469 s. Human-observed multi-second lag remains valid. Do not reuse old

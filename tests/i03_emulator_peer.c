@@ -1,11 +1,13 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 /* Portable Circle peer, called by the emulator USB shim. */
 #include "circle_link_adapter.h"
+#include "v01_diag.h"
 #include <string.h>
 static struct sc_circle_link peer;
 static struct sc_frame installed;
 static uint8_t replies[256][SC_CONTROL_WIRE_SIZE];
 static uint32_t wr,rd,installs,starts;
+static uint32_t remote_values[V01_FIELDS],remote_count,remote_bad;
 static int send_reply(void *ctx,const uint8_t *p,uint32_t n)
 {
     (void)ctx;
@@ -19,12 +21,16 @@ static int install(void *ctx,const struct sc_frame *f)
 static void clear(void *ctx) { (void)ctx; memset(&installed,0,sizeof installed); }
 void peer_init(void)
 {
-    wr=rd=installs=starts=0;
+    wr=rd=installs=starts=remote_count=remote_bad=0;
     sc_circle_init(&peer,install,send_reply,clear,0,750);
 }
 void peer_frame(const uint8_t *p,unsigned n,uint32_t block)
 {
     unsigned i;
+    if(v01_message(p,n)) {
+        if(v01_decode(remote_values,p,n)) ++remote_count; else ++remote_bad;
+        return;
+    }
     sc_circle_advance_block(&peer,block);
     for(i=0;i<n;++i) sc_circle_midi_byte(&peer,p[i]);
     sc_circle_process(&peer,128);
@@ -42,3 +48,7 @@ void peer_lost(void) { sc_circle_transport_lost(&peer,SC_REASON_TRANSPORT); sc_c
 
 void peer_advance(uint32_t block) { sc_circle_advance_block(&peer,block); sc_circle_process(&peer,128); }
 unsigned peer_session(void) { return peer.host.session; }
+
+unsigned peer_remote_count(void) { return remote_count; }
+unsigned peer_remote_bad(void) { return remote_bad; }
+unsigned peer_remote_value(unsigned i) { return i<V01_FIELDS ? remote_values[i] : 0; }

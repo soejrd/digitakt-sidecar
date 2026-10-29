@@ -3,7 +3,7 @@
 **IN PROGRESS.** Ownership renewed by Codex at `2026-10-28T18:41:42Z`.
 Phase 0 preservation passed; Phase 1 reproduced the dense-LFO failure.
 Phase 2 is incomplete. V01P is rejected; V01N is physically untested.
-No V01 acceptance or new hardware installation is claimed.
+V01 is not accepted. V01C is the last human-reported installation; V01E is staged.
 
 Target remains Digitakt mk1 OS 1.54 + Pi 4B/Circle, one USB1 voice on track 1.
 More voices, Teensy and a separate persistence database remain outside scope.
@@ -66,7 +66,7 @@ separate. Do not overwrite old evidence to make a new candidate look tested.
 candidates V01B (priority-14/self-wake baseline) and V01C (same priority, no
 self-wake) build/boot and pass panel, reset, unit-conversion, native-task and
 compiled-exchange checks. The full host regression and ten-patch replay pass.
-Verified recovery packages are staged; neither candidate is installed.
+Verified recovery packages are staged; both candidates have since had physical diagnostic trials.
 [Candidate evidence](../evidence/v01/gate-a-candidates.json),
 [physical runbook](V01-gate-a-runbook.md).
 
@@ -160,6 +160,22 @@ trials should avoid manual diagnostic extraction under this failure. Next low
 cost isolation is active-link versus cable-disconnected panel responsiveness;
 no further firmware candidate is prepared yet.
 
+### USB isolation and remote probe (2026-10-29)
+
+After V01C dense lag, unplugging USB led to about six seconds of severe lag
+with BPM flashing, then normal responsiveness (human observation). This
+implicates active USB-related work but changes audio, MIDI, task load and session
+state together; no particular masked send or IRQ is proven responsible.
+
+[V01E/Pi remote probe](../evidence/v01/remote-candidate.json) is verified/staged,
+not installed. It adds low-rate, best-effort telemetry isolated from the voice
+protocol. Read-only DTIM0 counter/mode samples measure send critical sections,
+UI gaps and worker batches in raw ticks. Timer movement/rate must be calibrated
+on hardware before interpreting tick durations. The Pi retains last snapshot;
+agent polls `v01status` and `trxstatus`, avoiding manual frozen-page extraction.
+[Procedure and rollback](V01-remote-probe.md). This is diagnostic instrumentation,
+not a scheduling fix, and its additive overhead must be acknowledged.
+
 ## Gate B — native persistence and musical edit semantics
 
 Source/emulator mapping may proceed while Gate A awaits hardware. Establish
@@ -237,7 +253,7 @@ verified live in this session. Before normal use, the human should restore
 I04Q, H02F and stock 1.54 recoveries are in that package. Freshly reboot the Pi
 before establishing counter baselines.
 
-Next step is the controlled V01B/V01C Gate A hardware comparison in the runbook.
+Next step is the paired V01E/Pi remote diagnostic procedure in [the probe runbook](V01-remote-probe.md).
 Hardware resumed: V01B and V01C both reproduce severe setting/UI lag.
 Offline preparation is complete; no scheduling fix is claimed.
 Before hardware audio tests, confirm human availability, lowered speakers,

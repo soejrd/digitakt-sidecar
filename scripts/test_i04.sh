@@ -37,3 +37,5 @@ python3 tests/i04_trace.py
 bash scripts/test_i04_effective.sh
 
 bash scripts/test_i04_event_worker.sh
+
+bash scripts/test_v01_remote.sh

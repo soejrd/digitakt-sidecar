@@ -89,3 +89,15 @@ capture and explicit command-context dump. Retain metadata across reset. Raw
 payloads remain private; analyzer emits timing-only fields. Core/native/ASan
 trace bounds/freeze/reset tests, nine-patch replay and Pi build pass. This is
 diagnostic instrumentation, not a qualified timing fix; buffer stays unchanged.
+
+## 0011-v01-remote-diagnostics.patch
+
+V01 diagnostic receiver, separate from DTSC voice/session framing. Accepts a
+bounded 15-field, 7-bit-canonical `F0 7D V01 01` snapshot, retaining the last
+valid sample and malformed/received counts. `v01status` logs two compact lines
+only when requested; no per-frame logging, ACK, voice changes or allocation.
+Apply after 0001–0010 at the pinned base and run the normal I04 overlay, which
+also copies `control/v01_diag.h`. Host tests exercise the actual Circle receiver
+before selection and during an active voice, including malformed isolation.
+`python3 scripts/test_i04_replay.py` checks all eleven patches. Requires the
+paired V01E Digitakt diagnostic to produce data; this patch is not a lag fix.

@@ -100,16 +100,30 @@ def candidate_prepare(args):
             subprocess.run([__import__('sys').executable,*cmd],env=env,cwd=ROOT,
                            stdout=log,stderr=subprocess.STDOUT,check=True)
         track_mod = 'mods/usb-track'
+        midi_mod = 'mods/usb-midi'
         if args.diagnostic:
             overlay = root/'source'
             (overlay/'mods/usb-track').mkdir(parents=True)
             (overlay/'control').symlink_to(ROOT/'control', target_is_directory=True)
-            (overlay/'mods/usb-midi').symlink_to(ROOT/'mods/usb-midi', target_is_directory=True)
+            if getattr(args,'remote_diagnostic',False):
+                midi_path=overlay/'mods/usb-midi'
+                midi_path.mkdir()
+                for source in (ROOT/'mods/usb-midi').iterdir():
+                    if source.suffix in ('.c','.h','.s'):
+                        shutil.copyfile(source,midi_path/source.name)
+                midi_manifest=json.loads((ROOT/'mods/usb-midi/mod.json').read_text())
+                midi_manifest['cflags']=midi_manifest.get('cflags',[])+['-DV01_REMOTE_DIAGNOSTIC']
+                (midi_path/'mod.json').write_text(json.dumps(midi_manifest,indent=2)+'\n')
+                midi_mod=str(midi_path)
+            else:
+                (overlay/'mods/usb-midi').symlink_to(ROOT/'mods/usb-midi',target_is_directory=True)
             for source in (ROOT/'mods/usb-track').iterdir():
                 if source.suffix in ('.c', '.h', '.s'):
                     shutil.copyfile(source, overlay/'mods/usb-track'/source.name)
             manifest = json.loads((ROOT/'mods/usb-track/mod.json').read_text())
             cflags = ['-DUSB_TRACK_DIAGNOSTIC']
+            if getattr(args, 'remote_diagnostic', False):
+                cflags.append('-DV01_REMOTE_DIAGNOSTIC')
             if getattr(args, 'no_self_wake', False):
                 cflags.append('-DV01_NO_SELF_WAKE')
             if getattr(args, 'worker_priority', None) is not None:
@@ -117,7 +131,7 @@ def candidate_prepare(args):
             manifest['cflags'] = manifest.get('cflags', []) + cflags
             (overlay/'mods/usb-track/mod.json').write_text(json.dumps(manifest, indent=2)+'\n')
             track_mod = str(overlay/'mods/usb-track')
-        for mod in ('deps/elekloader/mods/core','deps/elekloader/mods/machine-pages','mods/usb-midi',track_mod):
+        for mod in ('deps/elekloader/mods/core','deps/elekloader/mods/machine-pages',midi_mod,track_mod):
             run('-m','elekloader.sdk.build',mod,'--stock',str(args.stock.resolve()),'--out',str(artifacts))
         version=json.loads((ROOT/'mods/usb-track/mod.json').read_text())['version']
         mods=[artifacts/name for name in ('core-4.1-os1.54.elemod',
@@ -133,11 +147,11 @@ def candidate_prepare(args):
     os.environ.update(p.env())
     first_run(p,progress=lambda e:print(e.step,e.kind,flush=True) if e.kind in ('start','done') else None)
     assign_project(p,root)
-    write_candidate_metadata(root,p,version,args.diagnostic,getattr(args,'label',None),getattr(args,'no_self_wake',False),getattr(args,'worker_priority',None))
+    write_candidate_metadata(root,p,version,args.diagnostic,getattr(args,'label',None),getattr(args,'no_self_wake',False),getattr(args,'worker_priority',None),getattr(args,'remote_diagnostic',False))
     print('CANDIDATE BOOTED AND ASSIGNED',flush=True)
 
 
-def write_candidate_metadata(root,p,version,diagnostic=False,label=None,no_self_wake=False,worker_priority=None):
+def write_candidate_metadata(root,p,version,diagnostic=False,label=None,no_self_wake=False,worker_priority=None,remote_diagnostic=False):
     artifacts=root/'artifacts'
     (root/'fixture.json').write_text(json.dumps({
         'firmware_root':str(Path(p.root).relative_to(root)),
@@ -148,6 +162,7 @@ def write_candidate_metadata(root,p,version,diagnostic=False,label=None,no_self_
         'firmware_label':label or ('H02F' if diagnostic else ('I02A' if version=='0.1' else 'I03P')),
         'compiler_defines':(['USB_TRACK_DIAGNOSTIC'] if diagnostic else []) +
             (['V01_NO_SELF_WAKE'] if no_self_wake else []) +
+            (['V01_REMOTE_DIAGNOSTIC'] if remote_diagnostic else []) +
             ([f'V01_WORKER_PRIORITY={worker_priority}'] if worker_priority is not None else []),
         'source_hashes':{str(f.relative_to(ROOT)):r03.sha(f) for f in
             sorted(set([p for folder in ('mods/usb-track','mods/usb-midi')
@@ -155,7 +170,7 @@ def write_candidate_metadata(root,p,version,diagnostic=False,label=None,no_self_
                         if p.suffix in ('.c','.h','.s','.json')] +
                        [ROOT/'control'/name for name in
                         ('link.c','link.h','device_link.c','device_link.h',
-                         'sc_memory.h','dt1_transport.c','dt1_transport.h',
+                         'sc_memory.h','v01_diag.h','dt1_transport.c','dt1_transport.h',
                          'usbmidi.c','usbmidi.h','sysex_split.c','sysex_split.h')]))}},indent=2)+'\n')
 
 
@@ -445,10 +460,13 @@ def main():
     p.add_argument('--stock', type=Path, required=True)
     p.add_argument('--fixture', type=Path, required=True)
     p.add_argument('--diagnostic', action='store_true', help='H02F: corrected native mode with SRC diagnostics')
+    p.add_argument('--remote-diagnostic', action='store_true', help='V01 raw-timer and one-Hz remote telemetry (requires --diagnostic)')
     p.add_argument('--no-self-wake', action='store_true', help='V01 diagnostic: disable worker self-reschedule')
     p.add_argument('--worker-priority', type=int, help='V01 diagnostic: override USB worker priority')
     p.add_argument('--label', help='explicit private candidate four-character firmware label')
     args = ap.parse_args()
+    if getattr(args,'remote_diagnostic',False) and not getattr(args,'diagnostic',False):
+        ap.error('--remote-diagnostic requires --diagnostic')
     {'prepare':prepare,'candidate':candidate_prepare,'check':check}[args.command](args)
 
 

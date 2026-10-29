@@ -2,6 +2,7 @@
 #include "dt_link.h"
 #include "shared.h"
 #include "circle_link_adapter.h"
+#include "v01_diag.h"
 #include <cassert>
 #include <cstdio>
 Output g_Output;
@@ -33,6 +34,17 @@ static void start(unsigned id,unsigned block) {
   auto c=reply(); assert(c.kind==SC_ACTIVATE && c.value==block);
 }
 int main() {
+  uint32_t sent_diag[V01_FIELDS]; uint8_t diag_wire[V01_WIRE]; unsigned received_diag[17];
+  for(unsigned i=0;i<V01_FIELDS;++i)sent_diag[i]=UINT32_MAX-i;
+  v01_encode(diag_wire,sent_diag);
+  assert(!dt_link::Selected());
+  assert(dt_link::SysEx(diag_wire,sizeof diag_wire));
+  dt_link::RemoteStatus(received_diag);
+  assert(received_diag[0]==1 && received_diag[1]==0 && !dt_link::Selected());
+  for(unsigned i=0;i<V01_FIELDS;++i)assert(received_diag[i+2]==sent_diag[i]);
+  diag_wire[10]=16; assert(dt_link::SysEx(diag_wire,sizeof diag_wire));
+  dt_link::RemoteStatus(received_diag); assert(received_diag[0]==1 && received_diag[1]==1);
+  for(unsigned i=0;i<V01_FIELDS;++i)assert(received_diag[i+2]==sent_diag[i]);
   sc_frame f;
   int16_t pcm[32][8];
   auto silent = [&]() {
@@ -93,6 +105,12 @@ int main() {
 #endif
   assert(!dt_link::State(&f));
   hello(42,20); start(42,21); dt_link::Poll(4); assert(dt_link::State(&f));
+  sc_frame before_diag=f;
+  v01_encode(diag_wire,sent_diag);
+  assert(dt_link::SysEx(diag_wire,sizeof diag_wire));
+  assert(dt_link::State(&f) && f.session==before_diag.session && f.block==before_diag.block);
+  assert(g_MidiOut.size()==0); // diagnostics must never ACK or change voice ordering
+
   silent(); // reconnect needs a new explicit tone enable
 #ifdef I04_RENDER_TEST
   dt_link::RenderVoice(pcm,32);

@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Status | Dependencies / first action | Acceptance |
 | --- | --- | --- | --- | --- |
-| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29 physical trial) | V01B and [V01C](evidence/v01/gate-a-v01c-dense.json) both reproduce severe setting/UI lag; no-self-wake alone insufficient. Active 32/32 controls pass; V01C first activation FIFO 7→14 remains unresolved, then stable at 14/faults 0 during dense lag. Stop manual panel extraction; next brief USB-disconnect responsiveness isolation and remote diagnostics. Last reported installed V01C; Pi muted/trace off; I04R rollback retained. | Numeric supported workload with responsive UI and no audio/deadline failure; native persistence/edit semantics; reconnect and combined soak; explicit listening acceptance. |
+| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29 physical trial) | B/C both reproduce severe UI lag; USB disconnect restored response after ~6 s. [Remote V01E/Pi pair](evidence/v01/remote-candidate.json) verified/staged with rollback, not deployed. Next: backed-up Pi SD kernel update + human V01E Transfer flash, remote timer calibration and telemetry; no manual frozen-page extraction. Last installed V01C, USB disconnected, Pi muted/trace off. Activation FIFO 7→14 remains unresolved. | Numeric supported workload with responsive UI and no audio/deadline failure; native persistence/edit semantics; reconnect and combined soak; explicit listening acceptance. |
 
 ## Waiting
 
