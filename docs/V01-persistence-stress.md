@@ -318,7 +318,9 @@ Current installed pair: **V01F diagnostic** and Pi kernel
 `0276c26b58092490f2b3b3fee89c99d4b4c8309144b0f53b13fbae0104354068`.
 The last test ended USB disconnected and the UI responsive; Pi output muted,
 trace off, FIFO 17 and fault 0. Freshly boot Pi for the next counter baseline.
-G is an offline verified pair pending human installation and hardware trial.
+G Pi SD is [written/read-back verified and safely ejected](../evidence/v01/compact-sd-deployment.json);
+boot and human G Transfer confirmation remain pending. F is the last boot-verified
+pair. No physical G pass is claimed.
 
 Restore I04R before normal use from
 `private/v01/firmware-V01P/Digitakt-I04R-previous.syx` (SHA256

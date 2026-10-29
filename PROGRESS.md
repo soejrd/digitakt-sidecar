@@ -33,13 +33,13 @@ fallback for fractional/negative SRC. Sender replay keeps original format;
 matching Pi accepts v1/v3. F telemetry, priority14/no-self-wake, deadlines and
 128-frame playout unchanged. Hardware must show improvement; no fix claimed.
 [Verified G pair](evidence/v01/compact-candidate.json), staged in
-`private/v01/firmware-V01G/`; no deployment. Full sanitizer host suite, compact
+`private/v01/firmware-V01G/`. G Pi SD now written/read-back verified and
+safely ejected; [deployment](evidence/v01/compact-sd-deployment.json). Boot pending. Full sanitizer host suite, compact
 codec/worker/scheduler/recovery, twelve-patch replay and compiled exchange pass
 (12 remote packets, 0 malformed, stack 1368 B); paired Pi kernel builds.
 
-**Next:** human can
-insert SD for verified write/read-back/eject and flash G using Transfer, keeping
-USB disconnected until matching Pi boot is verified. Trial starts muted at
+**Next:** human returns ejected SD and boots Pi; flashes G using Transfer,
+keeping USB disconnected until matching Pi boot is verified. Trial starts muted at
 32/32, then same SPD64 ramp; stop promptly on lag/fault/FIFO growth. Agent polls
 remote diagnostics; no manual DIAG extraction. Startup/reconnect faults remain
 open; Gates B persistence and C reconnect/soak still outstanding.
@@ -50,8 +50,10 @@ open; Gates B persistence and C reconnect/soak still outstanding.
   Restore I04R before normal use from
   `private/v01/firmware-V01P/Digitakt-I04R-previous.syx`; I04Q/H02F/stock also
   retained. I04R SHA256 `6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b`.
-- Pi card updated to F SHA256 `0276c26b58092490f2b3b3fee89c99d4b4c8309144b0f53b13fbae0104354068`,
-  128-frame playout; F boot verified. Immediate E rollback `8df83a5a…` is in
+- Pi card updated to G SHA256 `2b027a172e089af8fc273e4b2351d7fd72a7223b92f8ac6dfc8b20c491e2df5f`,
+  128-frame playout; G boot pending. Fresh on-card pre-compact kernel/manifest
+  and `private/v01/sd-backup-before-compact/` retain F `0276c26b…`.
+  Earlier E rollback `8df83a5a…` is in
   `private/v01/sd-backup-before-duty/` and on-card pre-duty backup files.
   Earlier `c057…` remains in pre-remote backups.
   Earlier I04 rollback remains in `private/i04/sd-backup-event-worker/`.

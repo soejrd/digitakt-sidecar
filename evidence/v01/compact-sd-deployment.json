@@ -1,0 +1,32 @@
+{
+  "task": "V01",
+  "date_utc": "2026-10-29T12:37:58.952507+00:00",
+  "scope": "V01G paired compact snapshot Pi kernel SD update; boot pending",
+  "old_kernel_sha256": "0276c26b58092490f2b3b3fee89c99d4b4c8309144b0f53b13fbae0104354068",
+  "new_kernel_sha256": "2b027a172e089af8fc273e4b2351d7fd72a7223b92f8ac6dfc8b20c491e2df5f",
+  "new_kernel_bytes": 2476872,
+  "backup_kernel": "kernel8-rpi4.before-v01-compact.img",
+  "backup_manifest": "SHA256SUMS.before-v01-compact",
+  "local_backup": "private/v01/sd-backup-before-compact/",
+  "manifest_entries_verified": 22,
+  "unchanged_existing_files_verified": 64,
+  "assertions": {
+    "known_removable_sd_card": true,
+    "expected_previous_kernel": true,
+    "existing_checksums_pass": true,
+    "local_and_card_backups_readback_verified": true,
+    "candidate_readback_verified": true,
+    "updated_manifest_verified": true,
+    "other_non_system_files_unchanged": true,
+    "boot_config_unchanged": true
+  },
+  "safely_ejected": true,
+  "boot_verified": false,
+  "digitakt_firmware": "V01G supplied for human Transfer; installation pending",
+  "playout_delay_frames": 128,
+  "rollback": "With Pi off restore kernel8-rpi4.before-v01-compact.img as kernel8-rpi4.img and SHA256SUMS.before-v01-compact as SHA256SUMS; matching exact copies retained locally. Prior recoveries unchanged.",
+  "limits": [
+    "SD read-back proof only; no boot or physical G responsiveness measurement",
+    "Apple filesystem metadata excluded from inventory; original boot and other non-system files hashed"
+  ]
+}
