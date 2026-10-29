@@ -1,0 +1,32 @@
+{
+  "task": "V01",
+  "date_utc": "2026-10-29T12:11:05.819469+00:00",
+  "scope": "Offline SD-card aggregate elapsed diagnostic kernel update/read-back; boot pending",
+  "old_kernel_sha256": "8df83a5a2712d18429948dc2d77b4496a4efab545907b1cf2e9771bf31f2308e",
+  "new_kernel_sha256": "0276c26b58092490f2b3b3fee89c99d4b4c8309144b0f53b13fbae0104354068",
+  "new_kernel_bytes": 2476888,
+  "backup_kernel": "kernel8-rpi4.before-v01-duty.img",
+  "backup_manifest": "SHA256SUMS.before-v01-duty",
+  "local_backup": "private/v01/sd-backup-before-duty/",
+  "manifest_entries_verified": 21,
+  "unchanged_existing_files_verified": 62,
+  "assertions": {
+    "known_removable_sd_card": true,
+    "expected_previous_kernel": true,
+    "existing_checksums_pass": true,
+    "local_and_card_backups_readback_verified": true,
+    "candidate_readback_verified": true,
+    "updated_manifest_verified": true,
+    "other_non_system_files_unchanged": true,
+    "boot_config_unchanged": true
+  },
+  "safely_ejected": true,
+  "boot_verified": false,
+  "digitakt_firmware": "V01E last reported; human V01F flash authorized/in progress, confirmation pending",
+  "playout_delay_frames": 128,
+  "rollback": "With Pi off restore kernel8-rpi4.before-v01-duty.img as kernel8-rpi4.img and SHA256SUMS.before-v01-duty as SHA256SUMS. Exact copies also retained locally and in the staged package.",
+  "limits": [
+    "No boot or hardware remote-telemetry result yet",
+    "Apple filesystem metadata excluded from unchanged-file inventory; original boot, recording/sample and other non-system files hashed"
+  ]
+}

@@ -3,7 +3,7 @@
 **IN PROGRESS.** Ownership renewed by Codex at `2026-10-28T18:41:42Z`.
 Phase 0 preservation passed; Phase 1 reproduced the dense-LFO failure.
 Phase 2 is incomplete. V01P is rejected; V01N is physically untested.
-V01 is not accepted. V01E is installed/tested; V01F is staged, not installed.
+V01 is not accepted. E was installed/tested; F SD update is verified, with boot and Digitakt flash confirmation pending.
 
 Target remains Digitakt mk1 OS 1.54 + Pi 4B/Circle, one USB1 voice on track 1.
 More voices, Teensy and a separate persistence database remain outside scope.
@@ -197,8 +197,9 @@ The Pi still showed ~4.3% average core-3 load and 10 us block max. This weakens
 long masked-send blocking as the sole explanation, not scheduling/IRQ bursts.
 Muted active synthesis still runs before the final output mute.
 
-[V01F paired diagnostic](../evidence/v01/duty-candidate.json) is verified/staged,
-not installed. Two cumulative elapsed counters bracket the worker and existing
+[V01F paired diagnostic](../evidence/v01/duty-candidate.json) is verified/staged;
+[F SD deployment](../evidence/v01/duty-sd-deployment.json) is read-back verified
+and safely ejected. Boot and human F flash confirmation remain pending. Two cumulative elapsed counters bracket the worker and existing
 native render events. They overlap under preemption; do not sum as CPU usage.
 The 92-byte version-2 packet remains within the 96-byte transport limit, and
 paired Pi accepts legacy E snapshots with an explicit version tag. No voice,

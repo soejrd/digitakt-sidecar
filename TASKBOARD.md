@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Status | Dependencies / first action | Acceptance |
 | --- | --- | --- | --- | --- |
-| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29 physical trial) | [E severe result](evidence/v01/remote-severe-result.json): SPD64/DEP100 ~3 fps, FIFO grows before unplug; recovery after USB removal. Measured send critical max ~24 us/~1.5% near onset; aggregate worker/render remains unresolved. [F pair](evidence/v01/duty-candidate.json) verified/staged, not installed; next backed-up Pi SD update + human F flash for elapsed totals. Last installed E, USB disconnected, Pi muted/trace off. Startup/reconnect faults still open. | Numeric supported workload with responsive UI and no audio/deadline failure; native persistence/edit semantics; reconnect and combined soak; explicit listening acceptance. |
+| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29 physical trial) | [E severe result](evidence/v01/remote-severe-result.json): SPD64/DEP100 ~3 fps, FIFO grows before unplug; recovery after USB removal. Measured send critical max ~24 us/~1.5% near onset; aggregate worker/render remains unresolved. [F pair](evidence/v01/duty-candidate.json) verified; [F SD updated/read-back/ejected](evidence/v01/duty-sd-deployment.json), boot pending. Human F Transfer flash authorized in parallel, confirmation pending. Next boot/build check and version-2 remote baseline. USB disconnected; E is last confirmed Digitakt firmware. Startup/reconnect faults still open. | Numeric supported workload with responsive UI and no audio/deadline failure; native persistence/edit semantics; reconnect and combined soak; explicit listening acceptance. |
 
 ## Waiting
 

@@ -84,7 +84,9 @@ from muted telemetry. The first-activation FIFO rise remains a separate open iss
 ## V01F — aggregate elapsed follow-up
 
 [Verified F pair](../evidence/v01/duty-candidate.json), staged under
-`private/v01/firmware-V01F/`, not installed. It keeps E's control behavior and
+`private/v01/firmware-V01F/`. [F Pi SD deployment](../evidence/v01/duty-sd-deployment.json)
+is read-back verified and safely ejected; boot and human F installation
+confirmation are pending. It keeps E's control behavior and
 adds cumulative raw elapsed ticks in the worker and native render-event pair.
 Existing core `ev_render_in`/`ev_render_out` hooks are used; no new stock code
 sites, hardware timer configuration, audio waiting or allocation. The diagnostic

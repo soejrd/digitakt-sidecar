@@ -44,12 +44,17 @@ priority14/no-self-wake/deadlines. Pi accepts/tags legacy v1 packets. Worker
 elapsed includes preemptions and overlaps renderer: never sum as pure CPU.
 Host/sanitizer/codec/receiver tests, twelve-patch replay, Pi build and compiled
 exchange pass (12 snapshots, 0 malformed, both totals advance, stack 1368 B).
-No F image installed. Exact immediate Pi rollback is the currently installed
-E kernel `8df83a5a…`; accepted-prototype `c057…` remains available.
+F Pi SD kernel now written/read-back verified and safely ejected;
+[deployment](evidence/v01/duty-sd-deployment.json). Boot pending. All 21 manifest
+entries pass; 62 other existing non-system files unchanged. Fresh card rollback
+`kernel8-rpi4.before-v01-duty.img` / `SHA256SUMS.before-v01-duty` and local
+`private/v01/sd-backup-before-duty/` preserve E `8df83a5a…`. Older pre-E/I04
+recovery is unchanged. Human may flash V01F via Transfer in parallel; completion
+not yet reported.
 
-**Next human step:** keep USB disconnected; power off Pi and insert SD into Mac
-for backed-up F kernel update, then human V01F Transfer flash. Agent first
-verifies version-2 counters/calibration at 32/32. No more manual page extraction.
+**Next human step:** return the ejected SD and boot Pi; complete V01F Transfer
+flash, keeping Pi–Digitakt USB disconnected. Agent verifies Pi build/receiver,
+then version-2 counters/calibration at 32/32 after controlled reconnection. No more manual page extraction.
 Watch tool now saves each sample continuously and supports a stop marker.
 The early activation FIFO rise and hotplug fault remain separate open issues.
 
@@ -59,9 +64,10 @@ The early activation FIFO rise and hotplug fault remain separate open issues.
   Restore I04R before normal use from
   `private/v01/firmware-V01P/Digitakt-I04R-previous.syx`; I04Q/H02F/stock also
   retained. I04R SHA256 `6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b`.
-- Pi card updated to SHA256 `8df83a5a2712d18429948dc2d77b4496a4efab545907b1cf2e9771bf31f2308e`,
-  128-frame playout; E boot/receiver verified. Immediate rollback `c057…` is in
-  `private/v01/sd-backup-before-remote/` and on-card pre-remote backup files.
+- Pi card updated to F SHA256 `0276c26b58092490f2b3b3fee89c99d4b4c8309144b0f53b13fbae0104354068`,
+  128-frame playout; F boot pending. Immediate E rollback `8df83a5a…` is in
+  `private/v01/sd-backup-before-duty/` and on-card pre-duty backup files.
+  Earlier `c057…` remains in pre-remote backups.
   Earlier I04 rollback remains in `private/i04/sd-backup-event-worker/`.
 - Fresh Pi reboot required for clean counter baselines. `trxtrace=on` forces
   mute; read status before dumping (printing caused underruns). Analyzer delay
