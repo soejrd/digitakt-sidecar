@@ -1,0 +1,27 @@
+--- a/pi/engine/output.h
++++ b/pi/engine/output.h
+@@ -14,6 +14,6 @@
+ class Output {
+  public:
+-  enum Mode { kMain = 0, kTracks = 1 };
++  enum Mode { kMain = 0, kTracks = 1, kStereoReturn = 2 };
+   static const int kVoices = 8, kChannels = 12;
+   static const uint32_t kFifo = 2048;                   // frames
+   static constexpr float kLimit = core::MainOut::kLimit;            // -12 dBFS
+--- a/pi/engine/output.cpp
++++ b/pi/engine/output.cpp
+@@ -65,6 +65,14 @@
+     float g = main_.Gain();
+     if (mode_ == kMain) {
+       out[i][0] = out[i][1] = To32(main_.Sum(f.v, g));
++    } else if (mode_ == kStereoReturn) {
++      // Two independent mono lanes, never summed or sent to Rytm voice slots.
++      for (unsigned lane = 0; lane < 2; ++lane) {
++        float x = Limit(f.v[lane] / 32768.0f * core::MainOut::kGain * g);
++        float a = x < 0 ? -x : x;
++        if (a > peak_) peak_ = a;
++        out[i][lane] = To32(x);
++      }
+     } else {
+       for (int v = 0; v < kVoices; ++v) {
+         float x = Limit(f.v[v] / 32768.0f * g);

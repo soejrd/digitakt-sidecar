@@ -2,6 +2,17 @@
 
 Base: `6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457` (pinned in `sources.json`).
 
+## Experimental X01 (opt-in, no normal overlay change)
+
+`experimental/0001-x01-stereo-return.patch` adds an explicit Output mode for
+independent MAIN L/R lanes while retaining FIFO epochs, fade, gain and limiting.
+The normal root-level patch replay ignores this nested patch. Use
+`scripts/x01_prepare_host.py --output <new-directory>` to replay the pinned base
+and all normal patches, then the X01 patch and portable X01 glue/sources in a
+separate tree. The default dependency checkout is not edited. Check with
+`python3 scripts/test_x01_host.py`; see [X01](../../docs/X01-multivoice-offline.md).
+No Pi kernel build or physical qualification is claimed by the desktop tests.
+
 ## 0001-directional-overbridge-layout.patch
 
 I01: keep the Overbridge input and output layouts independent.

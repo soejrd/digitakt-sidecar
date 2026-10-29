@@ -1,8 +1,10 @@
-# X01 — First offline multivoice milestone
+# X01 — Offline multivoice implementation
 
 2026-10-29. Baseline `5e1d8a2`; dependency revisions remain in
 [sources.json](../sources.json). This is an offline implementation/proof,
 not an installed two-voice machine or a hardware-qualified candidate.
+The second milestone below adds the actual opt-in worker and Pi glue and a
+booted native-serializer exchange. The default one-voice build stays unchanged.
 
 ## Delivered
 
@@ -109,19 +111,102 @@ MAIN hash and displaced instruction before injection. Fixture/firmware, compiled
 blobs and audio remain ignored. The test gateway address is deliberately
 emulator-only and makes no physical memory-placement claim.
 
+## Second milestone — negotiated control and real native worker
+
+Implementation baseline `873fd89`, 2026-10-29. The experimental path now includes:
+
+- [v5 management/device session](../control/track_session.h), explicitly binding
+  two 48 kHz mono lanes and their track IDs to v4 snapshots. A matching HELLO_ACK
+  is required before snapshots; both mapped tracks' first STARTs must be ACKed
+  before the device gate opens. There is no implicit v1/v3 fallback.
+- [Pi peer](../control/track_host.h), with a shared playback bank, exact replay
+  comparison, 33 retained tuples for a 32-frame outstanding window, bounded
+  recent-session rejection and lease expiry. ACTIVATE is cumulative but must
+  name an actually outstanding sequence/block. Duplicate snapshots do not
+  reinstall STARTs. Overtaken keepalive echoes cannot invalidate or renew a
+  newer device state; a lost HELLO_ACK has a bounded-rate exact retry.
+- [Opt-in native capture](../mods/usb-track/x01_render.c) and
+  [worker](../mods/usb-track/x01_worker.c), using final SRC values, the existing
+  two-argument native MIDI adapter and native RTOS worker. Two per-lane producer
+  queues merge by device timestamp, preserving equal-time starts. A map change
+  retires the session; a third selected external source is silent/unsupported.
+  Render and RX callbacks do no protocol/USB servicing. RX only appends bytes
+  and posts a wake; ACK interpretation is task-level. Native send deferral is
+  bounded by a worker TX-progress timeout, independently of received liveness.
+- [Actual Circle glue](../host/x01_dt_link.cpp) plus an isolated
+  [Output patch](../patches/sidecar-firmware/experimental/0001-x01-stereo-return.patch).
+  The output stage preserves two separate MAIN L/R lanes instead of summing
+  voices. Consumer epochs reject stale FIFO data on asynchronous loss.
+  Each new session starts muted and requires `:trx=on`; both lanes retain fade,
+  gain and limiting. The old one-track snapshot/tone/trace interfaces are
+  unavailable in this experimental glue; remote V01 diagnostics remain isolated.
+
+The default dependency checkout, mod manifest, one-voice worker, and V01 source
+are unchanged. The experimental host tree is reproduced from the pinned base
+plus the twelve normal patches and the nested X01 Output patch in a disposable
+directory. It copies only portable protocol/engine sources, never the native
+firmware adapter. The X01 snapshot codec's fixed stack copy is now freestanding.
+
+### New evidence
+
+- [Compiled native adapter/harness](../evidence/x01/native-transport.json):
+  ASan/UBSan pass for 100 simultaneous START pairs, 1,000 per-track control
+  updates, ACK loss/replays, lost handshake replies, selection/map changes,
+  third-track rejection, disconnect/reconnect, stalled TX and refused replies.
+  2,436 frames and 2,540 worker passes in this model. Focused
+  [session tests](../tests/x01_session.c) also cover wrong maps, unsupported
+  versions, conflicting replays, retired IDs, full credit windows and overtaken
+  keepalive echoes. ColdFire objects have no allocator/wait/libc imports.
+- [Pi glue/Output](../evidence/x01/host-integration.json): actual opt-in C++ glue
+  and patched Output compile/run on the desktop with ASan/UBSan after clean
+  patch replay. Tests cover negotiation, explicit arming, real dual-engine PCM,
+  independent output polarity/ratio, stale FIFO epochs, retired sessions and
+  failed ACK publication. This is not an ARM kernel cross-build.
+- [Full OS 1.54 exchange](../evidence/x01/integrated-154.json): emulator-only
+  X01E boots and both USB1 machines are selected through the native UI. Both
+  engines consume simultaneous native manual triggers. A PTCH panel edit
+  changes only the selected track. 17,815 render boundaries preserve the other
+  six source buffers; both returned engine lanes are observed in their track
+  buffers. 667 outgoing frames / 621 delivered replies include intentional loss
+  tests. ACK loss, unplug/reconnect and stalled native submission all close the
+  gate and recover. The native worker runs at IPL0, its semaphore wait is not
+  faked, sender calls are masked, and stack-guard fault count stays zero.
+
+The full exchange models USB submission/completion and received PCM and uses
+the portable real-engine peer; the actual C++ Output/epoch path is verified in
+the separate host harness. It does not measure physical USB/DMA, Pi scheduling,
+latency, drift, UI responsiveness or worst-case margin. Passing these tests does
+not resolve V01-A's physical dense-modulation freeze.
+
+Reproduce without hardware:
+
+```sh
+bash scripts/test_x01_transport.sh
+python3 scripts/test_x01_host.py
+# New private destination required; this builds/boots but never flashes.
+PYTHONPATH=private/r03-runtime:deps/digiemu \
+  deps/digiemu/.venv/bin/python tools/x01_build_candidate.py \
+  --root private/x01-control --stock private/i02-fixture/Digitakt_OS1.54.syx
+PYTHONPATH=private/r03-runtime:deps/digiemu \
+  deps/digiemu/.venv/bin/python tools/x01_integrated_probe.py \
+  --candidate private/x01-control
+```
+
+The build uses the existing hash-pinned private I02 stock fixture. Output is
+`private/x01-control/artifacts/I02.syx`, firmware label **X01E**, with hashes,
+source provenance, map and private boot snapshot. It is emulator-only and is
+not a flash candidate. The host preparation command is
+`python3 scripts/x01_prepare_host.py --output <new-directory>`; no normal Pi
+overlay, SD card or installed kernel is changed by it.
+
 ## Next work and remaining gates
 
-1. Add explicit two-track mode/capability negotiation before enabling v4. Define
-   stable lane→track mapping per session, independent machine selection and
-   invalidation rules. An eight-engine host bank must never imply eight returns.
-2. Extend actual device capture/worker and Pi glue to that contract. Preserve
-   simultaneous events and ordered STARTs, bound aggregate queue/ACK service,
-   and prove reconnect, deselection and lease behavior end-to-end in the
-   compiled transport harness. The present firmware path is still singleton.
-3. Integrate the tested lane helper with the real pre-filter hook and lifecycle
-   gate; select both machines through the native UI in the full emulator.
-4. After V01-A's release condition, prepare a reviewed candidate/recovery and
-   measure Pi/device margin, USB stability and physical independent routing.
+1. Offline: add two-track native p-lock/LFO/sound-lock/copy semantics coverage;
+   the current new native controls test covers manual triggers and a panel edit.
+   Cross-build the isolated Pi kernel and inspect target memory/stack footprint.
+2. After V01-A's release condition, prepare a reviewed hardware candidate and
+   recovery; measure Pi/device margin, USB stability, timing and independent
+   physical routing. Do not flash X01E.
 
 X01 remains in progress and X01a's worst-case acceptance remains open.
 The [capacity study](X01a-multivoice-capacity.md) still limits the first physical

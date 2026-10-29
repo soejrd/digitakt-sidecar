@@ -41,18 +41,19 @@ replayable patch (28 dependency/23 V01 tests), corrected200MHz dense panel
 maximum is8.657ms, and the native-span observer matches firmware totals
 ([comparison](evidence/v01/clock-cost-comparison.json)).
 
-**X01 first offline milestone passes; production remains one voice.**
-[Report/commands](docs/X01-multivoice-offline.md). Experimental v4 track codec
-and shared-clock eight-engine bank pass independent PCM/simultaneous-hit/fault
-checks; 1/2/8-engine desktop profiles retain every START. Eight-engine dense:
-120,000 snapshots, 60,000 consumed STARTs, zero faults; desktop timing is not Pi
-margin. Compiled ColdFire lane helper passes nine cases and 8,802 full OS1.54
-render blocks with native per-track AMP/filter isolation and dry suppression.
-The full-render gateway bypasses machine selection/handshake; no installed mod
-or hardware candidate. Next: v4 capability/session contract, actual track-aware
-capture/worker/Pi glue, native UI selection and lifecycle proofs. Two mono lanes
-are the first physical design; eight independent returns remain research.
-X01a stays partial pending measured Pi/device worst-case margin. V01 unchanged.
+**X01 second offline milestone passes; default production remains one voice.**
+[Report/commands](docs/X01-multivoice-offline.md). Opt-in v5 negotiation/v4
+snapshots, two-track native capture/worker, portable Pi peer and actual Circle
+glue/independent Output lanes pass host/ASan/UBSan/ColdFire checks. Full booted
+OS1.54/native serializer/RX exchange passes UI selection of both USB1 machines,
+simultaneous triggers, isolated panel SRC edit, ACK loss, unplug/reconnect and
+stalled TX recovery; 17,815 render boundaries preserve the other six sources.
+[Evidence](evidence/x01/integrated-154.json). Private `x01-control` / **X01E** is
+emulator-only, never a hardware candidate. Default V01 worker/dependency tree
+unchanged. Earlier 1/2/8-engine host benchmark remains valid within its scope.
+Next offline work: per-track native locks/LFO/sound/copy tests and isolated Pi
+kernel cross-build. Physical timing/margin and V01-A remain open; X01/X01a are
+not complete. No hardware accessed or installed firmware/kernel changed.
 
 **Installed:** V01K (frozen); restore I04R before normal use. Pi kernel
 unchanged by V01K. Packages and recovery hashes are in the report. No new

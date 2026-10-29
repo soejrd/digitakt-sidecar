@@ -37,11 +37,12 @@ headroom, but multivoice worst-case margin is unmeasured. Offline benchmarking
 and protocol/routing design can proceed while V01-A is parked; X01 hardware
 expansion remains deferred under the taskboard's gates.
 
-The [first X01 offline milestone](docs/X01-multivoice-offline.md) now passes:
-1/2/8 real host engines, track-aware playback, and compiled two-lane insertion
-through native OS1.54 AMP/filter processing. Actual multitrack capture/worker/
-handshake integration and Pi/device margin are still open; the production path
-remains one voice.
+The [X01 offline milestones](docs/X01-multivoice-offline.md) pass: 1/2/8 real
+host engines, native two-lane AMP/filter insertion, and opt-in v5/v4 negotiation
+with actual two-track capture/worker, Pi glue/Output and booted OS1.54 native
+serializer exchange. Default production remains one voice. New per-track
+lock/persistence coverage, Pi kernel cross-build and physical margin remain open;
+the private X01E build is emulator-only.
 
 ## Design requirements
 

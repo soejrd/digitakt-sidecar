@@ -3,8 +3,9 @@
 Desk study, 2026-10-29. Target: Digitakt mk1 OS 1.54 + Pi 4B. No hardware
 operation, firmware change or new performance measurement was performed.
 Subsequent [X01 offline implementation](X01-multivoice-offline.md) proves the
-host engine bank and compiled two-lane native insertion in the emulator;
-physical worst-case margin and complete multitrack control remain open.
+host bank, compiled two-lane native insertion, and the opt-in native worker/Pi
+control exchange in the emulator. Physical worst-case margin and native
+multitrack lock/persistence qualification remain open.
 Repository source/evidence baseline: `6a269df3290a173231eef23e8ee9ba02fa01ccab`;
 links below are repository-relative and refer to that baseline unless stated.
 Dependency bases are recorded in [sources.json](../sources.json): Sidecar

@@ -1,0 +1,20 @@
+{
+  "scope": "actual opt-in Circle glue and patched Output on desktop; no Pi or USB hardware",
+  "dependency_base": "6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457",
+  "command": "python3 scripts/test_x01_host.py",
+  "checks": [
+    "patch replay from pinned base",
+    "explicit v5/v4 capability mapping",
+    "session-bound manual arm",
+    "real dual-engine PCM",
+    "independent Output L/R with unrelated columns discarded",
+    "asynchronous loss and stale FIFO epoch rejection",
+    "retired session isolation",
+    "ACK queue refusal closes output"
+  ],
+  "source_sha256": {
+    "host/x01_dt_link.cpp": "c0e3d417be2ae15ca60ffea8acacc9d2deca78148efedf61514a99035455943b",
+    "patches/sidecar-firmware/experimental/0001-x01-stereo-return.patch": "41b56dc549ca6a7078c05774f5f0bdfbb747af331969d1f441888c7cdc3a7745"
+  },
+  "pass": true
+}
