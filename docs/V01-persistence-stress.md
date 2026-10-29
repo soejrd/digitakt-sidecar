@@ -3,9 +3,28 @@
 **IN PROGRESS; unaccepted.** Ownership: [TASKBOARD.md](../TASKBOARD.md).
 Target: Digitakt mk1 OS 1.54 + Pi 4B/Circle, one USB1 voice on track 1.
 Gate A resolves dense-LFO UI lag; Gates B/C qualify persistence and recovery.
-No proven root cause or firmware fix. More voices and Teensy remain deferred.
+A hard freeze at maximum LFO speed is reproduced; the USB attach path is the
+suspect but the send-versus-attach split is not yet resolved. No root cause is
+proven and no fix exists yet. More voices and Teensy remain deferred.
 
-## Current next work — emulator reproduction and causal isolation
+## Current next work — one discriminating hardware test
+
+1. Run the [2K attach test](../evidence/v01/2k-attach-freeze.json): power-cycle
+   the Digitakt, keep SPD down, reconnect USB, select USB1, then set the LFO to
+   maximum speed with destination OFF so the hook emits nothing. ~30 s, no
+   flash. Responsive ⇒ send path/volume; frozen ⇒ attach/enumeration or the
+   ISR-context RX path. Report both outcomes before any candidate work.
+2. If it is the send path, replace the interrupt-masked native submission with
+   a bounded path that never enters a busy wait with IRQs masked, and keep a
+   host regression that fails when it does. Validate offline first.
+3. Keep DTIM2's external rate unresolved: firmware selects T2IN, but does not
+   establish the board signal. Snapshot PLL registers are zero; do not infer a
+   hardware core clock from them. Do not invent clock rates or memory delays.
+
+## Superseded next work — emulator reproduction of the slow case
+
+Kept for the record; deprioritised until the freeze above is explained. The
+window described here remains the plan once the hard stop is fixed.
 
 1. Prepare one bounded diagnostic measurement: does render preemption explain
    the physical worker wall-time growth? Capture per-batch elapsed and nested
@@ -15,10 +34,6 @@ No proven root cause or firmware fix. More voices and Teensy remain deferred.
    before any flash, then use one short muted fixed-profile capture, stopping
    on new faults/FIFO growth or sufficient lag evidence. Retrieve after timing
    stops; no sweep/full trace dump. No candidate is staged yet.
-2. Keep DTIM2's external rate unresolved: firmware selects T2IN, but does not
-   establish the board signal. Snapshot PLL registers are zero; do not infer a
-   hardware core clock from them. Do not invent clock rates or memory delays.
-
 Investigate in software first. Do not fit synthetic delays, repeatedly install
 speculative firmware, or request broad knob sweeps. Another hardware test must
 answer a specific hypothesis with a short procedure and stop condition.
@@ -27,6 +42,8 @@ answer a specific hypothesis with a short procedure and stop condition.
 
 | Evidence | Finding |
 | --- | --- |
+| [2K attach freeze](../evidence/v01/2k-attach-freeze.json), [live capture](../evidence/v01/2k-freeze-live-2026-10-29.txt) | At maximum LFO speed the Digitakt is fully responsive with USB detached and freezes the instant the cable is attached; the freeze survives detaching and needs a power cycle. Last healthy counters were small (UI gap34ms, batch4ms, guards0) and then all Digitakt counters stopped together, so this is a stop, not saturation. Native 2K LFO cost is therefore excluded. |
+| [Sender waits](../evidence/i03/transport-anchors-154.json), [send path](../mods/usb-midi/usb_midi.c) | Source fact: `fw_send` masks all interrupts and calls the native sender, whose two busy waits are drained only by the completion interrupt. Entering a wait with IRQs masked cannot terminate. Fits the signature; not yet proven to be what happened. |
 | [G 32/32](../evidence/v01/compact-baseline.json), [64/32](../evidence/v01/compact-speed-result.json), [64/48](../evidence/v01/compact-depth48-result.json) | Short baseline stable; slight sluggishness at 64/32; quite laggy at 64/48 despite Pi fault/guards0 and FIFO11 unchanged. Dense native sends reached ~816/s. |
 | [Lower worker priority](../evidence/v01/phase2-v01p-result.json) | Improved UI but caused late audio/FIFO failures; rejected. |
 | [No-self-wake](../evidence/v01/gate-a-v01c-dense.json) | Did not solve lag. USB removal subsequently restored responsiveness; this changes several workloads together and does not identify the cause. |

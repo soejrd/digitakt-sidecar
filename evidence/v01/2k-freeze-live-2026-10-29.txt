@@ -1,0 +1,42 @@
+# V01 Gate A — hard freeze at SPD=2K (USB attach), captured live 2026-10-29
+# Pi 192.168.1.15, sidecar 0.2.0 build 6cff67b-dirty, kernel unchanged. Samples via POST /cmd c=v01status + GET /log.
+# Human protocol:
+#   A) all cables off, empty preset, SRC=USB1, LFO dest=TRX-B2 PTCH, MULT=2K, DEP 5-10 -> fully smooth, responsive
+#   B) reconnect USB -> instant freeze; UI unresponsive >13 min
+#   (earlier) unplug at 2K did NOT restore the UI within 1 min
+#
+V01 Gate A — 2K-speed freeze, captured live (Pi 192.168.1.15, sidecar 0.2.0 6cff67b-dirty)
+Conditions: human-set SPD=2K (BPM multiplier), DEP 5-10, TRX-B2 PTCH LFO, USB1 machine.
+  A) everything unplugged, SPD=2K  -> fully responsive, smooth (human)
+  B) reconnect USB                 -> instant freeze, UI dead >1 min (human)
+Pi was NOT rebooted by this; sampled ~13 min into the frozen state.
+--- sample 1 18:44:38Z
+00:13:30.96 cores: V01REMOTE rx 67 bad 0 seq 42 block 238672 timer 840139916 mode 3 ui 3433 work 35316 ugap 34 wgap 34 batch 4 guards 0
+00:13:30.96 cores: V01RAW seq 42 sends 11266 total 19439515 max 3076 ui_max 4419893 batch_max 521059
+00:13:30.96 cores: V01TOTAL seq 42 worker 237813146 render 3556404423 version 2
+00:13:31.22 engine: engine: fifo min 94 max 94 target 96 under 65017 | blocks 0 max 0 us | cpu c1 0.0 c2 0.0 c3 0.0 % | pass max 133 us | | midi 0 B (lost 0) sysex 17912 notes 0 | to-host sent 419229 B 17475 msgs fail 2 dropped 6665 | peak 0/1000 | 54 C
+"uptime":812
+"gadget":"0"
+"streaming":false
+"temp":54
+"throttledNow":false
+--- sample 2 18:44:49Z
+00:13:42.14 cores: V01REMOTE rx 67 bad 0 seq 42 block 238672 timer 840139916 mode 3 ui 3433 work 35316 ugap 34 wgap 34 batch 4 guards 0
+00:13:42.14 cores: V01RAW seq 42 sends 11266 total 19439515 max 3076 ui_max 4419893 batch_max 521059
+00:13:42.14 cores: V01TOTAL seq 42 worker 237813146 render 3556404423 version 2
+00:13:42.22 engine: engine: fifo min 94 max 94 target 96 under 65017 | blocks 0 max 0 us | cpu c1 0.0 c2 0.0 c3 0.0 % | pass max 134 us | | midi 0 B (lost 0) sysex 17912 notes 0 | to-host sent 419229 B 17475 msgs fail 2 dropped 6691 | peak 0/1000 | 53 C
+"uptime":823
+"gadget":"0"
+"streaming":false
+"temp":54
+"throttledNow":false
+--- sample 3 18:45:00Z
+00:13:53.31 cores: V01REMOTE rx 67 bad 0 seq 42 block 238672 timer 840139916 mode 3 ui 3433 work 35316 ugap 34 wgap 34 batch 4 guards 0
+00:13:53.31 cores: V01RAW seq 42 sends 11266 total 19439515 max 3076 ui_max 4419893 batch_max 521059
+00:13:53.31 cores: V01TOTAL seq 42 worker 237813146 render 3556404423 version 2
+00:13:54.22 engine: engine: fifo min 94 max 94 target 96 under 65017 | blocks 0 max 0 us | cpu c1 0.0 c2 0.0 c3 0.0 % | pass max 134 us | | midi 0 B (lost 0) sysex 17912 notes 0 | to-host sent 419229 B 17475 msgs fail 2 dropped 6717 | peak 0/1000 | 54 C
+"uptime":834
+"gadget":"0"
+"streaming":false
+"temp":54
+"throttledNow":false

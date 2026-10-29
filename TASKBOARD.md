@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Status | Dependencies / first action | Acceptance |
 | --- | --- | --- | --- | --- |
-| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29T16:36:10Z) | [Current investigation](docs/V01-persistence-stress.md#current-next-work--emulator-reproduction-and-causal-isolation): prepare a bounded worker/render-overlap diagnostic; clock fix and native observer validated. Physical dense-LFO lag unresolved; no new flash. | [Gates A–C](docs/V01-persistence-stress.md#acceptance-gates): responsive dense modulation, native persistence/edit semantics, recovery/soak and listening acceptance. |
+| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29T18:50:00Z) | [Current investigation](docs/V01-persistence-stress.md#current-next-work--one-discriminating-hardware-test): maximum-speed LFO is free without USB and freezes the device on attach; run the 30 s destination-OFF test to separate send path from attach/RX path. Suspect an interrupt-masked busy wait in the native sender; unproven. No new flash. | [Gates A–C](docs/V01-persistence-stress.md#acceptance-gates): responsive dense modulation, native persistence/edit semantics, recovery/soak and listening acceptance. |
 
 ## Waiting
 

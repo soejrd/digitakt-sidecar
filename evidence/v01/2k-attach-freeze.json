@@ -1,0 +1,59 @@
+{
+  "task": "V01 Gate A",
+  "date_utc": "2026-10-29T18:45:00Z",
+  "status": "new failure class identified; Gate A still IN PROGRESS and unaccepted",
+  "hardware_test": true,
+  "gate_a_verdict": "NOT SCORED",
+  "scope": "human panel test at maximum LFO speed with and without USB; one live Pi sample of the frozen device",
+  "source_revision": "4cd477a",
+  "firmware": "V01G (usb-track 0.5, compact snapshots, no self-wake), unmodified since the compact-depth48 capture",
+  "pi": {"host": "sidecar", "build": "6cff67b-dirty, Oct 29 2026 12:31:45", "circle": "51.1.1", "kernel_unchanged": true, "temperature_c": 54, "throttled_now": false},
+  "human_protocol": [
+    "Empty pattern/preset, SRC machine set to USB1, LFO destination TRX-B2 PTCH, speed multiplier 2000 (BPM multi), depth 5-10.",
+    "A: all cables to the Pi disconnected -> fully responsive, all controls smooth, no perceived lag.",
+    "B: reconnect the USB cable -> instant freeze; UI unresponsive for >13 minutes.",
+    "Earlier: pressing SPD to 2K while connected also froze it, and unplugging did not restore the UI within 1 minute."
+  ],
+  "findings": {
+    "native_2k_is_cheap": "With USB detached, the native LFO at maximum rate is free: no lag. Any 'the Digitakt cannot compute a 2 kHz LFO' explanation is excluded.",
+    "freeze_survives_detach": "Once frozen, removing the cable does not recover it, and re-attaching triggers it immediately. The permanent stop is tied to USB attachment/handling, not to sustained LFO cost.",
+    "not_cpu_saturation": "Last healthy values before death were small: ui gap max 34 ms, worker gap max 34 ms, batch 4 ms, guards 0. An overload degrades gradually; this stops atomically.",
+    "device_side_dead": "Digitakt-side counters stop: rx/sends/timer/block/seq all identical across 30 s of sampling (seq 42, block 238672, sends 11266). The remote diagnostic emitter itself stops, so the stall covers the whole native device, not only our worker.",
+    "audio_lost": "The Pi side reports gadget 0 / streaming false and underruns climbing, consistent with a stopped device. The frozen device is not sending PCM.",
+    "no_hardware_fault": "Pi stayed alive, answered HTTP, stayed at 54 C with no throttling. The earlier fresh Pi boot was a human restart, not a spontaneous reboot."
+  },
+  "leading_hypothesis": {
+    "name": "irq-masked busy wait in the native USB-MIDI sender",
+    "mechanism": "fw_send() masks all interrupts (move.w #0x2700,%sr) across the call to 0x40004990. That routine contains two unbounded busy waits (wrap at 0x400049D0..D8, capacity at 0x400049FE..0x40004A0C) whose only drain is the completion callback 0x40004404 lowering 0x40610478. If a wait is entered, interrupts are already masked, so the drain can never run and the device hangs. The staging ring wraps every ~120 ms at the observed ~816 sends/s, so the condition is reached repeatedly.",
+    "why_density_scales": "The wrap probability and submission rate both rise with effective update rate, matching that 64/48 slowed and 2K froze.",
+    "second_order": "With the cable out the 256-record session ring fills in ~170 ms and latches fatal; that explains the lost audio but not the frozen UI.",
+    "confidence": "hypothesis, not proof: the busy-wait instructions and the masking are both source facts; that they coincided here is inferred from the failure signature."
+  },
+  "alternate_hypotheses": [
+    "Attach/enumeration path (dt1_transport_open / RX-slot replacement / chain_stock into the stock handler) rather than send volume.",
+    "ISR-context work: native_rx -> receive() -> sc_dev_receive_control and device_wakeup running at interrupt level.",
+    "Unmodelled divergence between the emulator's can_send thresholds and the real 0x40610478/0x4061047C state."
+  ],
+  "discriminating_test": {
+    "procedure": "USB attached, USB1 selected, LFO running at 2K with destination OFF (not routed to TRX-B2) so the hook emits nothing while the native LFO runs at full speed.",
+    "if_responsive": "send path/volume; fix in fw_send/can_send and worker batching.",
+    "if_frozen": "attach/enumeration or ISR-context path; search dt1_transport_open, native_rx, chain_stock.",
+    "cost": "~30 s, no flash; power-cycle the Digitakt first"
+  },
+  "source_anchors": {
+    "mask": "mods/usb-midi/usb_midi.c: irq_save() -> move.w #0x2700,%sr",
+    "send": "mods/usb-midi/usb_midi.c: fw_send() -> USB_SEND 0x40004990 inside the masked section",
+    "preflight": "mods/usb-midi/usb_midi.c: fw_can_send()",
+    "waits": "0x400049D0..D8 wrap, 0x400049FE..0x40004A0C capacity (docs/I03-transport.md)",
+    "drain": "0x40004404 only decrement of 0x40610478 (evidence/i03/transport-anchors-154.json)"
+  },
+  "raw": {"file": "evidence/v01/2k-freeze-live-2026-10-29.txt", "sha256": "356a98ffe5bd1807be4a395c8dff154b851b041f4e361155caaefbe6fa93fb84"},
+  "limits": [
+    "Single human trial per condition; no repeated freeze to measure determinism.",
+    "No on-device trace of the hang: the remote emitter stops with the device, so the failing PC is not captured.",
+    "The LFO rate/depth were set by hand; no panel readback of symbolic speed 2000.",
+    "The 2K freeze is a stronger failure than the 64/48 'sluggish' complaint; whether they share one cause is unproven.",
+    "Pi 'gadget 0' was read from the status endpoint; the engine source for that field is not in this clone."
+  ],
+  "next": "Run the discriminating test; if the masked-wait hypothesis survives, replace the masked send with a bounded, IRQ-enabled path and add a host regression that fails when a busy wait is entered with interrupts masked."
+}
