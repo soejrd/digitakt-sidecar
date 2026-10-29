@@ -119,18 +119,19 @@ Use `--fsys 250000000` for the other core assumption.
 
 ## Acceptance gates
 
-Status as of the V01K freeze (2026-10-29). None of A–C has passed; V01 is not
-close to exit.
+Status as of the V01K freeze (2026-10-29). None of A–C has passed.
 
 | Gate | Status | What is actually missing |
 | --- | --- | --- |
-| A | **Blocked** | No cause found, so no causal fix to demonstrate. The device freezes under the failing workload; the only shipped fix was falsified. |
-| B | **Not started** | No V01 evidence exists for save/reload, copy-paste, undo, mutes, sound locks, switches during play or USB1-to-another-track. I04 acceptance covers SRC controls, locks and local filter/amp on one voice only; it is not persistence. |
-| C | **Partially satisfied at prototype scope only** | Coarse USB pull/replug and Pi reboot recovery passed under I04R acceptance and the model-level I03 exchange. Missing: three-cycle counters for pull/replug, Pi reboot and Digitakt restart separately; the10-minute combined soak; a 32/32 vs 64/64 numeric profile; and UI thresholds measured on hardware. Boot→active FIFO0→11 remains unresolved. |
+| A | **Parked** by owner to unblock B/C and X01 | No cause found, so no causal fix to demonstrate; the only shipped fix was falsified. Resume when the RX/ACK hypothesis is reproduced or refuted in the emulator and the deferral regression is bounded. |
+| B | **Ready, not started** | No V01 evidence yet for save/reload, copy-paste, undo, mutes, sound locks, switches during play or USB1-to-another-track. I04 acceptance covers SRC controls, locks and local filter/amp on one voice only; it is not persistence. Runs on I04R. |
+| C | **Ready, partially satisfied at prototype scope** | Coarse USB pull/replug and Pi reboot recovery passed under I04R acceptance and the model-level I03 exchange. Missing: three-cycle counters for pull/replug, Pi reboot and Digitakt restart separately; the10-minute combined soak; a frozen numeric profile; and UI thresholds measured on hardware. Boot→active FIFO0→11 remains unresolved. |
 
-Sequence: A must unblock first because B and C both need a responsive device with
-delivery intact. B can be specified and partly dry-run without hardware, but its
-acceptance needs a device that does not freeze.
+B and C do **not** need dense modulation: they need a stable device, which I04R
+already is within its accepted scope. Run them there with slow/shallow LFOs. The
+freeze only limits Gate A and the "worst supported workload" line in C4, which
+is why A stays parked rather than abandoned. Procedure:
+[B/C runbook](V01-gate-b-c-runbook.md).
 
 ### Gate A — responsive dense modulation
 

@@ -6,13 +6,15 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Status | Dependencies / first action | Acceptance |
 | --- | --- | --- | --- | --- |
-| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29T21:05:00Z) | [Current investigation](docs/V01-persistence-stress.md#current-next-work--offline-only-no-flash): V01K shipped the masked-preflight fix and still froze at ~256/512 ([evidence](evidence/v01/v01k-freeze.json)), falsifying that cause. Next, offline only: bound the unbounded-deferral regression, then make the RX/ACK ISR path append-only. No flash until a hypothesis reproduces in the emulator. | [Gates A–C](docs/V01-persistence-stress.md#acceptance-gates): responsive dense modulation, native persistence/edit semantics, recovery/soak and listening acceptance. |
+| V01-B | Persistence and edit semantics (Gate B) | READY — Codex (2026-10-29T21:30:00Z) | [Runbook](docs/V01-gate-b-c-runbook.md). Run on **I04R**, not V01K: B needs a stable device, not dense modulation. Disposable project only. | Before/action/after restored state and output per case in [Gate B](docs/V01-persistence-stress.md#gate-b--native-persistence-and-edit-semantics), including one verification without the Pi. |
+| V01-C | Recovery and soak (Gate C) | READY — Codex (2026-10-29T21:30:00Z) | [Runbook](docs/V01-gate-b-c-runbook.md). Supported workload only (slow/shallow LFO); the dense profile stays parked under V01-A. Repeats land after B so the image is not swapped twice. | Three cycles each for pull/replug, Pi reboot, Digitakt restart; one soak; zero new faults/underruns; UI thresholds measured. |
+| V01-A | Dense-modulation freeze (Gate A) | PARKED — Codex (2026-10-29T21:30:00Z) | Paused by owner to unblock B/C and X01. Resume condition: RX/ACK hypothesis reproduced or refuted in the emulator **and** the deferral regression bounded. No flash before that. [State](docs/V01-persistence-stress.md#current-next-work--offline-only-no-flash). | [Gate A](docs/V01-persistence-stress.md#gate-a--responsive-dense-modulation). |
 
 ## Waiting
 
 | ID | Work | Status | Release condition / dependencies | Acceptance |
 | --- | --- | --- | --- | --- |
-| X01 | More voices | DEFERRED | V01 + transport capacity decision | Establish independent-channel capacity and measured worst-case margin before scaling. |
+| X01 | More voices | READY (capacity study only, no flash) — Codex (2026-10-29T21:30:00Z) | Capacity work does not depend on the V01-A freeze. First: derive independent-channel headroom from [R02 descriptors](evidence/r02-endpoints-2026-10-26.json) and [H01 measured rate](evidence/h01/linux-stability.json); the prototype consumes the whole stereo return for one mono track. Second voice only after V01-A. | Establish independent-channel capacity and measured worst-case margin before scaling. |
 | X02 | Teensy port | DEFERRED | V01 + proven architecture | Measure USB, conversion and DSP capacity; state supported voice count. |
 
 ## Completed
