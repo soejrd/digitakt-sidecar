@@ -28,35 +28,37 @@ and [E](evidence/v01/remote-severe-result.json) retain useful negative findings.
 Worker/render elapsed brackets overlap; never sum as CPU utilization. UI tick
 gaps are not panel latency. Old D/N/P ms displays were inflated by46.875×.
 
-**Offline preflight implemented:** `tools/v01_contention_probe.py` validates
-mk1 OS1.54 panel enqueue→dispatch-pass completion under native LFO load,
-native float/pixel routines, estimated cycles and mask-respecting panel IRQs.
-Corrected/byte-verified SPD/DEP display encodings; two 250MHz reports match
-exactly. [Evidence](evidence/v01/contention-investigation.json): ~250/~747
-effective changes/s, max panel service0.619ms (1.196ms at assumed200MHz),
-no artificial waits/decoder mismatches. **Disconnected component result only:**
-USB_READY/gate0, no USB submissions, native RX callbacks or USB IRQs; it cannot
-reproduce the active-link failure or establish CPU margin.
+**Native MIDI control component now runs:** integrated the inherited source6/
+USB model work, corrected endpoint masks, residual bytes, descriptor chains,
+prime ownership, OUT payload gating, W1C and controller RUN/IRQ masks. Native
+submit→ISR209→ISR134 callbacks pass full/short/chained regressions. Replies now
+use native OUT DMA, the receive job and compiled RX at IPL0; no ACK context
+injection. [Evidence](evidence/v01/native-control-component.json).
 
-**Specific USB gap reproduced:** native ISR209 forces INTC1 source6 for
-deferred ISR134 (IPL4), absent from existing probe sources.
-[Fixed event comparison](evidence/v01/usb-dispatch-gap.json): without it status
-stays pending; adding only the existing generic source dispatches/clears it.
+**Fixed 500ms profiles:** eight early/steady-state button edges each; maximum
+arrival→dispatch-pass completion3.242ms at assumed250MHz or7.323ms at200MHz.
+Two complete250MHz reports match exactly. Gate1, one stable session, no observed
+queue overflow/fatal flag, guard fault, artificial wait or decoder mismatch.
+Exclusive estimated worker cycles ~0.85%→2.46%, USB IRQ209+134 ~0.12%→0.36% at
+250MHz. These are zero-wait model costs, not hardware CPU measurements.
+17 focused tests pass. **No physical lag reproduction or causal firmware fix.**
 
-**Next work, offline:** integrate that source and model native USB
-descriptor/prime/completion/RX dispatch before active-link latency and self-cost
-attribution. Existing integrated
-exchange bypasses submission/completion and context-injects ACKs.
-[Audit and one bounded measurement proposal](docs/V01-persistence-stress.md#native-panel-lfo-preflight-and-evidenced-usb-gap-2026-10-29)
-identify the missing path and how to distinguish USB IRQ bursts from worker/UI
-cost if source-derived modeling remains insufficient. No root cause/fix,
-active-link red test or new firmware candidate yet. Hardware sweeps remain on
-hold; no flash requested. Gates B/C remain open.
+**Exact next work, offline:** native configuration enables USBINTR bit24
+(recorded0x01000001), but the model generates only completion status1. Recover
+and model the bit24 callback source (ISR134 at0x40007270), the status0x80 callback
+source (ISR209 at0x400060f0), and native USB audio endpoint/descriptor traffic.
+The current component seeds configured-controller/synchronized-route conditions;
+it omits enumeration, USB audio/PCM and physical cache/DDR/bus costs. Establish
+source-derived event semantics/cadence before adding them; do not fit delays.
+[Continuation and commands](docs/V01-persistence-stress.md#native-midi-control-integration--continuation-2026-10-29).
+Then repeat fixed profiles and isolate scheduling/ACK/USB/UI paths if lag appears.
+Gate A remains IN PROGRESS/unaccepted; Gates B/C and startup FIFO issue remain
+open. No new hardware candidate or flash requested.
 
 **Physical state:** G pair installed/boot verified; last captured fault0/FIFO11,
 muted/trace off. Unplug requested; recovery/disconnection confirmation pending.
 Both watch captures are stopped. Boot→active FIFO0→11 remains an open startup
-issue; no audible or dense G acceptance. User's `PLAN.md` edit is preserved.
+issue; no audible or dense G acceptance. User's `PLAN.md` edits were committed in `80b6618`.
 
 ## Hardware / recovery
 
@@ -80,5 +82,5 @@ issue; no audible or dense G acceptance. User's `PLAN.md` edit is preserved.
 Implementation foundations and reproducible checks are in
 [the I04 report](docs/I04-external-trx-voice.md). Twelve replayable patches target
 sidecar-firmware `6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457`; mdkit is unchanged.
-Keep firmware/raw captures private. Local user `PLAN.md` edit is excluded from
-commits. No push/publishing.
+Keep firmware/raw captures private. User `PLAN.md` edits were committed/pushed in `80b6618`; the
+current continuation changes are local until separately published.

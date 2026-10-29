@@ -1,0 +1,395 @@
+{
+  "schema": "v01-native-control-component/1",
+  "date_utc": "2026-10-29T15:24:27.230262+00:00",
+  "source_base_revision": "80b6618",
+  "status": "native MIDI control component verified; hardware failure not reproduced",
+  "gate_a": "IN PROGRESS; unaccepted",
+  "hardware_test": false,
+  "candidate_sha256": "77709fcc7d0db75ffce3ed3d0e89f3f9e13f883e72f5f6c8109ad3124cc3a0f1",
+  "probe_sha256": "26531a4fc8944d3e82387e0d1ac39665de3d8f270abf1c26a967530c9058f18f",
+  "helper_source_sha256": {
+    "v01_usb_device_model.py": "40cc8315499923a0e0cb1ce21ea3e914b19b8a4ce7b4ca82365f93e62d6ed674",
+    "v01_usb_peer.py": "018f8ce8a2a23a0017d5f838135c7f039f5c1046ced77bd3c6e20e6336c35988",
+    "v01_execution_profile.py": "62cb04e85e9dabbd8745bea752474d86d1fd974e11fb240ef0a5fa1201b4334a"
+  },
+  "peer_c_helper_sha256": "d70f02472566270c668fffbb83c9d3c8d549219636d85ca1fa7b72bfa5841e0c",
+  "repeat_250mhz_exactly_equal": true,
+  "private_report_sha256": {
+    "private/v01/native-control-final-250.json": "949d71b9cf45e1ce35a393c21974165ac2e975c2b5b97094250135d2f497eed1",
+    "private/v01/native-control-final-200.json": "ff7ada80a60d823954b894b247c5a6df9b061297e8dcceca237a60414d3825db"
+  },
+  "native_completion_regression": {
+    "inherited_model_sha256": "e9d9f3e03497acb04b576911e57177051255a8ee21cd6311c50be979ef48f683",
+    "before": [
+      {
+        "endpoint": 3,
+        "callbacks": 1,
+        "queued_after": 60
+      },
+      {
+        "endpoint": 5,
+        "callbacks": 0,
+        "queued_after": 60
+      }
+    ],
+    "after": [
+      {
+        "endpoint": 3,
+        "requested_lengths": [
+          60
+        ],
+        "callbacks": 1,
+        "queued_after": 0,
+        "expected_queued_after": 0
+      },
+      {
+        "endpoint": 5,
+        "requested_lengths": [
+          60
+        ],
+        "callbacks": 1,
+        "queued_after": 0,
+        "expected_queued_after": 0
+      },
+      {
+        "endpoint": 5,
+        "requested_lengths": [
+          60,
+          24
+        ],
+        "callbacks": 2,
+        "queued_after": 0,
+        "expected_queued_after": 0
+      },
+      {
+        "endpoint": 3,
+        "requested_lengths": [
+          64
+        ],
+        "callbacks": 1,
+        "queued_after": 60,
+        "expected_queued_after": 60
+      }
+    ],
+    "probe_sha256": "d43390c85c1346ee8db3fa0045a7b209d9e4012fd25d52c8d11f07f54965c96e",
+    "model_sha256": "40cc8315499923a0e0cb1ce21ea3e914b19b8a4ce7b4ca82365f93e62d6ed674"
+  },
+  "profiles": [
+    {
+      "assumed_fsys_hz": 250000000,
+      "speed": 32,
+      "depth": 32,
+      "duration_ms": 500.007504,
+      "effective_changes_per_s": 249.996,
+      "native_tx_submissions": 131,
+      "native_rx_callbacks": 120,
+      "native_rx_ipl": {
+        "0": 120
+      },
+      "peer": {
+        "frames_received": 131,
+        "replies_scheduled": 120,
+        "tx_bytes": 7616,
+        "installs": 119,
+        "starts": 1,
+        "allowed": 1,
+        "session": 2341,
+        "sessions_seen": 1,
+        "snapshots_received": 119,
+        "source_to_host_age_blocks_max": 0
+      },
+      "gate": 1,
+      "route": 1,
+      "adapter_state": {
+        "usb-midi:opened": 1,
+        "usb-midi:failed": 0,
+        "usb-track:running": 1,
+        "usb-track:initialized": 1
+      },
+      "panel_edges": 8,
+      "panel_arrival_to_pass_completion_max_ms": 3.15328,
+      "panel_enqueue_to_dispatch_max_ms": 0.124356,
+      "panel_queue_depth_max": 1,
+      "sampled_source_queue_peak": 1,
+      "source_queue_end": 0,
+      "source_queue_overflow": 0,
+      "source_session_fatal": 0,
+      "activate_service_age_blocks_max": 12,
+      "worker_guard_faults": 0,
+      "irq209_runs": 241,
+      "irq134_runs": 197,
+      "estimated_cycle_fractions": {
+        "worker_task": 0.00853,
+        "ui_task": 0.021373,
+        "irq:191": 0.610459,
+        "irq:209": 0.000155,
+        "irq:134": 0.001058
+      },
+      "selected_pc_range_self_cycles": {
+        "other": 124585607,
+        "usb_track_tick": 46231,
+        "usbmidi_tick": 23027,
+        "dt1_rx_service": 21781,
+        "native_serializer": 178062,
+        "native_submission": 8319,
+        "native_rx_parser": 98209,
+        "sc_decode_control": 54901,
+        "sc_dev_receive_control": 17103
+      },
+      "unattributed_cycles": 0,
+      "audio_render_irq_deadlines": {
+        "period_cycles": 166666.66666666666,
+        "runs": 750,
+        "worst_cycles": 102756,
+        "p99_cycles": 102352,
+        "mean_cycles": 101761.1,
+        "late": 0,
+        "worst_fraction": 0.6165,
+        "margin": 0.3835
+      },
+      "decode_mismatches": 0,
+      "artificial_waits": 0,
+      "model_errors": [],
+      "usb_interrupt_enable": 16777217
+    },
+    {
+      "assumed_fsys_hz": 250000000,
+      "speed": 64,
+      "depth": 48,
+      "duration_ms": 500.015496,
+      "effective_changes_per_s": 745.977,
+      "native_tx_submissions": 370,
+      "native_rx_callbacks": 355,
+      "native_rx_ipl": {
+        "0": 355
+      },
+      "peer": {
+        "frames_received": 366,
+        "replies_scheduled": 355,
+        "tx_bytes": 21716,
+        "installs": 354,
+        "starts": 1,
+        "allowed": 1,
+        "session": 2341,
+        "sessions_seen": 1,
+        "snapshots_received": 354,
+        "source_to_host_age_blocks_max": 1
+      },
+      "gate": 1,
+      "route": 1,
+      "adapter_state": {
+        "usb-midi:opened": 1,
+        "usb-midi:failed": 0,
+        "usb-track:running": 1,
+        "usb-track:initialized": 1
+      },
+      "panel_edges": 8,
+      "panel_arrival_to_pass_completion_max_ms": 3.241964,
+      "panel_enqueue_to_dispatch_max_ms": 0.064556,
+      "panel_queue_depth_max": 1,
+      "sampled_source_queue_peak": 1,
+      "source_queue_end": 0,
+      "source_queue_overflow": 0,
+      "source_session_fatal": 0,
+      "activate_service_age_blocks_max": 4,
+      "worker_guard_faults": 0,
+      "irq209_runs": 716,
+      "irq134_runs": 596,
+      "estimated_cycle_fractions": {
+        "worker_task": 0.02465,
+        "ui_task": 0.021378,
+        "irq:191": 0.611523,
+        "irq:209": 0.000461,
+        "irq:134": 0.003121
+      },
+      "selected_pc_range_self_cycles": {
+        "other": 123769229,
+        "usb_track_tick": 130721,
+        "usbmidi_tick": 63088,
+        "dt1_rx_service": 59724,
+        "native_serializer": 507822,
+        "native_submission": 23623,
+        "native_rx_parser": 290241,
+        "sc_decode_control": 163020,
+        "sc_dev_receive_control": 50678
+      },
+      "unattributed_cycles": 0,
+      "audio_render_irq_deadlines": {
+        "period_cycles": 166666.66666666666,
+        "runs": 750,
+        "worst_cycles": 102869,
+        "p99_cycles": 102546,
+        "mean_cycles": 101988.1,
+        "late": 0,
+        "worst_fraction": 0.6172,
+        "margin": 0.3828
+      },
+      "decode_mismatches": 0,
+      "artificial_waits": 0,
+      "model_errors": [],
+      "usb_interrupt_enable": 16777217
+    },
+    {
+      "assumed_fsys_hz": 200000000,
+      "speed": 32,
+      "depth": 32,
+      "duration_ms": 500.079205,
+      "effective_changes_per_s": 249.96,
+      "native_tx_submissions": 130,
+      "native_rx_callbacks": 119,
+      "native_rx_ipl": {
+        "0": 119
+      },
+      "peer": {
+        "frames_received": 130,
+        "replies_scheduled": 119,
+        "tx_bytes": 7556,
+        "installs": 118,
+        "starts": 1,
+        "allowed": 1,
+        "session": 2343,
+        "sessions_seen": 1,
+        "snapshots_received": 118,
+        "source_to_host_age_blocks_max": 0
+      },
+      "gate": 1,
+      "route": 1,
+      "adapter_state": {
+        "usb-midi:opened": 1,
+        "usb-midi:failed": 0,
+        "usb-track:running": 1,
+        "usb-track:initialized": 1
+      },
+      "panel_edges": 8,
+      "panel_arrival_to_pass_completion_max_ms": 6.557405,
+      "panel_enqueue_to_dispatch_max_ms": 0.123525,
+      "panel_queue_depth_max": 2,
+      "sampled_source_queue_peak": 1,
+      "source_queue_end": 0,
+      "source_queue_overflow": 0,
+      "source_session_fatal": 0,
+      "activate_service_age_blocks_max": 12,
+      "worker_guard_faults": 0,
+      "irq209_runs": 240,
+      "irq134_runs": 119,
+      "estimated_cycle_fractions": {
+        "worker_task": 0.010665,
+        "ui_task": 0.026764,
+        "irq:191": 0.763069,
+        "irq:209": 0.000194,
+        "irq:134": 0.001161
+      },
+      "selected_pc_range_self_cycles": {
+        "other": 99601084,
+        "usb_track_tick": 45950,
+        "usbmidi_tick": 22933,
+        "dt1_rx_service": 21587,
+        "native_serializer": 176765,
+        "native_submission": 8219,
+        "native_rx_parser": 97373,
+        "sc_decode_control": 54571,
+        "sc_dev_receive_control": 17055
+      },
+      "unattributed_cycles": 0,
+      "audio_render_irq_deadlines": {
+        "period_cycles": 133333.33333333334,
+        "runs": 750,
+        "worst_cycles": 102756,
+        "p99_cycles": 102352,
+        "mean_cycles": 101771.9,
+        "late": 0,
+        "worst_fraction": 0.7707,
+        "margin": 0.2293
+      },
+      "decode_mismatches": 0,
+      "artificial_waits": 0,
+      "model_errors": [],
+      "usb_interrupt_enable": 16777217
+    },
+    {
+      "assumed_fsys_hz": 200000000,
+      "speed": 64,
+      "depth": 48,
+      "duration_ms": 500.096965,
+      "effective_changes_per_s": 745.855,
+      "native_tx_submissions": 369,
+      "native_rx_callbacks": 354,
+      "native_rx_ipl": {
+        "0": 354
+      },
+      "peer": {
+        "frames_received": 365,
+        "replies_scheduled": 354,
+        "tx_bytes": 21656,
+        "installs": 353,
+        "starts": 1,
+        "allowed": 1,
+        "session": 2342,
+        "sessions_seen": 1,
+        "snapshots_received": 353,
+        "source_to_host_age_blocks_max": 1
+      },
+      "gate": 1,
+      "route": 1,
+      "adapter_state": {
+        "usb-midi:opened": 1,
+        "usb-midi:failed": 0,
+        "usb-track:running": 1,
+        "usb-track:initialized": 1
+      },
+      "panel_edges": 8,
+      "panel_arrival_to_pass_completion_max_ms": 7.32281,
+      "panel_enqueue_to_dispatch_max_ms": 0.123525,
+      "panel_queue_depth_max": 2,
+      "sampled_source_queue_peak": 2,
+      "source_queue_end": 0,
+      "source_queue_overflow": 0,
+      "source_session_fatal": 0,
+      "activate_service_age_blocks_max": 4,
+      "worker_guard_faults": 0,
+      "irq209_runs": 715,
+      "irq134_runs": 355,
+      "estimated_cycle_fractions": {
+        "worker_task": 0.030531,
+        "ui_task": 0.026828,
+        "irq:191": 0.764449,
+        "irq:209": 0.000579,
+        "irq:134": 0.003436
+      },
+      "selected_pc_range_self_cycles": {
+        "other": 98784440,
+        "usb_track_tick": 130275,
+        "usbmidi_tick": 62939,
+        "dt1_rx_service": 59697,
+        "native_serializer": 506189,
+        "native_submission": 23558,
+        "native_rx_parser": 289316,
+        "sc_decode_control": 162332,
+        "sc_dev_receive_control": 50496
+      },
+      "unattributed_cycles": 0,
+      "audio_render_irq_deadlines": {
+        "period_cycles": 133333.33333333334,
+        "runs": 750,
+        "worst_cycles": 102890,
+        "p99_cycles": 102568,
+        "mean_cycles": 102026.8,
+        "late": 0,
+        "worst_fraction": 0.7717,
+        "margin": 0.2283
+      },
+      "decode_mismatches": 0,
+      "artificial_waits": 0,
+      "model_errors": [],
+      "usb_interrupt_enable": 16777217
+    }
+  ],
+  "limits": [
+    "MIDI configuration is executed natively outside measurement; configured RUN, UI IRQ, QH base, and synchronized Overbridge route are explicit setup preconditions. Enumeration is not executed.",
+    "Native IRQ/descriptor/RX job/ACK processing execute without receive-context injection. Portable peer processing is instantaneous; replies use an assumed 125us host poll.",
+    "USB audio endpoint traffic/PCM and native periodic USB status0x80/bit24 sources are not modelled. Native MIDI configuration enables interrupt bit24 (USBINTR=0x1000001), but the model generates only completion status1.",
+    "Task/IRQ cycle fractions partition estimated block costs, not hardware CPU measurements. No UI ready/wait time or physical DDR/cache/bus cost is measured.",
+    "Source queue peaks are sampled lower bounds. No Circle playout/audio deadline or persistence/recovery/soak qualification."
+  ],
+  "next": "Recover and model enabled native periodic USB callback sources and USB audio endpoint ownership/traffic, rerun fixed control/panel profiles, then isolate the hardware failure. Do not fit delays or prepare another speculative firmware candidate."
+}

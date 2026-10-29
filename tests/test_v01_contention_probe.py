@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
-from v01_contention_probe import PanelArrival
+from v01_contention_probe import PanelArrival, UsbStatusArrival
 HAS_RUNTIME = importlib.util.find_spec('unicorn') is not None
 if HAS_RUNTIME:
     from emu import panelin
@@ -78,6 +78,50 @@ class PanelArrivalTest(unittest.TestCase):
         self.assertFalse(source.service(100))
         self.assertTrue(source.pending)
         self.assertEqual(calls, [])
+
+
+@unittest.skipUnless(HAS_RUNTIME, 'run with the pinned emulator Python/Unicorn environment')
+class UsbStatusArrivalTest(unittest.TestCase):
+    def make(self, schedule):
+        uc = Memory()
+        uc.mem_write(UsbStatusArrival.STATUS, bytes(4))
+        calls = []
+
+        def vector(number, **kwargs):
+            calls.append((number, kwargs))
+            return True
+
+        session = SimpleNamespace(
+            m=SimpleNamespace(uc=uc, raise_vector=vector), _t0=0,
+            clock=SimpleNamespace(cycles=0), ips=250_000_000)
+        return UsbStatusArrival(session, schedule), uc, calls
+
+    @patch('emu.pit.interrupt_level', return_value=6)
+    def test_status_waits_for_ipl_and_clears_pending_after_delivery(self, _level):
+        source, uc, calls = self.make([100, 200])
+        source.s.clock.cycles = 99
+        self.assertFalse(source.service(99))
+        self.assertFalse(source.pending)
+        source.s.clock.cycles = 100
+        self.assertFalse(source.service(100))
+        self.assertTrue(source.pending)
+        self.assertEqual(uc.mem_read(UsbStatusArrival.STATUS, 4),
+                         struct.pack('>I', 4))
+        uc.sr = 0x2600  # equal IPL 6 is still masked
+        self.assertFalse(source.service(110))
+        uc.sr = 0x2500
+        self.assertTrue(source.service(120))
+        self.assertEqual(calls, [(209, {'level': 6})])
+        self.assertEqual(source.report()['delivered_209'], 1)
+        self.assertEqual(source.report()['scheduled'], 1)
+
+    @patch('emu.pit.interrupt_level', return_value=None)
+    def test_disabled_status_vector_remains_pending(self, _level):
+        source, _, calls = self.make([100])
+        self.assertFalse(source.service(100))
+        self.assertTrue(source.pending)
+        self.assertEqual(calls, [])
+        self.assertEqual(source.report()['pending'], 1)
 
 
 if __name__ == '__main__':

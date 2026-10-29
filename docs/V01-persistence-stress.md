@@ -1,6 +1,6 @@
 # V01 — one-voice qualification
 
-**IN PROGRESS.** Ownership renewed by Codex at `2026-10-29T12:58:23Z`.
+**IN PROGRESS.** Ownership renewed by Codex at `2026-10-29T15:05:09Z`.
 Original Phase 0 preservation passed; Phase 1 reproduced the dense-LFO failure.
 Current Gate A remains incomplete: G was physically installed and failed at
 SPD64/DEP48. V01P is rejected; V01N remains physically untested.
@@ -107,7 +107,8 @@ Use the following sequence before another optimization or hardware flash:
    Retain real native task switching and interrupt context. Replace direct
    context-injected ACK shortcuts with scheduled arrival when testing scheduling.
 3. **Establish the regression verdict.** Provide one reproducible command,
-   `tools/v01_contention_probe.py` (now a disconnected preflight; active-link extension pending), that runs
+   `tools/v01_contention_probe.py` (now includes a native MIDI control component;
+   full USB/audio extension pending), that runs
    both profiles and reports panel latency/backlog, task runnable/wait states,
    audio deadlines, queue occupancy and protocol faults. Repeat fixed inputs
    to establish determinism. Start with Gate C's proposed 100ms response limit,
@@ -283,13 +284,10 @@ The existing vector statistics are model output, not physical CPU occupancy.
 There is no active-link function/task self-cost or UI runnable-time attribution
 yet, and no hardware CPU-saturation conclusion.
 
-**Next software work:** wire the demonstrated INTC1 source6 adapter into an
-active-link probe and model the native USB descriptor/prime, completion and
-RX-dispatch chain, then extend this validated panel seam to the
-active-link workload. Preserve genuine task/IRQ context and measure the
-previously omitted execution separately. Source-derived semantics should be
-implemented before requesting a hardware run; do not replace missing USB work
-with a fitted synthetic delay.
+The continuation below now wires INTC1 source6 and native MIDI descriptor/RX
+dispatch into the panel probe. Native periodic USB and audio traffic remain
+missing. Source-derived semantics should be implemented before requesting a
+hardware run; do not replace missing USB work with a fitted synthetic delay.
 
 **One justified hardware measurement, only if source work leaves the USB
 service timing/batching unresolved:** measure native vectors209 **and134** self
@@ -313,6 +311,128 @@ dispatch, the missing native service path becomes the next causal target.
 If it remains small while worker self time or UI-handler backlog grows, that
 prediction fails and the same capture selects the alternative path. This is a
 measurement proposal, not an optimization candidate or a request to flash now.
+
+#### Native MIDI control integration — continuation (2026-10-29)
+
+[Compact evidence](../evidence/v01/native-control-component.json) records the
+native model regressions, exact source hashes, repeatability, panel response,
+queue state and exclusive estimated execution costs. Raw emulator reports and
+the inherited uncommitted files are preserved in ignored `private/v01/`.
+No firmware/Pi changes or hardware measurements were made.
+
+**Inherited work audit.** The other agent had integrated source6 and periodic
+status-event injection and started `tools/v01_usb_device_model.py`, but had not
+demonstrated an active descriptor path. Its 13 small tests passed; running
+`--usb-device` against G returned `invalid-preflight` with zero primes,
+completions and RX callbacks, USB_READY0 and gate0. The fixture was still
+disconnected. This was unfinished integration, not completion of step2.
+
+The new [native completion probe](../tools/v01_usb_completion_probe.py) exposed
+two independent errors through the actual OS1.54 submit/ISR/callback path:
+
+| Native component case | Inherited result | Corrected result |
+| --- | --- | --- |
+| OUT index3, 60 bytes, native TX-accounting callback | Callback runs but queued count stays60: zero transferred bytes reported | One callback; queued count0 |
+| IN index5, 60 bytes | No prime/completion/callback; queued count60 | One callback; queued count0 |
+| Two native IN submissions, 60+24 bytes, before any completion | Additional regression | Both callbacks; queued count0 |
+| OUT request64 with short payload4 | Additional regression | One callback reports4; accounting remainder60 |
+
+The model now uses the native endpoint masks (IN index5 is bit17, not bit5),
+reads the hardware QH next field at +8, follows dTD next pointers, and leaves
+the software QH head/tail to ISR134. Token high16 is residual bytes; native
+ISR134 subtracts it from requested length. Native PRIME remains visible until
+accepted, so back-to-back masked submissions cannot overwrite the first
+descriptor. OUT requests wait for an explicit host payload; no empty receive
+completions are invented. W1C acknowledgements precede later completions,
+RUN/STOP and USBINTR.UI are respected, and native flush polling is acknowledged.
+The snapshot's USBINTR was0, making a configured-controller setup precondition
+necessary rather than silently bypassing the peripheral mask.
+
+**Configured control component.** Setup executes native MIDI configuration
+`0x4000463e(1)` and readiness/replenishment `0x40004516` outside measurement.
+It explicitly supplies RUN/UI-interrupt/queue-base configuration and an already
+synchronized Overbridge route (mode6, sync1). This replaces enumeration/audio
+startup for the component test; it is not a boot/reconnect proof. These stores
+are made once, never repeated at render hooks. Active native MIDI queues are
+adopted on snapshot resume. During measurement there are no submission hooks,
+queued-byte clearing, returned-PCM injection or receive-context calls.
+
+The [portable peer](../tools/v01_usb_peer.py) consumes native IN DMA payloads
+using the existing compiled Circle protocol helper. Replies are packetized as
+USB MIDI and scheduled into OUT buffers; native ISR209→source6→ISR134 dispatches
+`0x400044ee`, which posts the native receive job at `0x40004760`. The compiled
+RX bridge runs at IPL0, then the genuine worker handles ACKs. Host protocol
+processing is instantaneous in device time; one transaction per endpoint per
+assumed 125us host poll is an explicit policy, not measured physical scheduling
+or a packet interval inferred from endpoint capacity.
+
+Reproduce both fixed profiles, with early buttons and four additional
+FLTR/SRC edges at 350/380/430/460ms after control has become active:
+
+```sh
+PYTHONPATH=private/r03-runtime:deps/digiemu \
+  deps/digiemu/.venv/bin/python tools/v01_contention_probe.py \
+  --candidate private/v01-compact-g --usb-device --usb-peer \
+  --profile-execution --output private/v01/native-control.json
+```
+
+Use `--fsys 200000000` for the second declared frequency assumption. The native
+completion regression command is:
+
+```sh
+PYTHONPATH=private/r03-runtime:deps/digiemu \
+  deps/digiemu/.venv/bin/python tools/v01_usb_completion_probe.py \
+  --candidate private/v01-compact-g --output private/v01/native-completion.json
+```
+
+| Assumed core | Setting | Installed snapshots / 500ms | Max arrival→dispatch-pass completion | Worker exclusive model cycles | USB209+134 exclusive model cycles |
+| --- | --- | --- | --- | --- | --- |
+| 250 MHz | 32/32 | 119 | 3.153ms | 0.853% | 0.121% |
+| 250 MHz | ~64/48 | 354 | 3.242ms | 2.465% | 0.358% |
+| 200 MHz | 32/32 | 118 | 6.557ms | 1.067% | 0.136% |
+| 200 MHz | ~64/48 | 353 | 7.323ms | 3.053% | 0.401% |
+
+Two complete 250MHz reports are exactly equal. Each profile has all eight
+button edges completed, one stable active session/START, gate1, native RX at
+IPL0, no artificial semaphore releases, no decoder mismatch, no guard fault,
+no model error and no latched queue overflow/fatal flag. Sampled source queue
+peak is1 (up to2 at 200MHz); these are sampled lower bounds, not exact
+watermarks. Source→portable-host age is at most one render block; ACTIVATE
+processing can follow the source block by12 blocks at baseline or4 at dense
+load. That is a sender ACK-service observation, not Circle playout slack.
+The 17 focused tests pass in the pinned emulator environment.
+
+[Execution attribution](../tools/v01_execution_profile.py) partitions entered
+block costs by current native TCB or top interrupt frame. The pinned scheduler
+loads its current TCB from `0x4399e798`; this instruction is byte-verified.
+Selected linked function/PC ranges report self costs separately from task
+totals. At 250MHz, render IRQ191 accounts for ~61.0–61.2% of estimated cycles;
+at 200MHz, ~76.3–76.4%. There are zero unattributed cycles in these runs.
+Branch resolution/entry costs can land at an adjacent block boundary. These
+are estimates, with no physical memory cost, and are not summed with inclusive
+worker/render elapsed brackets. Ready-but-unscheduled UI time and visible
+screen completion still are not measured.
+
+**Verdict and exact next work.** Native MIDI submission/completion/ACK paths are
+now exercised and remain responsive in this component. The physical failure
+is still not reproduced and its root cause is unproven; Gate A is NOT SCORED.
+The next step is no longer implementing the MIDI receive shortcut replacement.
+Recover and drive the missing native periodic USB and audio paths first:
+
+- Native configuration registers `0x40004516` through `0x40006ad6`. At
+  `0x40006b34`, that registration enables USBINTR bit24. Recorded USBINTR is
+  `0x01000001`, but the model generates only completion status1. ISR134's
+  bit24 branch at `0x40007270` walks callbacks at `0x40610500`.
+- ISR209 also has the status0x80 callback path at `0x400060f0`, walking
+  `0x40610598`; this event source is absent too. Establish native enable bits
+  and clock/event semantics before assigning either path a cadence.
+- Configure and drive native USB audio endpoints/descriptor ownership using
+  R07/H01 facts and the actual host framing. Do not infer arrival cadence from
+  the 88-byte capacity, generate empty OUT traffic, or keep forcing sync/PCM.
+- Rerun the same control/panel inputs with those paths, then isolate wake,
+  ACK, native USB and UI backlog if lag appears. Physical cache/DDR/bus effects
+  and actual CPU clock remain unresolved. No fitted delay, new firmware
+  candidate or broad hardware sweep is justified by the current pass.
 
 Preserve ordered START identity, full effective state, fail-closed deadlines,
 bounded queues, task-only USB and allocation-free/nonblocking audio callbacks.
