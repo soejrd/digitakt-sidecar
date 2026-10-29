@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Status | Dependencies / first action | Acceptance |
 | --- | --- | --- | --- | --- |
-| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29T20:50:00Z) | [Current investigation](docs/V01-persistence-stress.md#current-next-work--one-muted-paired-hardware-candidate): V01K flashed, freeze reproduced at ~256/512 and survived cable removal ([evidence](evidence/v01/v01k-freeze.json)). Next, offline only: bound the new unbounded-deferral regression, then make the RX/ACK ISR path append-only. No flash until both are done. | [Gates A–C](docs/V01-persistence-stress.md#acceptance-gates): responsive dense modulation, native persistence/edit semantics, recovery/soak and listening acceptance. |
+| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29T21:05:00Z) | [Current investigation](docs/V01-persistence-stress.md#current-next-work--offline-only-no-flash): V01K shipped the masked-preflight fix and still froze at ~256/512 ([evidence](evidence/v01/v01k-freeze.json)), falsifying that cause. Next, offline only: bound the unbounded-deferral regression, then make the RX/ACK ISR path append-only. No flash until a hypothesis reproduces in the emulator. | [Gates A–C](docs/V01-persistence-stress.md#acceptance-gates): responsive dense modulation, native persistence/edit semantics, recovery/soak and listening acceptance. |
 
 ## Waiting
 

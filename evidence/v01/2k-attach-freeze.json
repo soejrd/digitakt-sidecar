@@ -1,13 +1,20 @@
 {
   "task": "V01 Gate A",
   "date_utc": "2026-10-29T18:45:00Z",
-  "status": "trigger isolated to our per-snapshot traffic; Gate A still IN PROGRESS and unaccepted",
+  "status": "trigger isolated to our per-snapshot traffic; leading hypothesis later tested and FALSIFIED by V01K",
   "hardware_test": true,
   "gate_a_verdict": "NOT SCORED",
   "scope": "human panel test at maximum LFO speed with and without USB; one live Pi sample of the frozen device",
   "source_revision": "4cd477a",
   "firmware": "V01G (usb-track 0.5, compact snapshots, no self-wake), unmodified since the compact-depth48 capture",
-  "pi": {"host": "sidecar", "build": "6cff67b-dirty, Oct 29 2026 12:31:45", "circle": "51.1.1", "kernel_unchanged": true, "temperature_c": 54, "throttled_now": false},
+  "pi": {
+    "host": "sidecar",
+    "build": "6cff67b-dirty, Oct 29 2026 12:31:45",
+    "circle": "51.1.1",
+    "kernel_unchanged": true,
+    "temperature_c": 54,
+    "throttled_now": false
+  },
   "human_protocol": [
     "Empty pattern/preset, SRC machine set to USB1, LFO destination TRX-B2 PTCH, speed multiplier 2000 (BPM multi), depth 5-10.",
     "A: all cables to the Pi disconnected -> fully responsive, all controls smooth, no perceived lag.",
@@ -23,15 +30,6 @@
     "device_side_dead": "Digitakt-side counters stop: rx/sends/timer/block/seq all identical across 30 s of sampling (seq 42, block 238672, sends 11266). The remote diagnostic emitter itself stops, so the stall covers the whole native device, not only our worker.",
     "audio_lost": "The Pi side reports gadget 0 / streaming false and underruns climbing, consistent with a stopped device. The frozen device is not sending PCM.",
     "no_hardware_fault": "Pi stayed alive, answered HTTP, stayed at 54 C with no throttling. The earlier fresh Pi boot was a human restart, not a spontaneous reboot."
-  },
-  "leading_hypothesis": {
-    "name": "non-atomic preflight: the sender can enter a busy wait with every interrupt masked",
-    "mechanism": "dt1_transport submit() calls fw_can_send(), which reads 0x40610478/0x4061047C with interrupts enabled, and only then calls fw_send(), which does irq_save() (move.w #0x2700,%sr) and calls 0x40004990 without re-checking. The native sender re-reads the same counters and enters the unbounded capacity wait (0x400049FE..0x40004A0C, spins while queued+d2 > 0xFFB) or wrap wait (0x400049D0..0x400049D8, spins while queued >= index-0x3F). Those waits are drained only by the USB completion callback 0x40004404 lowering 0x40610478, which cannot run at IPL7. Any other writer of the queue in the window between check and mask therefore converts a refused send into a permanent hang.",
-    "why_attach_freezes": "On attach the stock USB stack is busy, so the queue is most likely to be pushed past the limit exactly while our first snapshot burst begins. This matches the human's immediate-on-connect observation with an empty queue of our own.",
-    "why_density_scales": "Every snapshot is one check-then-send window, so exposure rises with the snapshot rate: ~12/s with destination OFF stays responsive, 366-816/s freezes. One clean source defect explains the graded sluggishness at 64/48 and the hard stop at 2K.",
-    "second_order": "With the cable out the 256-record session ring fills in ~170 ms and latches fatal; that explains the lost audio but not the frozen UI.",
-    "code_comment_is_wrong": "fw_send's comment claims 'One single-core critical section closes the preflight/send race with stock MIDI writers'. The critical section contains only the send; the preflight sits outside it. That is the defect.",
-    "confidence": "hypothesis with a proven source-level defect: the disassembly, the non-atomic ordering and the masking are facts. That this specific race caused this specific hang is inferred from the trigger shape, not traced on hardware."
   },
   "alternate_hypotheses": [
     "RX/ACK side: Pi ACKs one snapshot each, so native_rx runs at the same rate and does sc_dev_receive_control and the wake inside interrupt context; that work and any ring overflow scale with the snapshot rate too.",
@@ -50,12 +48,14 @@
     "drain": "0x40004404 only decrement of 0x40610478 (evidence/i03/transport-anchors-154.json)"
   },
   "fix_plan": [
-    "Do the full preflight inside fw_send after irq_save and refuse (return 0) instead of calling the native sender when the limit is close, so a deferral replaces a possible wait.",
-    "Keep dt1_transport's can_send as a cheap early filter only; the masked re-check is the authoritative gate.",
-    "Add a host regression that drives the firmware model to the limit between the early check and the masked call and asserts the sender is never entered.",
-    "Separately bound the RX/ACK path so the interrupt handler only appends bytes."
+    "DONE: authoritative preflight after irq_save, refusing instead of entering the sender (candidate V01K).",
+    "OPEN: bound that refusal - it is currently an unbounded deferral, which removed the fail-closed retire.",
+    "OPEN: make the RX/ACK interrupt path append-only."
   ],
-  "raw": {"file": "evidence/v01/2k-freeze-live-2026-10-29.txt", "sha256": "356a98ffe5bd1807be4a395c8dff154b851b041f4e361155caaefbe6fa93fb84"},
+  "raw": {
+    "file": "evidence/v01/2k-freeze-live-2026-10-29.txt",
+    "sha256": "356a98ffe5bd1807be4a395c8dff154b851b041f4e361155caaefbe6fa93fb84"
+  },
   "limits": [
     "Single human trial per condition; no repeated freeze to measure determinism.",
     "No on-device trace of the hang: the remote emitter stops with the device, so the failing PC is not captured.",
@@ -63,5 +63,15 @@
     "The 2K freeze is a stronger failure than the 64/48 'sluggish' complaint; whether they share one cause is unproven.",
     "Pi 'gadget 0' was read from the status endpoint; the engine source for that field is not in this clone."
   ],
-  "next": "Run the discriminating test; if the masked-wait hypothesis survives, replace the masked send with a bounded, IRQ-enabled path and add a host regression that fails when a busy wait is entered with interrupts masked."
+  "next": "RX/ACK interrupt path is the remaining suspect; bound the deferral regression introduced by the fix. See evidence/v01/v01k-freeze.json.",
+  "falsified_hypothesis": {
+    "name": "non-atomic preflight: the sender can enter a busy wait with every interrupt masked",
+    "mechanism": "dt1_transport submit() calls fw_can_send(), which reads 0x40610478/0x4061047C with interrupts enabled, and only then calls fw_send(), which does irq_save() (move.w #0x2700,%sr) and calls 0x40004990 without re-checking. The native sender re-reads the same counters and enters the unbounded capacity wait (0x400049FE..0x40004A0C, spins while queued+d2 > 0xFFB) or wrap wait (0x400049D0..0x400049D8, spins while queued >= index-0x3F). Those waits are drained only by the USB completion callback 0x40004404 lowering 0x40610478, which cannot run at IPL7. Any other writer of the queue in the window between check and mask therefore converts a refused send into a permanent hang.",
+    "why_attach_freezes": "On attach the stock USB stack is busy, so the queue is most likely to be pushed past the limit exactly while our first snapshot burst begins. This matches the human's immediate-on-connect observation with an empty queue of our own.",
+    "why_density_scales": "Every snapshot is one check-then-send window, so exposure rises with the snapshot rate: ~12/s with destination OFF stays responsive, 366-816/s freezes. One clean source defect explains the graded sluggishness at 64/48 and the hard stop at 2K.",
+    "second_order": "With the cable out the 256-record session ring fills in ~170 ms and latches fatal; that explains the lost audio but not the frozen UI.",
+    "code_comment_is_wrong": "fw_send's comment claims 'One single-core critical section closes the preflight/send race with stock MIDI writers'. The critical section contains only the send; the preflight sits outside it. That is the defect.",
+    "confidence": "hypothesis with a proven source-level defect: the disassembly, the non-atomic ordering and the masking are facts. That this specific race caused this specific hang is inferred from the trigger shape, not traced on hardware.",
+    "outcome": "TESTED AND FALSIFIED (V01K, 2026-10-29): candidate with the authoritative in-mask preflight still froze at ~256/512 and stayed frozen after cable removal."
+  }
 }
