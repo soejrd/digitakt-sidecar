@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Status | Dependencies / first action | Acceptance |
 | --- | --- | --- | --- | --- |
-| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29 physical trial) | B/C both reproduce severe UI lag; USB disconnect restored response after ~6 s. [Remote V01E/Pi pair](evidence/v01/remote-candidate.json) verified/staged with rollback, not deployed. Next: backed-up Pi SD kernel update + human V01E Transfer flash, remote timer calibration and telemetry; no manual frozen-page extraction. Last installed V01C, USB disconnected, Pi muted/trace off. Activation FIFO 7→14 remains unresolved. | Numeric supported workload with responsive UI and no audio/deadline failure; native persistence/edit semantics; reconnect and combined soak; explicit listening acceptance. |
+| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29 physical trial) | B/C both reproduce severe UI lag; USB disconnect restored response after ~6 s. [Remote V01E/Pi pair](evidence/v01/remote-candidate.json) verified/staged with rollback; [Pi SD updated/read-back/ejected](evidence/v01/remote-sd-deployment.json), boot pending. Next: human returns SD/boots Pi and installs V01E via Transfer, then remote timer calibration/telemetry; no manual frozen-page extraction. Last installed V01C, USB disconnected, Pi muted/trace off. Activation FIFO 7→14 remains unresolved. | Numeric supported workload with responsive UI and no audio/deadline failure; native persistence/edit semantics; reconnect and combined soak; explicit listening acceptance. |
 
 ## Waiting
 

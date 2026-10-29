@@ -1,7 +1,7 @@
 # V01E — remote scheduling diagnostic
 
 [Verified pair/evidence](../evidence/v01/remote-candidate.json). Both images are
-staged under `private/v01/firmware-V01E/`; neither has been deployed. This probe
+staged under `private/v01/firmware-V01E/`. The [Pi SD update](../evidence/v01/remote-sd-deployment.json) is read-back verified and safely ejected; boot and Digitakt V01E installation remain pending. This probe
 keeps V01C's priority 14/no-self-wake, event order and 128-frame Pi deadline.
 It adds instrumentation; it is not a lag fix.
 

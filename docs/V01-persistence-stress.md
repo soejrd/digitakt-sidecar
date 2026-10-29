@@ -168,7 +168,7 @@ implicates active USB-related work but changes audio, MIDI, task load and sessio
 state together; no particular masked send or IRQ is proven responsible.
 
 [V01E/Pi remote probe](../evidence/v01/remote-candidate.json) is verified/staged,
-not installed. It adds low-rate, best-effort telemetry isolated from the voice
+Pi SD written/read-back verified and safely ejected ([deployment](../evidence/v01/remote-sd-deployment.json)); boot and human Digitakt V01E flash remain pending. It adds low-rate, best-effort telemetry isolated from the voice
 protocol. Read-only DTIM0 counter/mode samples measure send critical sections,
 UI gaps and worker batches in raw ticks. Timer movement/rate must be calibrated
 on hardware before interpreting tick durations. The Pi retains last snapshot;

@@ -56,15 +56,22 @@ reports UI/worker gaps plus raw DTIM0 ticks around masked native sends, worker
 batches and UI service. Pi `v01status` exposes last snapshot; the agent polls it.
 No manual DIAG extraction. Codec/device/actual Circle tests, full host suite,
 eleven-patch replay, Pi cross-build and compiled emulator transport pass (12
-snapshots, 0 malformed, native stack 1352 B). Neither new image deployed.
+snapshots, 0 malformed, native stack 1352 B). Pi SD updated below; Digitakt V01E not yet installed.
 Package `private/v01/firmware-V01E/` contains Digitakt/stock recovery plus paired
 Pi kernel and exact `c057…` pre-probe rollback. Hardware raw timer rate still
 needs calibration; do not infer microseconds from ticks.
 
-**Next physical action:** Pi off and its SD attached to Mac for a backed-up,
-read-back-verified kernel update, then human Transfer flash of V01E. Keep USB
-unplugged until the pair is installed; agent re-mutes/disables trace and first
-checks remote progress/timer against wall time before another dense attempt.
+**Pi SD update complete:** [deployment](evidence/v01/remote-sd-deployment.json).
+New kernel `8df83a5a…` read-back verified; all 21 manifest entries pass, 60 other
+existing non-system files unchanged. Known `c057…` kernel and old manifest
+backed up on card as `kernel8-rpi4.before-v01-remote.img` and
+`SHA256SUMS.before-v01-remote`, also locally in
+`private/v01/sd-backup-before-remote/`. Card safely ejected; boot not verified.
+
+**Next physical action:** human returns SD and powers Pi, keeps Pi–Digitakt USB
+disconnected, then uses Transfer to install V01E. Agent verifies Pi build,
+re-mutes/disables trace after reconnection, and first checks remote progress and
+raw timer against wall time before another dense attempt.
 
 Earlier V01D/N/P times were inflated by 46.875×; UGAP 8469 is ~181 ms, not
 8.469 s. Human-observed multi-second lag remains valid. Do not reuse old
@@ -78,8 +85,10 @@ self-post readiness remains a hypothesis. V01P priority 5 stays rejected.
   Restore I04R before normal use from
   `private/v01/firmware-V01P/Digitakt-I04R-previous.syx`; I04Q/H02F/stock also
   retained. I04R SHA256 `6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b`.
-- Pi kernel SHA256 `c057f063c24770a520b842e66d4d7e10655bdda3d45de05e1b67edc85d34a0f2`,
-  128-frame playout. Rollback: `private/i04/sd-backup-event-worker/`.
+- Pi card updated to SHA256 `8df83a5a2712d18429948dc2d77b4496a4efab545907b1cf2e9771bf31f2308e`,
+  128-frame playout; boot pending. Immediate rollback `c057…` is in
+  `private/v01/sd-backup-before-remote/` and on-card pre-remote backup files.
+  Earlier I04 rollback remains in `private/i04/sd-backup-event-worker/`.
 - Fresh Pi reboot required for clean counter baselines. `trxtrace=on` forces
   mute; read status before dumping (printing caused underruns). Analyzer delay
   is **128**, not historical 2048. Preserve deadline/order/START behavior.
