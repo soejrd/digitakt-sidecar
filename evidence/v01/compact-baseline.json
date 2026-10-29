@@ -1,0 +1,89 @@
+{
+  "task": "V01",
+  "date_utc": "2026-10-29T12:41:55.821814+00:00",
+  "scope": "G muted active 32/32 short counter baseline",
+  "settings": "SPD32/DEP32 instruction acknowledged by human",
+  "sample_count": 7,
+  "assertions": {
+    "version2_telemetry": true,
+    "device_snapshots_received": true,
+    "source_progress": true,
+    "muted": true,
+    "fault_free": true,
+    "guards_intact": true,
+    "no_malformed": true,
+    "fifo_stable": true,
+    "active_controls": true
+  },
+  "fifo_baseline": 11,
+  "startup_transition": {
+    "boot_disconnected_fifo": 0,
+    "first_active_capture_fifo": 11,
+    "classification": "new underruns occurred between disconnected boot and first active capture; precise onset not sampled; startup issue unresolved"
+  },
+  "source_intervals": [
+    {
+      "source_elapsed_s": 2.0,
+      "timer_hz": 131999921.5,
+      "native_sends_per_s": 284.5,
+      "worker_elapsed_fraction": 0.03676598777371243,
+      "native_render_elapsed_fraction": 0.8289153641655764,
+      "masked_send_fraction": 0.004235559337056121
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "timer_hz": 132000589.0,
+      "native_sends_per_s": 284.0,
+      "worker_elapsed_fraction": 0.036669177286777106,
+      "native_render_elapsed_fraction": 0.8290790505487821,
+      "masked_send_fraction": 0.004219526626506189
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "timer_hz": 132000502.5,
+      "native_sends_per_s": 284.5,
+      "worker_elapsed_fraction": 0.03434518364806982,
+      "native_render_elapsed_fraction": 0.8289102763074708,
+      "masked_send_fraction": 0.004227097544571848
+    },
+    {
+      "source_elapsed_s": 3.0,
+      "timer_hz": 132000484.33333333,
+      "native_sends_per_s": 284.3333333333333,
+      "worker_elapsed_fraction": 0.03539623123554549,
+      "native_render_elapsed_fraction": 0.8289153954190163,
+      "masked_send_fraction": 0.004229598117156404
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "timer_hz": 132000118.5,
+      "native_sends_per_s": 284.0,
+      "worker_elapsed_fraction": 0.03614720618603081,
+      "native_render_elapsed_fraction": 0.8288957861806768,
+      "masked_send_fraction": 0.004232238624846386
+    },
+    {
+      "source_elapsed_s": 1.0,
+      "timer_hz": 132000381.0,
+      "native_sends_per_s": 284.0,
+      "worker_elapsed_fraction": 0.03442271124959859,
+      "native_render_elapsed_fraction": 0.8287655548509364,
+      "masked_send_fraction": 0.004219525699702337
+    }
+  ],
+  "latest_maxima": {
+    "ui_gap_ms": 34,
+    "worker_gap_ms": 33,
+    "batch_ms": 1,
+    "send_ticks_max": 3170,
+    "ui_ticks_max": 4712816,
+    "batch_ticks_max": 180242
+  },
+  "raw_sha256": "b1d1102b993c43d267b25702d7b109c515fc199d64dde758c114d9bac527e4c1",
+  "limits": [
+    "No audible or dense qualification; human responsiveness report not yet requested at this profile",
+    "Worker/render elapsed overlaps under preemption; never add as CPU usage",
+    "Telemetry version2 is independent of snapshot version3; active accepted controls with known G candidate establish functional compact stream, not running firmware binary hash"
+  ],
+  "status": "PASS \u2014 short muted active counter baseline only"
+}

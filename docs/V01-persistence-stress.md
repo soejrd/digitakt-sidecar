@@ -244,6 +244,17 @@ I04R/stock Digitakt recoveries. No physical G pass is claimed. After paired
 verification, compare muted 32/32 then the same SPD64 ramp, stopping at lag or
 new faults/underruns. Do not repeat prolonged frozen-panel extraction.
 
+### V01G first active baseline
+
+[G boot](../evidence/v01/compact-boot.json) and human Transfer confirmation are
+complete. [Muted 32/32 counter baseline](../evidence/v01/compact-baseline.json):
+7 samples over 12 seconds, active controls, 2 STARTs consumed, fault/guards0,
+FIFO11 stable, UI gap34 ms. FIFO rose 0→11 sometime between disconnected boot
+and first active capture; startup behavior remains unresolved. Native sends
+~284/s, worker elapsed ~3.4–3.7%, render ~82.9% (overlapping brackets). No dense,
+human responsiveness or audible G acceptance yet. Next step changes only SPD
+to64 while DEP stays32, with remote capture and early stop on lag/new faults.
+
 ## Gate B — native persistence and musical edit semantics
 
 Source/emulator mapping may proceed while Gate A awaits hardware. Establish

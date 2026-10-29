@@ -40,11 +40,18 @@ USB disconnected, FIFO/fault 0, voice muted and trace off. Full sanitizer host s
 codec/worker/scheduler/recovery, twelve-patch replay and compiled exchange pass
 (12 remote packets, 0 malformed, stack 1368 B); paired Pi kernel builds.
 
-**Next:** human sets SPD32/DEP32 while disconnected, reconnects USB and triggers
-track 1 once; agent verifies active compact stream and captures clean baseline. Trial starts muted at
-32/32, then same SPD64 ramp; stop promptly on lag/fault/FIFO growth. Agent polls
-remote diagnostics; no manual DIAG extraction. Startup/reconnect faults remain
-open; Gates B persistence and C reconnect/soak still outstanding.
+**G active baseline:** [12-second counter check](evidence/v01/compact-baseline.json)
+passes: accepted controls and 2 STARTs consumed, fault/guards 0, FIFO11 stable,
+UI gap34 ms. Boot→active FIFO0→11 remains unresolved startup behavior, outside
+this measured stable interval. Raw timer ~132MHz; worker ~3.4–3.7%, native render
+~82.9% (overlap), native sends ~284/s. No dense or audible G pass.
+
+**Next:** recorder started for SPD64/DEP32 step. Human increases speed only,
+reports responsiveness and stops/unplugs promptly at lag. Raw capture
+`private/v01/live-gate-a/v01g-speed.json`, stop marker `v01g-speed.stop`;
+watcher runs at most 300s and exits on new FIFO/fault. Depth ramp follows only
+after this step is assessed. No manual DIAG reads. Startup/reconnect issue and
+Gates B persistence/C reconnect-soak remain open.
 
 ## Hardware / recovery
 
