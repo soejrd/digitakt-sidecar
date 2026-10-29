@@ -171,6 +171,8 @@ def run(candidate, output):
             assert peer.peer_remote_bad() == 0, 'malformed remote snapshot'
             assert peer.peer_remote_value(4)>0 and peer.peer_remote_value(5)>0
             assert peer.peer_remote_value(9)>0, 'native send timing producer not exercised'
+            assert peer.peer_remote_value(15)>0, 'worker elapsed total missing'
+            assert peer.peer_remote_value(16)>0, 'render event elapsed total missing'
             state['remote_snapshots']=peer.peer_remote_count()
             state['remote_malformed']=peer.peer_remote_bad()
         report={'status':'verified' ,'level':'compiled OS 1.54 + native serializer; USB DMA/PCM modelled',

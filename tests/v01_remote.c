@@ -12,7 +12,12 @@ int main(void) {
  for(unsigned n=0;n<sizeof wire;++n)assert(!v01_decode(b,wire,n));
  wire[10]=16; assert(!v01_decode(b,wire,sizeof wire)); assert(!memcmp(keep,b,sizeof b));
  v01_encode(wire,a);wire[6]=128;assert(!v01_decode(b,wire,sizeof wire));
- v01_encode(wire,a);wire[5]=2;assert(!v01_decode(b,wire,sizeof wire));
+ v01_encode(wire,a);wire[5]=3;assert(!v01_decode(b,wire,sizeof wire));
  v01_encode(wire,a);wire[sizeof wire-1]=0;assert(!v01_decode(b,wire,sizeof wire));
+ /* Receiver remains compatible with V01E's fifteen-field version 1. */
+ v01_encode(wire,a);wire[5]=1;wire[81]=0xf7;
+ assert(v01_decode(b,wire,82));
+ for(unsigned i=0;i<15;++i)assert(b[i]==a[i]);
+ assert(b[V01_WORK_TICKS]==0 && b[V01_RENDER_TICKS]==0);
  puts("V01 remote codec: bounds, 7-bit canonicality, full uint32 range, atomic rejection: PASS");
 }

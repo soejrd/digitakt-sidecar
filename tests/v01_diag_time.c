@@ -92,6 +92,15 @@ int main(void)
     assert(usb_track_diag_batch_max == 3);
     puts("V01 trial reset, elapsed seconds and sticky-fault preservation: PASS");
 #ifdef V01_REMOTE_DIAGNOSTIC
+    v01_test_clock=100;
+    usb_track_diag_render_in();v01_test_clock=125;usb_track_diag_render_out();
+    assert(v01_render_ticks==25);
+    v01_test_clock=UINT32_MAX-9;
+    usb_track_diag_render_in();v01_test_clock=20;usb_track_diag_render_out();
+    assert(v01_render_ticks==55);
+    uint32_t work_before=v01_work_ticks;
+    diag_stamp_entry();v01_test_clock+=40;diag_stamp_exit();
+    assert(v01_work_ticks-work_before==40);
     test_ready=test_isr=1; test_rx_slot=(uintptr_t)stock;
     test_auto_complete=1; test_tx_observer=remote_collect;
     usbmidi_device_init(0,0); usbmidi_device_open();

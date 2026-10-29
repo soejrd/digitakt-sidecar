@@ -8,7 +8,14 @@
 extern volatile uint32_t v01_send_calls,v01_send_ticks,v01_send_max;
 static uint32_t v01_ui_last,v01_batch_started,v01_last_report,v01_sequence;
 static uint8_t v01_ui_seen;
-static uint32_t v01_ui_max,v01_batch_max;
+static uint32_t v01_ui_max,v01_batch_max,v01_work_ticks;
+static volatile uint32_t v01_render_ticks;
+static uint32_t v01_render_entered;
+/* Existing core events bracket native render work. These elapsed totals can
+ * include higher-priority IRQs; worker elapsed can overlap render elapsed.
+ * Never add the two together as a pure CPU-utilization figure. */
+void usb_track_diag_render_in(void) { v01_render_entered=v01_clock(); }
+void usb_track_diag_render_out(void) { v01_render_ticks+=v01_clock()-v01_render_entered; }
 static void diag_emit(void)
 {
     uint32_t v[V01_FIELDS]; uint8_t wire[V01_WIRE];
@@ -26,6 +33,7 @@ static void diag_emit(void)
     v[V01_SENDS]=v01_send_calls; v[V01_SEND_TICKS]=v01_send_ticks;
     v[V01_SEND_MAX]=v01_send_max; v[V01_UI_TICKS_MAX]=v01_ui_max;
     v[V01_BATCH_TICKS_MAX]=v01_batch_max; v[V01_GUARDS]=usb_track_worker_guard_faults;
+    v[V01_WORK_TICKS]=v01_work_ticks; v[V01_RENDER_TICKS]=v01_render_ticks;
     v01_encode(wire,v);
     (void)usbmidi_device_send(wire,sizeof wire);
 }
@@ -89,6 +97,7 @@ static void diag_stamp_exit(void)
     if (elapsed>usb_track_diag_batch_max) usb_track_diag_batch_max=elapsed;
 #ifdef V01_REMOTE_DIAGNOSTIC
     uint32_t ticks=v01_clock()-v01_batch_started;
+    v01_work_ticks+=ticks;
     if(ticks>v01_batch_max) v01_batch_max=ticks;
 #endif
 }

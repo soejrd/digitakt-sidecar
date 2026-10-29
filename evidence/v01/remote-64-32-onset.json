@@ -1,0 +1,59 @@
+{
+  "task": "V01",
+  "date_utc": "2026-10-29T11:41:04.453220+00:00",
+  "status": "sluggishness onset reported at increased speed with depth held at 32; no 64/64 attempt",
+  "human_observation": {
+    "speed": 64,
+    "depth": 32,
+    "onset_speed_approx": 40,
+    "description": "speed at 64, depth kept 32; already a bit sluggish above speed around 40",
+    "playback": "instructed stopped; no Play requested"
+  },
+  "pi_uptime_s": 190,
+  "fifo_underruns": 14,
+  "remote": {
+    "received": 187,
+    "bad": 0,
+    "sequence": 346,
+    "block": 589948,
+    "timer_ticks": 1361415631,
+    "timer_mode": 3,
+    "ui": 6755,
+    "worker": 66510,
+    "ui_gap_ms": 49,
+    "worker_gap_ms": 33,
+    "batch_ms": 2,
+    "guards": 0
+  },
+  "raw": {
+    "sequence": 346,
+    "send_calls": 185004,
+    "send_ticks_total": 407309823,
+    "send_ticks_max": 3137,
+    "ui_ticks_max": 6512417,
+    "batch_ticks_max": 265943
+  },
+  "trx": {
+    "armed": 0,
+    "queue": 1,
+    "peak": 4,
+    "faults": 0,
+    "applied": 59524,
+    "starts": 1,
+    "consumed": 1,
+    "frame": 8984244
+  },
+  "limits": [
+    "Onset speed is approximate human observation, not a calibrated threshold",
+    "Maxima span earlier sampling as well as this interval",
+    "No dense Play or audible claim"
+  ],
+  "derived_maxima": {
+    "tick_rate_basis": "32/32 render-clock calibration (~132 MHz), same reported mode 3",
+    "send_critical_section_us": 23.765,
+    "ui_service_gap_ms": 49.336,
+    "worker_batch_elapsed_ms": 2.015
+  },
+  "interpretation": "At reported mild 64/32 sluggishness, UI-service maximum is about 49 ms and longest measured send critical section about 24 us; no long individual masked send observed. This does not measure total worker CPU or input-dispatch backlog, and is not the earlier severe 64/64 failure.",
+  "next_action": "Revert only SPD to 32 with DEP held at 32 while capture runs; human reports whether responsiveness returns. No Play or USB disconnect required for this reversal comparison."
+}

@@ -1,0 +1,31 @@
+{
+  "task": "V01",
+  "date_utc": "2026-10-29T11:34:42.090649+00:00",
+  "scope": "Pi remote-probe boot and muted receiver preflight; USB reconnection not requested yet",
+  "digitakt_firmware": "V01E installed per human report; not remotely read back",
+  "pi_build": "Oct 29 2026 10:57:43",
+  "pi_version": "0.2.0",
+  "pi_commit": "6cff67b",
+  "uptime_s": 47,
+  "streaming": false,
+  "link": "usb",
+  "fifo_underruns": 0,
+  "trx": {
+    "armed": 0,
+    "queue": 0,
+    "peak": 0,
+    "faults": 0,
+    "applied": 0,
+    "starts": 0,
+    "consumed": 0,
+    "frame": 0
+  },
+  "remote_receiver_confirmed": true,
+  "remote_received": 0,
+  "remote_bad": 0,
+  "trace_disabled_confirmed": true,
+  "limits": [
+    "Receiver command response confirms new code; running kernel hash not remotely read",
+    "Hardware raw timer calibration and remote source samples still required"
+  ]
+}

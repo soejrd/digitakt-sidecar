@@ -1,0 +1,97 @@
+{
+  "task": "V01",
+  "date_utc": "2026-10-29T12:06:11.533171+00:00",
+  "status": "V01F aggregate elapsed probe verified/staged, not installed",
+  "reason": "V01E severe case measured short masked calls, but maxima cannot establish aggregate worker/render occupancy",
+  "candidate": {
+    "label": "V01F",
+    "sha256": "a05862613e829d645c65331d10eedc32d7736e832f493ede9619845f512b66f1",
+    "root": "private/v01-duty",
+    "package": "private/v01/firmware-V01F",
+    "flags": [
+      "USB_TRACK_DIAGNOSTIC",
+      "V01_NO_SELF_WAKE",
+      "V01_REMOTE_DIAGNOSTIC"
+    ],
+    "protected_sections": {
+      "sha256": "a05862613e829d645c65331d10eedc32d7736e832f493ede9619845f512b66f1",
+      "bytes": 1483552,
+      "messages": 11592,
+      "content_checksum": "0x245954fc",
+      "container_len": 1170496,
+      "flash_end": "0x19dc40",
+      "flash_headroom": 1975232,
+      "ele3_version": "V01F",
+      "main": {
+        "section": 3,
+        "stored": 1019008,
+        "image": 2508404,
+        "sha256": "dbb960434df615ad166b03675a099d5f42ab00fe7feddd4574b2cc91a673ef72",
+        "staged_to": "0x402f8c80",
+        "inplace_min_gap": 606726
+      },
+      "sections": {
+        "5": {
+          "stored": 15,
+          "stored_sha256": "faaa4adfd799a90a8a2d551f7009cc04dc39a57f876f453d85e57ad55dc9947e",
+          "stock": true
+        },
+        "2": {
+          "stored": 15128,
+          "stored_sha256": "1e4a0473f963ce3f563c6533adecb8bb57b2f8c6a13861ff8327dabdeacbd48b",
+          "stock": true
+        },
+        "3": {
+          "stored": 1019008,
+          "stored_sha256": "f73fe2e016b87763dc1dd85caf4f616edaae401e0d699c964c91e8ba01637b52",
+          "stock": false
+        },
+        "4": {
+          "stored": 32776,
+          "stored_sha256": "a874ca9b9165ffecca865b037450a158a73da0ad603d60c6c5e7262ebd9e0db8",
+          "stock": true
+        },
+        "8": {
+          "stored": 103416,
+          "stored_sha256": "764f169834ac9ebcdbc1fd883e9f941be1eb43c2d57e4ff02e04685550838b06",
+          "stock": true
+        }
+      }
+    }
+  },
+  "paired_pi": {
+    "kernel_sha256": "0276c26b58092490f2b3b3fee89c99d4b4c8309144b0f53b13fbae0104354068",
+    "kernel_bytes": 2476888,
+    "rollback_sha256": "8df83a5a2712d18429948dc2d77b4496a4efab545907b1cf2e9771bf31f2308e",
+    "patches": "0001 through 0012 at pinned sidecar-firmware 6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457",
+    "playout_delay_frames": 128
+  },
+  "changes": {
+    "new_fields": "cumulative raw worker elapsed ticks and cumulative raw native render-event elapsed ticks",
+    "events": "existing core ev_render_in order 10 / ev_render_out order 90; no new native code sites, timers or interrupt configuration",
+    "wire": "version 2, 17 uint32 fields, 92 bytes; within existing 96-byte transport limit; same one-Hz best effort policy",
+    "compatibility": "Pi accepts canonical 15-field V01E version 1 and tags it; collector exposes totals only for version 2, so missing legacy counters are not interpreted as zero",
+    "capture": "watcher now saves each sample atomically and supports an explicit stop file; first-fault stop retained"
+  },
+  "checks": {
+    "host": "bash scripts/test_i04.sh \u2014 PASS",
+    "replay": "python3 scripts/test_i04_replay.py \u2014 all twelve patches replay and production files match",
+    "compiled_exchange": "evidence/v01/duty-exchange.json; asserts both elapsed counters advance through actual hooks",
+    "remote_snapshots": 12,
+    "remote_malformed": 0,
+    "native_stack_used_bytes": 1368,
+    "native_task": "evidence/v01/duty-runtime.json",
+    "panel": "evidence/v01/duty-ui.json",
+    "reset_formatter": "evidence/v01/duty-diagnostic.json",
+    "pi_build": "evidence/v01/duty-pi-build.json",
+    "additional_receiver_test": "Actual Circle receiver version tagging and legacy v1 zero-tail compatibility, isolated from active voice; PASS"
+  },
+  "interpretation_limits": [
+    "Elapsed worker timing includes interrupt preemption; render elapsed can include higher IRQs",
+    "The two occupancy totals overlap and must not be summed as pure CPU utilization",
+    "No F hardware data, scheduling fix, audible acceptance or dense supported-budget claim",
+    "Additional instrumentation changes workload slightly; recheck baseline and compare source-rate-matched profiles",
+    "92-byte frames use native long-message wrap path, covered by existing capacity/serializer model tests, not yet physical worst-case proof"
+  ],
+  "next_action": "Keep USB disconnected. Human Pi-off SD insertion for verified diagnostic kernel update with immediate E-kernel rollback, then human V01F Transfer flash. Confirm wire version 2 and counter progress before brief paired 32/32 and dense captures."
+}

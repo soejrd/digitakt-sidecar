@@ -1,0 +1,29 @@
+{
+  "task": "V01",
+  "date_utc": "2026-10-29T11:47:10.075727+00:00",
+  "status": "reversible mild onset/recovery observed; severe instrumented case still required",
+  "human_return": {
+    "speed": 32,
+    "depth": 32,
+    "observation": "felt same sluggishness while reducing from 64, decreasing with speed; at 32 no noticeable lag"
+  },
+  "return_capture": {
+    "sample_count": 5,
+    "native_send_calls_per_second_median": 284.58,
+    "fifo_start": 14,
+    "fifo_end": 14,
+    "faults_end": 0,
+    "remote_progress": true
+  },
+  "onset_capture": {
+    "file": "private/v01/live-gate-a/v01e-dense-remote.json",
+    "samples": 81,
+    "profile": "32/32 baseline then attempted SPD 64 with DEP 32; exact knob-change timestamps not captured"
+  },
+  "limits": [
+    "The original 180-second capture ended before the human return-to-32 report; reversal checked in a separate capture",
+    "Pi applied counters are read at host poll time, device counters at source snapshot time; do not divide mixed-domain deltas by one source interval",
+    "Maxima retained across settings; not steady-state latency distributions"
+  ],
+  "next_action": "Continuous remote capture with early on-disk persistence and stop marker; short severe-setting attempt stopped on first severe lag, no page readings"
+}

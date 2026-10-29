@@ -3,7 +3,7 @@
 **IN PROGRESS.** Ownership renewed by Codex at `2026-10-28T18:41:42Z`.
 Phase 0 preservation passed; Phase 1 reproduced the dense-LFO failure.
 Phase 2 is incomplete. V01P is rejected; V01N is physically untested.
-V01 is not accepted. V01C is the last human-reported installation; V01E is staged.
+V01 is not accepted. V01E is installed/tested; V01F is staged, not installed.
 
 Target remains Digitakt mk1 OS 1.54 + Pi 4B/Circle, one USB1 voice on track 1.
 More voices, Teensy and a separate persistence database remain outside scope.
@@ -176,6 +176,35 @@ agent polls `v01status` and `trxstatus`, avoiding manual frozen-page extraction.
 [Procedure and rollback](V01-remote-probe.md). This is diagnostic instrumentation,
 not a scheduling fix, and its additive overhead must be acknowledged.
 
+### V01E measured failure and V01F elapsed follow-up (2026-10-29)
+
+[Boot](../evidence/v01/remote-boot.json),
+[calibration](../evidence/v01/remote-control-calibration.json),
+[reversible speed onset](../evidence/v01/remote-speed-reversal.json),
+[severe result](../evidence/v01/remote-severe-result.json).
+DTIM0 advances at ~132 MHz relative to render time at mode 3. Active 32/32
+was clean with FIFO 14/faults 0. At SPD64/DEP32 the native send rate rose from
+~284/s to ~533/s; mild sluggishness subsided on returning SPD32. This is a
+human-reported approximate onset, not a supported numeric boundary.
+
+At confirmed SPD64/DEP100, the human described ~3 fps. The recorder stopped
+on FIFO 14→101; the log places a later rise to 145 before USB removal. Seven
+late faults were retained when queried afterward; each onset is not precisely
+captured. Individual masked sends stayed <=~23.8 us, aggregate measured masked
+send fraction ~1.5% near first FIFO failure. Final retained UI gap ~215 ms and
+worker batch elapsed max ~8.7 ms do not establish aggregate CPU occupancy.
+The Pi still showed ~4.3% average core-3 load and 10 us block max. This weakens
+long masked-send blocking as the sole explanation, not scheduling/IRQ bursts.
+Muted active synthesis still runs before the final output mute.
+
+[V01F paired diagnostic](../evidence/v01/duty-candidate.json) is verified/staged,
+not installed. Two cumulative elapsed counters bracket the worker and existing
+native render events. They overlap under preemption; do not sum as CPU usage.
+The 92-byte version-2 packet remains within the 96-byte transport limit, and
+paired Pi accepts legacy E snapshots with an explicit version tag. No voice,
+event-order, priority or deadline fix is claimed. Next step is the paired
+installation and a short source-rate-matched capture, with no manual DIAG reads.
+
 ## Gate B — native persistence and musical edit semantics
 
 Source/emulator mapping may proceed while Gate A awaits hardware. Establish
@@ -253,8 +282,8 @@ verified live in this session. Before normal use, the human should restore
 I04Q, H02F and stock 1.54 recoveries are in that package. Freshly reboot the Pi
 before establishing counter baselines.
 
-Next step is the paired V01E/Pi remote diagnostic procedure in [the probe runbook](V01-remote-probe.md).
-Hardware resumed: V01B and V01C both reproduce severe setting/UI lag.
+Next step is the paired V01F/Pi aggregate elapsed diagnostic procedure in [the probe runbook](V01-remote-probe.md).
+Hardware resumed: E measured severe failure; F is the next staged diagnostic.
 Offline preparation is complete; no scheduling fix is claimed.
 Before hardware audio tests, confirm human availability, lowered speakers,
 known routing and disposable backed-up state, per `AGENTS.md`. The human handles

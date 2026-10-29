@@ -34,17 +34,21 @@ static void start(unsigned id,unsigned block) {
   auto c=reply(); assert(c.kind==SC_ACTIVATE && c.value==block);
 }
 int main() {
-  uint32_t sent_diag[V01_FIELDS]; uint8_t diag_wire[V01_WIRE]; unsigned received_diag[17];
+  uint32_t sent_diag[V01_FIELDS]; uint8_t diag_wire[V01_WIRE]; unsigned received_diag[V01_FIELDS+2];
   for(unsigned i=0;i<V01_FIELDS;++i)sent_diag[i]=UINT32_MAX-i;
   v01_encode(diag_wire,sent_diag);
   assert(!dt_link::Selected());
   assert(dt_link::SysEx(diag_wire,sizeof diag_wire));
   dt_link::RemoteStatus(received_diag);
   assert(received_diag[0]==1 && received_diag[1]==0 && !dt_link::Selected());
+  assert(dt_link::RemoteVersion()==2);
   for(unsigned i=0;i<V01_FIELDS;++i)assert(received_diag[i+2]==sent_diag[i]);
   diag_wire[10]=16; assert(dt_link::SysEx(diag_wire,sizeof diag_wire));
   dt_link::RemoteStatus(received_diag); assert(received_diag[0]==1 && received_diag[1]==1);
   for(unsigned i=0;i<V01_FIELDS;++i)assert(received_diag[i+2]==sent_diag[i]);
+  v01_encode(diag_wire,sent_diag);diag_wire[5]=1;diag_wire[81]=0xf7;
+  assert(dt_link::SysEx(diag_wire,82));dt_link::RemoteStatus(received_diag);
+  assert(dt_link::RemoteVersion()==1 && received_diag[V01_WORK_TICKS+2]==0 && received_diag[V01_RENDER_TICKS+2]==0);
   sc_frame f;
   int16_t pcm[32][8];
   auto silent = [&]() {

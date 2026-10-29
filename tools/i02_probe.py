@@ -124,6 +124,9 @@ def candidate_prepare(args):
             cflags = ['-DUSB_TRACK_DIAGNOSTIC']
             if getattr(args, 'remote_diagnostic', False):
                 cflags.append('-DV01_REMOTE_DIAGNOSTIC')
+                manifest['subscribe']=manifest.get('subscribe',[])+[
+                    {'event':'ev_render_in','fn':'usb_track_diag_render_in','order':10},
+                    {'event':'ev_render_out','fn':'usb_track_diag_render_out','order':90}]
             if getattr(args, 'no_self_wake', False):
                 cflags.append('-DV01_NO_SELF_WAKE')
             if getattr(args, 'worker_priority', None) is not None:

@@ -1,7 +1,7 @@
 # V01E — remote scheduling diagnostic
 
 [Verified pair/evidence](../evidence/v01/remote-candidate.json). Both images are
-staged under `private/v01/firmware-V01E/`. The [Pi SD update](../evidence/v01/remote-sd-deployment.json) is read-back verified and safely ejected; boot and Digitakt V01E installation remain pending. This probe
+staged under `private/v01/firmware-V01E/`. The [Pi SD update](../evidence/v01/remote-sd-deployment.json) is read-back verified and safely ejected; E boot and Digitakt installation are now verified; the E experiment is recorded in [its result](../evidence/v01/remote-severe-result.json). This probe
 keeps V01C's priority 14/no-self-wake, event order and 128-frame Pi deadline.
 It adds instrumentation; it is not a lag fix.
 
@@ -80,3 +80,32 @@ Both dense variants have already failed; this probe should identify the next
 specific mechanism to test. Do not repeat arbitrary firmware priority changes,
 mask meaningful updates, enlarge latency buffers or claim an audible/stress pass
 from muted telemetry. The first-activation FIFO rise remains a separate open issue.
+
+## V01F — aggregate elapsed follow-up
+
+[Verified F pair](../evidence/v01/duty-candidate.json), staged under
+`private/v01/firmware-V01F/`, not installed. It keeps E's control behavior and
+adds cumulative raw elapsed ticks in the worker and native render-event pair.
+Existing core `ev_render_in`/`ev_render_out` hooks are used; no new stock code
+sites, hardware timer configuration, audio waiting or allocation. The diagnostic
+packet becomes version 2, 17 fields/92 bytes, still one best-effort frame per
+render-second within the existing 96-byte native transport limit.
+
+The paired Pi prints `V01TOTAL` and the wire version. It accepts old 15-field
+version-1 E packets, marking the additional fields unavailable; missing totals
+must never be interpreted as zero time. New totals are cumulative modulo uint32.
+Compute per-source-snapshot deltas against the same raw timer and report each
+as elapsed occupancy. Worker time includes rendering/other preemptions; render
+time can include higher IRQs. **Do not add the two totals as pure CPU use.**
+Do not divide Pi host-read event deltas by an unrelated device snapshot interval.
+
+Install using the same backed-up SD and human Transfer procedure above, with
+F's kernel and `Digitakt-V01F-diagnostic.syx`. Preserve the currently installed
+E kernel (`8df83a5a…`) and current manifest under fresh **pre-F** backup names;
+never overwrite pre-E or I04 rollback files. F's `pi/recovery/kernel8-rpi4.img`
+is that exact E kernel. The older accepted-prototype `c057…` image and I04R
+firmware remain available in prior packages. First confirm version-2 fields
+advance/calibrate under 32/32 before one brief dense-setting capture. Human
+reports lag only; no diagnostic-page extraction. Leave USB disconnected until
+the pair is installed. No further density sweep or audible pass is authorized
+by this preparation alone.

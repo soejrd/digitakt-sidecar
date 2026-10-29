@@ -21,12 +21,13 @@
     "boot_config_unchanged": true
   },
   "safely_ejected": true,
-  "boot_verified": false,
+  "boot_verified": true,
   "digitakt_firmware": "V01C last reported; human V01E flash still required",
   "playout_delay_frames": 128,
   "rollback": "With Pi off restore kernel8-rpi4.before-v01-remote.img as kernel8-rpi4.img and SHA256SUMS.before-v01-remote as SHA256SUMS. Exact copies also retained locally and in the staged package.",
   "limits": [
     "No boot or hardware remote-telemetry result yet",
     "Apple filesystem metadata excluded from unchanged-file inventory; original boot, recording/sample and other non-system files hashed"
-  ]
+  ],
+  "boot_verification": "New v01status receiver responds; human reports Pi powered from updated SD; exact card kernel read-back hash recorded above"
 }

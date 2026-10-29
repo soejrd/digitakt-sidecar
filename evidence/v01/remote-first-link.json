@@ -1,0 +1,55 @@
+{
+  "task": "V01",
+  "date_utc": "2026-10-29T11:36:21.295029+00:00",
+  "status": "remote hardware snapshots received; reconnect startup fault recorded; not a clean control",
+  "pi_uptime_s": 81,
+  "streaming": true,
+  "fifo_underruns": 45,
+  "remote": {
+    "received": 22,
+    "bad": 0,
+    "sequence": 41,
+    "block": 68677,
+    "timer_ticks": 2734086735,
+    "timer_mode": 3,
+    "ui": 1395,
+    "worker": 19354,
+    "ui_gap_ms": 131,
+    "worker_gap_ms": 33,
+    "batch_ms": 3,
+    "guards": 0
+  },
+  "raw": {
+    "sequence": 41,
+    "send_calls": 18666,
+    "send_ticks_total": 39958451,
+    "send_ticks_max": 3092,
+    "ui_ticks_max": 17250072,
+    "batch_ticks_max": 358912
+  },
+  "voice": {
+    "armed": 0,
+    "queue": 3,
+    "peak": 4,
+    "faults": 1,
+    "applied": 18321,
+    "starts": 1,
+    "consumed": 1,
+    "frame": 1018428
+  },
+  "retained_fault": {
+    "code": 3,
+    "block": 37167,
+    "flags": 0,
+    "delta": 1,
+    "now": 180,
+    "due": 160
+  },
+  "limits": [
+    "Knob values at reconnection not confirmed; cannot score a 32/32 control",
+    "Raw timer advances but hardware rate not yet calibrated",
+    "Fault retained after reconnect; exact onset not automatically captured",
+    "No audible trial; Pi voice remains muted"
+  ],
+  "next_action": "Use disconnected responsive UI to establish 32/32, reconnect and restart Pi for a clean active baseline; re-mute/reconfirm trace and calibrate timer before dense attempt"
+}

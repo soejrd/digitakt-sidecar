@@ -1,0 +1,103 @@
+{
+  "task": "V01",
+  "date_utc": "2026-10-29T12:01:19.052129+00:00",
+  "status": "severe physical setting failure measured; disconnected and recovered; cause narrowed but unproven",
+  "firmware": "V01E with paired remote Pi kernel",
+  "human_observation": {
+    "speed": 64,
+    "depth_final": 100,
+    "onset_depth_approx": 32,
+    "severity": "progressively more sluggish, about 3 fps at the stopping setting",
+    "usb_disconnect_recovery": true,
+    "recovery_delay": "some seconds, uncertain",
+    "playback": "no Play requested"
+  },
+  "capture": {
+    "samples": 22,
+    "requested_max_seconds": 600,
+    "actual_stop_seconds": 47.546,
+    "stop_reason": "automatically stopped at first new FIFO underrun",
+    "fifo_before": 14,
+    "fifo_at_stop": 101,
+    "faults_at_stop": 0,
+    "source_sequence_at_stop": 790
+  },
+  "summaries": {
+    "baseline_32_32_send_rate_median": 284.476,
+    "baseline_masked_fraction_median": 0.004959,
+    "speed64_depth32_send_rate_median": 533.096,
+    "speed64_depth32_masked_fraction_median": 0.009521,
+    "last_interval_before_recorder_stop": {
+      "elapsed_s": 47.546,
+      "sequence": 790,
+      "send_calls_per_second": 883.0493405917881,
+      "worker_entries_per_second": 854.096903195336,
+      "ui_ticks_per_second": 15.973758563559763,
+      "send_critical_wall_fraction": 0.014844844186744054,
+      "fifo": 101,
+      "faults": 0,
+      "ui_gap_max_ms": 157.2385909090909
+    }
+  },
+  "last_device_snapshot_after_stop": {
+    "remote": {
+      "received": 637,
+      "bad": 0,
+      "sequence": 796,
+      "block": 1265529,
+      "timer_ticks": 683169970,
+      "timer_mode": 3,
+      "ui": 20266,
+      "worker": 240898,
+      "ui_gap_ms": 215,
+      "worker_gap_ms": 33,
+      "batch_ms": 9,
+      "guards": 0
+    },
+    "raw": {
+      "sequence": 796,
+      "send_calls": 356841,
+      "send_ticks_total": 806982078,
+      "send_ticks_max": 3140,
+      "ui_ticks_max": 28346962,
+      "batch_ticks_max": 1148875
+    },
+    "derived": {
+      "send_critical_max_us": 23.78787878787879,
+      "ui_service_gap_max_ms": 214.74971212121213,
+      "worker_batch_elapsed_max_ms": 8.703598484848484
+    }
+  },
+  "post_disconnect_pi": {
+    "streaming": false,
+    "fifo_underruns": 145,
+    "playout_faults": 7,
+    "retained_code": 3,
+    "retained_now": 180,
+    "retained_due": 160
+  },
+  "chronology_from_pi_log": {
+    "fifo_14_to_101_at_pi_uptime": "00:10:35.25",
+    "fifo_101_to_145_at_pi_uptime": "00:10:38.25",
+    "usb_removed_at_pi_uptime": "00:10:40.78",
+    "conclusion": "FIFO increases occurred while USB was still connected, not solely because of cable removal",
+    "cpu_near_failure": "core 3 about 4.3%, engine block max 10 us, observed control-pass max 112 us",
+    "fault_onset_limit": "7 faults retained when queried after disconnection; exact onset of each was not sampled"
+  },
+  "interpretation": [
+    "Increasing density correlates with worker/send rate and UI degradation",
+    "Individual send critical sections stayed below about 24 us in this capture; aggregate measured send critical sections occupied about 1.5% near first FIFO failure, arguing against these critical sections alone as dominant cause",
+    "UI tick/service maxima are not a direct measure of input response or screen FPS",
+    "Low observed Pi DSP average does not exclude scheduling bursts; the muted active voice still runs synthesis before its final output mute",
+    "Worker elapsed max rises to about 8.7 ms, but maximum does not establish aggregate worker CPU occupancy; total worker versus renderer elapsed remains missing"
+  ],
+  "limits": [
+    "This is SPD64/DEP100 with a ramp, not a qualified fixed 64/64 point",
+    "Exact knob-change timestamps not instrumented",
+    "Recorder stopped on the first new underrun; later device maxima were retained and read after disconnect",
+    "Raw duration conversion uses baseline calibrated 132 MHz at unchanged timer mode 3",
+    "Snapshot-source and host-read clocks kept separate when computing rates; Pi event deltas must use host intervals",
+    "No audible or sustained stress acceptance"
+  ],
+  "next_action": "Prepare V01F remote elapsed totals for native render and worker using existing core events; preserve diagnostics/event semantics and validate before further hardware work"
+}

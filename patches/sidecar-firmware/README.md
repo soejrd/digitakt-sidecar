@@ -101,3 +101,13 @@ also copies `control/v01_diag.h`. Host tests exercise the actual Circle receiver
 before selection and during an active voice, including malformed isolation.
 `python3 scripts/test_i04_replay.py` checks all eleven patches. Requires the
 paired V01E Digitakt diagnostic to produce data; this patch is not a lag fix.
+
+## 0012-v01-duty-counters.patch
+
+Follow-up to measured short masked sends during severe UI lag. The receiver
+accepts version-2 17-field snapshots (92 bytes), retains version-1 15-field
+compatibility, and reports the wire version so missing legacy totals cannot be
+mistaken for zero work. `v01status` adds `V01TOTAL` for worker/render elapsed
+counters. These overlapping elapsed counters are not additive pure CPU usage.
+Apply after 0001–0011, run the current overlay and I04/remote tests. V01F and
+its paired Pi kernel are staged; no scheduling/deadline behavior is changed.
