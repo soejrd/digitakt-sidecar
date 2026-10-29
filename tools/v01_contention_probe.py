@@ -22,6 +22,19 @@ def u32(uc, address):
     return int.from_bytes(uc.mem_read(address, 4), 'big')
 
 
+def audio_stream_valid(counters):
+    """Require sustained native production, continuous counters and return credits.
+
+    Eleven native startup packets plus one render block bound edge effects;
+    completing only the initial descriptor queue cannot pass a longer run.
+    """
+    audio = counters.get('peer', {}).get('audio', {})
+    packets = audio.get('in_packets', 0)
+    return (packets > 0 and not audio.get('counter_gaps', 1) and
+            audio.get('returns_scheduled') == packets and
+            abs(packets * 7 - counters['render_blocks'] * 32) <= 11 * 7 + 32)
+
+
 class PanelArrival:
     """DMA arrivals on the shared clock; IRQ delivery respects INTC/IPL.
 
@@ -224,7 +237,7 @@ def add_usb_dispatch(s):
     return irq
 
 
-def prepare(candidate, destination, usb_device=False):
+def prepare(candidate, destination, usb_device=False, usb_audio=False):
     """Select USB1 through the native UI; HLE setup is outside measurement."""
     from emu.session import Session
     from emu import snapshot
@@ -250,11 +263,30 @@ def prepare(candidate, destination, usb_device=False):
                 s.m._fast_stepper_obj.left = 1000000
                 call(s.m, 0x40004516, [], limit=1000000)
                 assert s.m.uc.reg_read(UC_M68K_REG_PC) == 0xdeadbee0
+                if usb_audio:
+                    # QH setup stores from native mode6 initializer 0x4000386c;
+                    # run native pool clearing and audio stream constructors.
+                    # The checkpoint already has synchronized audio flags.
+                    # Native mode6 setup first stops both streams (0x40003852);
+                    # retain those native resets before rebuilding queue heads.
+                    for target in (0x4000332a, 0x40003394):
+                        s.m._fast_stepper_obj.left = 1000000
+                        call(s.m, target, [], limit=1000000)
+                        assert s.m.uc.reg_read(UC_M68K_REG_PC) == 0xdeadbee0
+                    for qh in (0x80000180, 0x800001c0):
+                        s.m.uc.mem_write(qh, bytes(64))
+                        s.m.uc.mem_write(qh, struct.pack('>I', 0x04000000))
+                        s.m.uc.mem_write(qh + 8, struct.pack('>I', 0xdead0001))
+                    for target in (0x400038fc, 0x4000335e, 0x400032e4):
+                        s.m._fast_stepper_obj.left = 1000000
+                        call(s.m, target, [], limit=1000000)
+                        assert s.m.uc.reg_read(UC_M68K_REG_PC) == 0xdeadbee0
+                    s.m.uc.mem_write(0xfc0b01cc, struct.pack('>I', 0x00cc00cc))
             finally:
                 s.m.uc.context_restore(ctx)
             # Component precondition: already synchronized Overbridge route.
-            # Audio endpoint DMA/enumeration is not modelled in this experiment;
-            # do not fabricate returned PCM or repeat these stores per render.
+            # Enumeration is omitted; --usb-audio runs native stream queues.
+            # Never repeat these synchronization stores per render.
             s.m.uc.mem_write(0x406104f4, struct.pack('>I', 6))
             s.m.uc.mem_write(0x4025c294, struct.pack('>I', 1))
         if s.halted:
@@ -268,7 +300,7 @@ def prepare(candidate, destination, usb_device=False):
 
 def run_profile(candidate, snapshot_path, speed, depth, fsys, duration,
                 usb_status_interval_ms=None, usb_device=False, peer_library=None,
-                profile_execution=False):
+                profile_execution=False, usb_periodic=False, usb_audio=False):
     from emu.session import Session
     from emu.cftiming import deadline_report
     root, meta, symbols, fw = dynamic._fixture(candidate)
@@ -292,14 +324,14 @@ def run_profile(candidate, snapshot_path, speed, depth, fsys, duration,
         s.usb_peer = None
         if usb_device:
             from v01_usb_device_model import UsbDeviceModel, UsbStatusIrq
-            model = UsbDeviceModel(s.m, fsys)
-            model.adopt_configured_queues()
+            model = UsbDeviceModel(s.m, fsys, periodic=usb_periodic)
+            model.adopt_configured_queues(audio=usb_audio)
             irq = UsbStatusIrq(model)
             s.sources += (model, irq)
             s.usb_device, s.usb_irq = model, irq
             if peer_library is not None:
                 from v01_usb_peer import UsbPeer
-                peer = UsbPeer(s, model, sym('usb_track_clock'), peer_library)
+                peer = UsbPeer(s, model, sym('usb_track_clock'), peer_library, audio=usb_audio)
                 s.usb_peer = peer
                 s.sources += (peer,)
         assert sym('worker_sem') in s.ev['unblock_skip']
@@ -391,6 +423,15 @@ def run_profile(candidate, snapshot_path, speed, depth, fsys, duration,
             from unicorn.m68k_const import UC_M68K_REG_A7
             state['native_lfo_tempo_argument'] = u32(uc, uc.reg_read(UC_M68K_REG_A7) + 8)
 
+        if usb_audio:
+            state['native_audio_tx_alignment_samples'] = []
+            def audio_alignment(*_):
+                rows = state['native_audio_tx_alignment_samples']
+                if len(rows) < 8:
+                    rows.append({hex(a): u32(uc, a) for a in (
+                        0x4399eb74, 0x4399eca4, 0xfc07800c, 0x4025c258,
+                        0x4025c268, 0x4025c26c, 0x4025c25c, 0x4025c298)})
+            s.at(0x4000343a, audio_alignment)
         s.at(dynamic.PRE, render)
         s.at(0x400ed766, lfo)
         s.at(0x40004832, submit)
@@ -406,6 +447,11 @@ def run_profile(candidate, snapshot_path, speed, depth, fsys, duration,
                 timing={'fsys': fsys}, on_machine=setup)
     try:
         worker_before = u32(s.m.uc, sym('usb_track_worker_runs'))
+        diagnostic_names = tuple(name for name in (
+            'v01_send_calls', 'v01_send_ticks', 'v01_work_ticks', 'v01_render_ticks')
+            if name in symbols)
+        diagnostic_before = {name: u32(s.m.uc, sym(name)) for name in diagnostic_names}
+
         s.run_ms(duration)
         clock = s.clock.report()
         latency = s.panel_latency.report()
@@ -413,6 +459,18 @@ def run_profile(candidate, snapshot_path, speed, depth, fsys, duration,
             if row['code'] == arrival['code'] and 'complete_cycle' in row:
                 row['arrival_to_complete_ms'] = round(
                     (row['complete_cycle'] - arrival['arrival_cycle']) * 1000 / fsys, 6)
+        diagnostic_delta = {name: (u32(s.m.uc, sym(name)) - value) & 0xffffffff
+                            for name, value in diagnostic_before.items()}
+        source_seconds = state['render_blocks'] * 32 / 48000
+        state['existing_firmware_elapsed_diagnostics'] = {
+            'deltas': diagnostic_delta, 'source_elapsed_s': source_seconds,
+            'model_timer_hz': 132000000,
+            'fractions': {name: (diagnostic_delta[name] / (132000000 * source_seconds)
+                                  if source_seconds else None)
+                          for name in diagnostic_names if name.endswith('_ticks')},
+            'suitable_for_hardware_cost_calibration': False,
+            'limits': 'DTIM0 is stale within steps; raw brackets are not calibrated costs. '
+                      'Worker/render overlap: never add as CPU. Bus assumed132MHz.'}
         state['effective_changes_per_s'] = round(
             state['effective_changes'] * 1000 / s.now_ms(), 3)
         state['worker_runs'] = u32(s.m.uc, sym('usb_track_worker_runs')) - worker_before
@@ -455,7 +513,8 @@ def run_profile(candidate, snapshot_path, speed, depth, fsys, duration,
         observed = [(e['code'], e['flags'] & 17) for e in latency['events']]
         return {
             'profile': {'speed': speed, 'depth': depth,
-                        'scope': ('native LFO/panel + native USB MIDI control component; no USB audio'
+                        'scope': ('native LFO/panel + native USB MIDI and silent audio component' if usb_audio else
+                                  'native LFO/panel + native USB MIDI control component; no USB audio'
                                   if peer_library else
                                   ('configured USB descriptor component; no active peer' if usb_device else
                                    'native LFO/panel, disconnected; not physical profile replay'))},
@@ -495,6 +554,10 @@ def main():
                         help='schedule portable peer replies through native RX DMA')
     parser.add_argument('--profile-execution', action='store_true',
                         help='partition estimated block costs by native task/IRQ and selected PC ranges')
+    parser.add_argument('--usb-periodic', action='store_true',
+                        help='drive native USB GPT0 and high-speed SOF events from documented hardware periods')
+    parser.add_argument('--usb-audio', action='store_true',
+                        help='drive native mode6 audio descriptors with H01 credit-based silent return packets')
     args = parser.parse_args()
     if args.duration_ms < 120 or args.fsys <= 0:
         parser.error('duration must be >=120 ms and fsys positive')
@@ -502,6 +565,10 @@ def main():
         parser.error('USB status interval must be >=2 ms')
     if args.usb_peer and not args.usb_device:
         parser.error('--usb-peer requires --usb-device')
+    if args.usb_periodic and not args.usb_device:
+        parser.error('--usb-periodic requires --usb-device')
+    if args.usb_audio and not (args.usb_peer and args.usb_periodic):
+        parser.error('--usb-audio requires --usb-peer and --usb-periodic')
     if args.usb_device and args.usb_status_interval_ms:
         parser.error('descriptor IRQs and artificial status injection are separate modes')
     peer_library = None
@@ -513,13 +580,14 @@ def main():
     with tempfile.TemporaryDirectory(prefix='v01-contention-', dir=root) as temp:
         selected = Path(temp) / 'usb1.snap'
         print('Preparing disposable USB1 snapshot (outside timing window)', flush=True)
-        prepare(root, selected, args.usb_device)
+        prepare(root, selected, args.usb_device, args.usb_audio)
         prepared_sha = hashlib.sha256(selected.read_bytes()).hexdigest()
         for speed, depth in ((32, 32), (64, 48)):
             print('Native model preflight SPD%d/DEP%d' % (speed, depth), flush=True)
             reports.append(run_profile(root, selected, speed, depth, args.fsys,
                                        args.duration_ms, args.usb_status_interval_ms,
-                                       args.usb_device, peer_library, args.profile_execution))
+                                       args.usb_device, peer_library, args.profile_execution,
+                                       args.usb_periodic, args.usb_audio))
     valid = all(not r['halted'] and r['panel_hook_sequence_valid'] and
                 not r['panel']['unfinished'] and
                 not r['panel']['unmatched_dispatches'] and
@@ -554,6 +622,8 @@ def main():
                     not r['counters']['source_session_fatal'] and
                     r['counters']['native_rx_bridge_calls'] > 0 and
                     set(r['counters'].get('native_rx_interrupt_levels', {})) == {'0'}))
+                and (not args.usb_audio or (
+                    audio_stream_valid(r['counters'])))
                 for r in reports)
     report = {
         'task': 'V01 Gate A', 'status': 'emulator-gap' if valid else 'invalid-preflight',
@@ -576,7 +646,8 @@ def main():
             ['git', '-C', str(r03_probe.EMU), 'rev-parse', 'HEAD'], text=True).strip(),
         'profiles': reports,
         'limits': [
-            ('Native USB MIDI control is modelled, but audio endpoint traffic/PCM, enumeration and physical host/bus scheduling are absent.'
+            ('Experimental native audio DMA with silent credit-based returns; external DTIM2 clock is absent and audio validity must pass before latency attribution.' if args.usb_audio else
+             'Native USB MIDI control is modelled, but audio endpoint traffic/PCM, enumeration and physical host/bus scheduling are absent.'
              if args.usb_device else 'No USB descriptor completion, RX or ACK arrival model; active G transport is not exercised.'),
             ('USB-device setup calls native MIDI configuration outside measurement and seeds configured RUN/UI-IRQ/queue-base and synchronized Overbridge preconditions once; enumeration is not modelled.'
              if args.usb_device else 'Disconnected snapshot; no USB enumeration is driven.'),

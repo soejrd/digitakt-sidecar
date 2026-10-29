@@ -1,0 +1,248 @@
+{
+  "task": "V01 Gate A",
+  "status": "IN PROGRESS \u2014 physical failure not reproduced",
+  "hardware_test": false,
+  "gate_a_verdict": "NOT SCORED",
+  "scope": "Source-derived periodic native USB plus sustained native audio DMA and native MIDI peer; silent credit-based returns; zero-wait cycle model",
+  "profiles": [
+    {
+      "core_assumption_mhz": 250.0,
+      "audio": false,
+      "speed": 32,
+      "depth": 32,
+      "duration_ms": 500.000092,
+      "render_blocks": 750,
+      "snapshots": 119,
+      "panel_edges": 8,
+      "panel_max_ms": 3.149724,
+      "native_audio": {
+        "enabled": false,
+        "in_packets": 0,
+        "returns_scheduled": 0,
+        "counter_gaps": 0,
+        "counter_deltas": {}
+      },
+      "periodic": {
+        "enabled": true,
+        "timer0_load": 9999,
+        "timer0_control": 2164260864,
+        "timer0_period_us": 10000,
+        "timer0_ticks": 50,
+        "sof_ticks": 4000
+      },
+      "model_errors": [],
+      "worker_fraction": 0.008598,
+      "render_fraction": 0.610442,
+      "usb_irq_fraction": 0.001428,
+      "sampled_source_queue_peak": 1,
+      "gate": 1,
+      "sessions": 1,
+      "raw_firmware_diagnostic_counters_excluded_from_cost_calibration": true
+    },
+    {
+      "core_assumption_mhz": 250.0,
+      "audio": false,
+      "speed": 64,
+      "depth": 48,
+      "duration_ms": 500.000092,
+      "render_blocks": 750,
+      "snapshots": 354,
+      "panel_edges": 8,
+      "panel_max_ms": 3.240228,
+      "native_audio": {
+        "enabled": false,
+        "in_packets": 0,
+        "returns_scheduled": 0,
+        "counter_gaps": 0,
+        "counter_deltas": {}
+      },
+      "periodic": {
+        "enabled": true,
+        "timer0_load": 9999,
+        "timer0_control": 2164260864,
+        "timer0_period_us": 10000,
+        "timer0_ticks": 50,
+        "sof_ticks": 4000
+      },
+      "model_errors": [],
+      "worker_fraction": 0.024582,
+      "render_fraction": 0.611492,
+      "usb_irq_fraction": 0.003952,
+      "sampled_source_queue_peak": 1,
+      "gate": 1,
+      "sessions": 1,
+      "raw_firmware_diagnostic_counters_excluded_from_cost_calibration": true
+    },
+    {
+      "core_assumption_mhz": 200.0,
+      "audio": true,
+      "speed": 32,
+      "depth": 32,
+      "duration_ms": 500.00007,
+      "render_blocks": 750,
+      "snapshots": 119,
+      "panel_edges": 8,
+      "panel_max_ms": 7.28072,
+      "native_audio": {
+        "enabled": true,
+        "in_packets": 3431,
+        "returns_scheduled": 3431,
+        "counter_gaps": 0,
+        "counter_deltas": {
+          "7": 3430
+        }
+      },
+      "periodic": {
+        "enabled": true,
+        "timer0_load": 9999,
+        "timer0_control": 2164260864,
+        "timer0_period_us": 10000,
+        "timer0_ticks": 50,
+        "sof_ticks": 4000
+      },
+      "model_errors": [],
+      "worker_fraction": 0.010725,
+      "render_fraction": 0.792617,
+      "usb_irq_fraction": 0.001709,
+      "sampled_source_queue_peak": 2,
+      "gate": 1,
+      "sessions": 1,
+      "raw_firmware_diagnostic_counters_excluded_from_cost_calibration": true,
+      "model_dtim2_observed_value": 0,
+      "model_dtim2_sample_count": 8
+    },
+    {
+      "core_assumption_mhz": 200.0,
+      "audio": true,
+      "speed": 64,
+      "depth": 48,
+      "duration_ms": 500.000075,
+      "render_blocks": 750,
+      "snapshots": 353,
+      "panel_edges": 8,
+      "panel_max_ms": 9.195425,
+      "native_audio": {
+        "enabled": true,
+        "in_packets": 3431,
+        "returns_scheduled": 3431,
+        "counter_gaps": 0,
+        "counter_deltas": {
+          "7": 3430
+        }
+      },
+      "periodic": {
+        "enabled": true,
+        "timer0_load": 9999,
+        "timer0_control": 2164260864,
+        "timer0_period_us": 10000,
+        "timer0_ticks": 50,
+        "sof_ticks": 4000
+      },
+      "model_errors": [],
+      "worker_fraction": 0.030319,
+      "render_fraction": 0.793635,
+      "usb_irq_fraction": 0.004572,
+      "sampled_source_queue_peak": 2,
+      "gate": 1,
+      "sessions": 1,
+      "raw_firmware_diagnostic_counters_excluded_from_cost_calibration": true,
+      "model_dtim2_observed_value": 0,
+      "model_dtim2_sample_count": 8
+    },
+    {
+      "core_assumption_mhz": 250.0,
+      "audio": true,
+      "speed": 32,
+      "depth": 32,
+      "duration_ms": 500.000032,
+      "render_blocks": 750,
+      "snapshots": 119,
+      "panel_edges": 8,
+      "panel_max_ms": 3.236904,
+      "native_audio": {
+        "enabled": true,
+        "in_packets": 3432,
+        "returns_scheduled": 3432,
+        "counter_gaps": 0,
+        "counter_deltas": {
+          "7": 3431
+        }
+      },
+      "periodic": {
+        "enabled": true,
+        "timer0_load": 9999,
+        "timer0_control": 2164260864,
+        "timer0_period_us": 10000,
+        "timer0_ticks": 50,
+        "sof_ticks": 4000
+      },
+      "model_errors": [],
+      "worker_fraction": 0.008583,
+      "render_fraction": 0.637084,
+      "usb_irq_fraction": 0.001555,
+      "sampled_source_queue_peak": 1,
+      "gate": 1,
+      "sessions": 1,
+      "raw_firmware_diagnostic_counters_excluded_from_cost_calibration": true,
+      "model_dtim2_observed_value": 0,
+      "model_dtim2_sample_count": 8
+    },
+    {
+      "core_assumption_mhz": 250.0,
+      "audio": true,
+      "speed": 64,
+      "depth": 48,
+      "duration_ms": 500.000032,
+      "render_blocks": 750,
+      "snapshots": 354,
+      "panel_edges": 8,
+      "panel_max_ms": 3.774628,
+      "native_audio": {
+        "enabled": true,
+        "in_packets": 3432,
+        "returns_scheduled": 3432,
+        "counter_gaps": 0,
+        "counter_deltas": {
+          "7": 3431
+        }
+      },
+      "periodic": {
+        "enabled": true,
+        "timer0_load": 9999,
+        "timer0_control": 2164260864,
+        "timer0_period_us": 10000,
+        "timer0_ticks": 50,
+        "sof_ticks": 4000
+      },
+      "model_errors": [],
+      "worker_fraction": 0.02454,
+      "render_fraction": 0.637907,
+      "usb_irq_fraction": 0.004247,
+      "sampled_source_queue_peak": 1,
+      "gate": 1,
+      "sessions": 1,
+      "raw_firmware_diagnostic_counters_excluded_from_cost_calibration": true,
+      "model_dtim2_observed_value": 0,
+      "model_dtim2_sample_count": 8
+    }
+  ],
+  "raw_reports": {
+    "periodic-final500.json": "a8469e54b92187f30b4e9ec7a9458260fca9d4ce140359670009880aa819777d",
+    "audio-diagnostics200.json": "bd8064812fdc32ff768022a4efb497950b0eadee0291cd952a9adcff2131ea9d",
+    "audio-diagnostics250.json": "ebe850964da9bc229e6457c0f24fa01321cf9ef0d564abfa859871bf4db1cc3a",
+    "native-completion-periodic.json": "05a1fa17651b879e624d818c96c9e4ee19daf04befe46e21db25babaf11d8de1"
+  },
+  "native_completion_regression": "verified",
+  "focused_tests_passed": 21,
+  "model_repairs": [
+    "Preserve persistent dTD IOC control bit after completion.",
+    "Write USB frame number (FRINDEX>>3) into dTD page1 low11; preserve page address.",
+    "Run native stream stops before rebuilding checkpoint audio queues."
+  ],
+  "remaining_gaps": [
+    "DTIM0 diagnostic reads use stale boundary time; not suitable for short-span hardware cost calibration.",
+    "DTIM2 external pin clock absent: native render and USB ISR read constant0 instead of an established physical sample-clock relation.",
+    "No physical cache, DDR or USB bus contention, complete enumeration, real Pi service jitter or full physical project replay."
+  ],
+  "next": "Correct/audit clock read fidelity before comparing firmware timing brackets. Establish DTIM2 external input from source; if unavailable, one bounded read-only measurement of DTCN2 delta per32-frame render with FRINDEX. No fitted delays or speculative firmware optimization."
+}

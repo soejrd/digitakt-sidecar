@@ -35,25 +35,31 @@ submit→ISR209→ISR134 callbacks pass full/short/chained regressions. Replies 
 use native OUT DMA, the receive job and compiled RX at IPL0; no ACK context
 injection. [Evidence](evidence/v01/native-control-component.json).
 
-**Fixed 500ms profiles:** eight early/steady-state button edges each; maximum
-arrival→dispatch-pass completion3.242ms at assumed250MHz or7.323ms at200MHz.
-Two complete250MHz reports match exactly. Gate1, one stable session, no observed
-queue overflow/fatal flag, guard fault, artificial wait or decoder mismatch.
-Exclusive estimated worker cycles ~0.85%→2.46%, USB IRQ209+134 ~0.12%→0.36% at
-250MHz. These are zero-wait model costs, not hardware CPU measurements.
-17 focused tests pass. **No physical lag reproduction or causal firmware fix.**
+**Periodic + native USB audio now execute:** source-derived timer0=10ms and
+high-speed SOF events; native audio stream setup/descriptor/IRQ/callback paths,
+with H01 credit-based silent returns. Corrected dTD frame-number semantics and
+retained IOC. The old frame model produced136 gaps/two faults; corrected native
+audio has zero gaps/model faults at3431–3432 packets per500ms. Native completion
+regressions and21 focused tests pass. [Evidence](evidence/v01/native-audio-component.json).
 
-**Exact next work, offline:** native configuration enables USBINTR bit24
-(recorded0x01000001), but the model generates only completion status1. Recover
-and model the bit24 callback source (ISR134 at0x40007270), the status0x80 callback
-source (ISR209 at0x400060f0), and native USB audio endpoint/descriptor traffic.
-The current component seeds configured-controller/synchronized-route conditions;
-it omits enumeration, USB audio/PCM and physical cache/DDR/bus costs. Establish
-source-derived event semantics/cadence before adding them; do not fit delays.
-[Continuation and commands](docs/V01-persistence-stress.md#native-midi-control-integration--continuation-2026-10-29).
-Then repeat fixed profiles and isolate scheduling/ACK/USB/UI paths if lag appears.
-Gate A remains IN PROGRESS/unaccepted; Gates B/C and startup FIFO issue remain
-open. No new hardware candidate or flash requested.
+**Bounded result:** eight panel edges per profile, gate1/session1. Dense maximum
+3.775ms at assumed250MHz or9.195ms at200MHz; baseline3.237/7.281ms. Native audio
+adds modest modeled cost, with no render overrun. Periodic-only maximum3.240ms
+is essentially the prior control result. **No physical lag reproduction or
+causal firmware fix; Gate A remains unaccepted.** No new hardware test/install.
+
+**Exact next work, offline: clock fidelity before cost calibration.** Existing
+firmware DTIM0 brackets in the emulator read time updated only at execution
+boundaries. Raw captured bracket totals are marked unsuitable for hardware cost
+calibration. Make native DTCN0 reads coherent with CycleClock and add an
+intra-step read regression; do not fit delays. DTIM2 is externally clocked but
+undriven in the emulator: native render/USB phase samples read0. Establish its
+sample-clock relationship from source/pin configuration; only if unavailable,
+one bounded DTCN2+FRINDEX capture across consecutive32-frame renders is justified.
+Then compare hardware/model costs. [Report and commands](docs/V01-persistence-stress.md#native-periodic-usb-and-audio--continuation-2026-10-29).
+Do not repeat broad synthetic sweeps. Actual core clock, cache/DDR/USB contention,
+Pi scheduling and full physical project replay remain limitations. Gates B/C
+and startup FIFO issue remain open.
 
 **Physical state:** G pair installed/boot verified; last captured fault0/FIFO11,
 muted/trace off. Unplug requested; recovery/disconnection confirmation pending.

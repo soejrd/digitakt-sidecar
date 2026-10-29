@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
-from v01_contention_probe import PanelArrival, UsbStatusArrival
+from v01_contention_probe import PanelArrival, UsbStatusArrival, audio_stream_valid
 HAS_RUNTIME = importlib.util.find_spec('unicorn') is not None
 if HAS_RUNTIME:
     from emu import panelin
@@ -122,6 +122,20 @@ class UsbStatusArrivalTest(unittest.TestCase):
         self.assertTrue(source.pending)
         self.assertEqual(calls, [])
         self.assertEqual(source.report()['pending'], 1)
+
+
+class AudioStreamValidityTest(unittest.TestCase):
+    def test_initial_queue_only_and_counter_gaps_cannot_pass(self):
+        counts = {'render_blocks': 750, 'peer': {'audio': {
+            'in_packets': 11, 'returns_scheduled': 11, 'counter_gaps': 0}}}
+        self.assertFalse(audio_stream_valid(counts))
+        audio = counts['peer']['audio']
+        audio.update(in_packets=3432, returns_scheduled=3432)
+        self.assertTrue(audio_stream_valid(counts))
+        audio['counter_gaps'] = 1
+        self.assertFalse(audio_stream_valid(counts))
+        audio.update(counter_gaps=0, returns_scheduled=3431)
+        self.assertFalse(audio_stream_valid(counts))
 
 
 if __name__ == '__main__':

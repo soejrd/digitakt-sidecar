@@ -413,26 +413,89 @@ are estimates, with no physical memory cost, and are not summed with inclusive
 worker/render elapsed brackets. Ready-but-unscheduled UI time and visible
 screen completion still are not measured.
 
-**Verdict and exact next work.** Native MIDI submission/completion/ACK paths are
-now exercised and remain responsive in this component. The physical failure
-is still not reproduced and its root cause is unproven; Gate A is NOT SCORED.
-The next step is no longer implementing the MIDI receive shortcut replacement.
-Recover and drive the missing native periodic USB and audio paths first:
+**Continuation:** the periodic and audio paths below now execute. The physical
+failure is still not reproduced; Gate A remains NOT SCORED.
 
-- Native configuration registers `0x40004516` through `0x40006ad6`. At
-  `0x40006b34`, that registration enables USBINTR bit24. Recorded USBINTR is
-  `0x01000001`, but the model generates only completion status1. ISR134's
-  bit24 branch at `0x40007270` walks callbacks at `0x40610500`.
-- ISR209 also has the status0x80 callback path at `0x400060f0`, walking
-  `0x40610598`; this event source is absent too. Establish native enable bits
-  and clock/event semantics before assigning either path a cadence.
-- Configure and drive native USB audio endpoints/descriptor ownership using
-  R07/H01 facts and the actual host framing. Do not infer arrival cadence from
-  the 88-byte capacity, generate empty OUT traffic, or keep forcing sync/PCM.
-- Rerun the same control/panel inputs with those paths, then isolate wake,
-  ACK, native USB and UI backlog if lag appears. Physical cache/DDR/bus effects
-  and actual CPU clock remain unresolved. No fitted delay, new firmware
-  candidate or broad hardware sweep is justified by the current pass.
+### Native periodic USB and audio — continuation (2026-10-29)
+
+[Compact evidence](../evidence/v01/native-audio-component.json). Native boot
+writes USB timer0 load9999/control0x81000000. Model `--usb-periodic` now latches
+bit24 every10ms and SOF status0x80 at high-speed microframes; native IRQ209 and
+IRQ134 process those events. These semantics come from
+[NXP MCF54418RM](https://www.nxp.com/docs/en/reference-manual/MCF54418RM.pdf),
+sections24.3.2/24.3.4. The dTD completion frame field is an11-bit **frame**
+number, while FRINDEX low3 bits count microframes (24.5.2.2.3/24.3.4.4).
+
+`--usb-audio` runs native stream stops, clears/rebuilds the native audio QHs,
+then runs native OUT/IN constructors. Native render code produces seven-frame
+368-byte IN packets; each earns one silent88-byte OUT return, as in physical
+H01. No empty OUT completions or fitted audio delays are generated. Native
+queue/callback/receive paths execute. Enumeration remains a component setup
+precondition, and the portable peer does not model Pi synthesis/USB jitter.
+
+Two concrete model repairs were necessary: retain dTD IOC after completion,
+and store FRINDEX>>3 in the completion frame field without destroying the page
+address. With the old frame semantics, both LFO profiles had136 counter gaps
+and two endpoint7 prime faults in120ms. Correct frame semantics yield826
+packets, zero gaps/faults,180 render blocks and panel maximum0.551ms. The
+frame regression fails with the old behavior and passes with the correction.
+Native full/short/chained completion regressions also still pass. **This is
+an emulator fix, not evidence of the physical LFO culprit.**
+
+Fixed500ms runs retain the same eight button edges and native LFO settings:
+
+| Model workload / assumed core | Setting | Snapshots | Audio IN / returns | Max panel service | Worker exclusive cycles | Render exclusive cycles |
+| --- | --- | --- | --- | --- | --- | --- |
+| Periodic + MIDI /250MHz | 32/32 |119|0|3.150ms|0.85%|~61%|
+| Periodic + MIDI /250MHz | ~64/48 |354|0|3.240ms|2.46%|~61%|
+| Audio + periodic + MIDI /250MHz |32/32|119|3432|3.237ms|0.858%|63.708%|
+| Audio + periodic + MIDI /250MHz |~64/48|354|3432|3.775ms|2.454%|63.791%|
+| Audio + periodic + MIDI /200MHz |32/32|119|3431|7.281ms|1.073%|79.262%|
+| Audio + periodic + MIDI /200MHz |~64/48|353|3431|9.195ms|3.032%|79.364%|
+
+Every audio profile has750 render blocks, zero audio counter gaps, matching
+return credits, no model errors, gate1, one stable session, no decoder mismatch
+or artificial worker wait. At200MHz render IRQ worst modeled duration is
+~80.1% of its deadline, with no modeled overrun. Timer0 ticks50/SOF ticks4000
+per profile. These are zero-wait **model** costs, not hardware CPU utilization.
+The CLI rejects startup-only audio, missing return credits and counter gaps.
+21 focused tests pass. Repeat:
+
+```sh
+PYTHONPATH=private/r03-runtime:deps/digiemu \
+  deps/digiemu/.venv/bin/python tools/v01_contention_probe.py \
+  --candidate private/v01-compact-g --usb-device --usb-peer \
+  --usb-periodic --usb-audio --profile-execution --duration-ms 500 \
+  --fsys 200000000 --output private/v01/native-audio.json
+```
+
+Use `--fsys 250000000` for the other declared core assumption.
+
+**Progression decision:** missing periodic/audio traffic alone does not produce
+the lag under these assumptions. Do not repeat more density sweeps or tune USB
+poll delays. Do not yet calibrate hardware costs from the newly captured raw
+firmware brackets: `emu/dtim.py` computes diagnostic DTCN0 reads from `self.clock`,
+updated only in `step/service`. A native short bracket can observe stale time
+while CycleClock advances. The probe explicitly labels these raw totals
+unsuitable for hardware cost calibration. They remain private diagnostic data.
+
+The next bounded investigation is clock fidelity, then a hardware/model cost
+comparison. First make DTCN0 reads coherent with CycleClock, with a regression
+that reads twice inside one execution step. Preserve the declared132MHz bus
+assumption; it is not proof of core frequency. Separately, native render entry
+(`0x40076c4c`) timestamps DTIM2, and USB ISR209 (`0x4000606c`) uses its relative
+phase. DTIM2 is configured for an external pin clock, which the emulator does
+not drive: eight observed native alignment samples read0. Clean packet counters
+do not validate that physical clock/phase relation.
+
+Recover the external input relationship from source/pin configuration before
+inventing a rate. If it cannot be established offline, **one targeted measurement**
+is justified: buffer a bounded set of DTCN2/FRINDEX pairs at consecutive32-frame
+render entries, then retrieve after timing stops. Its sole question is whether
+DTIM2 advances with the audio sample clock and by how many ticks/sample; no
+knob sweep or timing-time trace dump. No new hardware candidate/flash is
+requested now. Physical cache/DDR/bus costs, core clock, Pi scheduling and the
+complete physical project remain unmodeled. Gate A is IN PROGRESS/unaccepted.
 
 Preserve ordered START identity, full effective state, fail-closed deadlines,
 bounded queues, task-only USB and allocation-free/nonblocking audio callbacks.

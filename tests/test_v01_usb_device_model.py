@@ -60,8 +60,20 @@ class UsbDeviceModelTest(unittest.TestCase):
         self.assertTrue(model.service(100_000))
         self.assertEqual(model.completed, 1)
         self.assertEqual(u32(uc, desc + TOKEN) >> 16, 0)
+        self.assertEqual(u32(uc, desc + TOKEN) & 0x8000, 0x8000)
         self.assertEqual(u32(uc, BASE + ENDPTCOMPLETE), 1 << AUDIO_ENDPOINT)
         self.assertEqual(model.status & 1, 1)
+
+    def test_completion_records_frame_not_microframe_and_preserves_page(self):
+        from v01_usb_device_model import FRAME
+        model, uc = self.make()
+        desc = 0x80001000
+        self.prime(uc, 5, desc, 60)
+        put_u32(uc, desc + FRAME, 0x80004000)
+        self.write_guest(uc, BASE + ENDPTPRIME, ENDPOINT_BITS[5])
+        model.service(0)
+        model.service(343_750)  # microframe11, frame1 at assumed250MHz
+        self.assertEqual(u32(uc, desc + FRAME), 0x80004001)
 
     def test_rx_descriptor_receives_bytes_and_is_not_reprimed(self):
         model, uc = self.make()
@@ -144,6 +156,42 @@ class UsbDeviceModelTest(unittest.TestCase):
         self.assertFalse(irq.service(0))
         self.assertEqual(calls, [])
         self.write_guest(uc, BASE + USBINTR, 1)
+        self.assertTrue(irq.service(1))
+        self.assertEqual(calls, [((209,), {'level': 6})])
+
+    def test_native_10ms_timer_and_sof_latch_independently_of_irq_mask(self):
+        from v01_usb_device_model import GPTLD, GPTCTL
+        model, uc = self.make()
+        model.periodic = True
+        self.write_guest(uc, BASE + GPTLD, 9999)
+        self.write_guest(uc, BASE + GPTCTL, 0x81000000)
+        self.write_guest(uc, BASE + USBINTR, 0)
+        model.service(0)
+        model.service(2_500_000)
+        self.assertEqual(model.timer_ticks, 1)
+        self.assertEqual(model.sof_ticks, 80)
+        self.assertEqual(model.status, (1 << 24) | 0x80)
+        self.write_guest(uc, BASE + USBSTS, 1 << 24)
+        model.service(2_500_001)
+        self.assertEqual(model.status, 0x80)
+        model.service(5_000_000)
+        self.assertEqual(model.timer_ticks, 2)
+        self.assertTrue(model.status & (1 << 24))
+        self.write_guest(uc, BASE + GPTCTL, 0)
+        model.service(7_500_000)
+        self.assertEqual(model.timer_ticks, 2)
+
+    @patch('emu.pit.interrupt_level', return_value=6)
+    def test_timer_irq_can_deliver_without_completion_bit(self, _level):
+        from unicorn.m68k_const import UC_M68K_REG_SR
+        model, uc = self.make()
+        calls = []
+        model.m.raise_vector = lambda *a, **k: calls.append((a, k)) or True
+        uc.reg_write(UC_M68K_REG_SR, 0x2000)
+        model.status = 1 << 24
+        irq = UsbStatusIrq(model)
+        self.assertFalse(irq.service(0))
+        self.write_guest(uc, BASE + USBINTR, 1 << 24)
         self.assertTrue(irq.service(1))
         self.assertEqual(calls, [((209,), {'level': 6})])
 

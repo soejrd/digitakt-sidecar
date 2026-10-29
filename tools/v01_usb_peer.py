@@ -4,6 +4,7 @@ Host protocol processing is instantaneous in emulated device time. Replies
 arrive on the next assumed host poll through native OUT DMA/IRQ/job dispatch;
 no receive callback is context-injected. This is not Circle scheduling/audio.
 """
+import collections
 import ctypes
 import os
 from pathlib import Path
@@ -33,7 +34,7 @@ def build():
 
 
 class UsbPeer:
-    def __init__(self, session, model, clock_address, library):
+    def __init__(self, session, model, clock_address, library, audio=False):
         self.s, self.model, self.clock_address = session, model, clock_address
         self.peer = ctypes.CDLL(str(library))
         self.peer.peer_frame.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_uint32]
@@ -43,11 +44,33 @@ class UsbPeer:
         self.frames = self.replies = self.tx_bytes = 0
         self.snapshots = self.age_max = 0
         self.sessions = set()
+        self.audio = audio
+        self.audio_in = self.audio_out = self.audio_counter = self.audio_gaps = 0
+        self.last_audio_counter = None
+        self.audio_deltas = collections.Counter()
         self.last_block = None
         self.reply = ctypes.create_string_buffer(64)
         model.tx_sink = self.transmitted
 
     def transmitted(self, endpoint, payload, done):
+        if endpoint == 7 and self.audio:
+            # H01's physical host: one 88-byte stereo return per received
+            # 368-byte seven-frame packet, not an invented empty OUT cadence.
+            if len(payload) != 368 or payload[:2] != b'\x07\x00':
+                raise RuntimeError('unexpected native audio IN framing')
+            counter = int.from_bytes(payload[2:4], 'big')
+            if self.last_audio_counter is not None:
+                delta = (counter - self.last_audio_counter) & 65535
+                self.audio_deltas[delta] += 1
+                if delta != 7:
+                    self.audio_gaps += 1
+            self.last_audio_counter = counter
+            self.audio_in += 1
+            packet = b'\x07\xff' + (self.audio_counter & 65535).to_bytes(2, 'big') + bytes(84)
+            self.audio_counter += 7
+            self.model.queue_rx(3, packet, done + self.model.poll_cycles)
+            self.audio_out += 1
+            return
         if endpoint != 5:
             return
         if len(payload) % 4:
@@ -104,4 +127,7 @@ class UsbPeer:
                 'starts': self.peer.peer_starts(), 'allowed': self.peer.peer_allowed(),
                 'session': self.peer.peer_session(), 'sessions_seen': len(self.sessions),
                 'snapshots_received': self.snapshots,
-                'source_to_host_age_blocks_max': self.age_max}
+                'source_to_host_age_blocks_max': self.age_max,
+                'audio': {'enabled': self.audio, 'in_packets': self.audio_in,
+                          'returns_scheduled': self.audio_out, 'counter_gaps': self.audio_gaps,
+                          'counter_deltas': dict(self.audio_deltas)}}

@@ -24,6 +24,7 @@ import struct
 from unicorn import UC_HOOK_MEM_READ, UC_HOOK_MEM_WRITE
 
 BASE = 0xFC0B0000
+GPTLD, GPTCTL = 0x80, 0x84
 USBCMD = 0x140
 USBSTS = 0x144
 USBINTR = 0x148
@@ -79,7 +80,7 @@ class Transfer:
 class UsbDeviceModel:
     """Controller registers and native descriptor-chain ownership."""
 
-    def __init__(self, machine, fsys, rx_bytes=None, tx_sink=None):
+    def __init__(self, machine, fsys, rx_bytes=None, tx_sink=None, periodic=False):
         self.m = machine
         self.uc = machine.uc
         self.ips = fsys
@@ -87,6 +88,11 @@ class UsbDeviceModel:
         self.tx_sink = tx_sink
         self.poll_cycles = max(1, fsys // 8000)  # explicit HS host-poll assumption
         self.now = 0
+        self.periodic = periodic
+        self.timer_load = u32(self.uc, BASE + GPTLD) & 0xffffff
+        self.timer_control = u32(self.uc, BASE + GPTCTL) & 0x81000000
+        self.timer_next = self.sof_next = None
+        self.timer_ticks = self.sof_ticks = 0
         self.transfers = []
         self.primed = 0
         self.completed = 0
@@ -143,6 +149,12 @@ class UsbDeviceModel:
             self.command = value
         elif off == USBINTR:
             self.intr = value
+        elif off == GPTLD:
+            self.timer_load = value & 0xffffff
+        elif off == GPTCTL:
+            self.timer_control = value & 0x81000000
+            if value & (1 << 30) or not value & (1 << 31):
+                self.timer_next = None
         elif off == ENDPTFLUSH:
             # Flush is acknowledged immediately in this bounded model.
             self.stat &= ~value
@@ -173,6 +185,10 @@ class UsbDeviceModel:
             put_u32(uc, address, 0)
         elif off == USBINTR:
             put_u32(uc, address, self.intr)
+        elif off == GPTCTL:
+            remaining = (max(0, (self.timer_next - self.now) * 1000000 // self.ips - 1)
+                         if self.timer_next is not None else self.timer_load)
+            put_u32(uc, address, self.timer_control | remaining)
         elif off == FRINDEX:
             put_u32(uc, address, self.frames)
         elif off == PORT_STATUS:
@@ -215,13 +231,13 @@ class UsbDeviceModel:
             raise ValueError('host OUT payload requires an OUT endpoint')
         self.rx_bytes.append((endpoint, due, bytes(payload)))
 
-    def adopt_configured_queues(self):
+    def adopt_configured_queues(self, audio=False):
         """Resume active native MIDI dTDs in a disposable configured snapshot.
 
         This is not enumeration: setup ran the native configuration routine.
         The original checkpoint has no USB controller state to restore.
         """
-        for endpoint in (1, 5):
+        for endpoint in ((1, 5, 3, 7) if audio else (1, 5)):
             desc = self._descriptor_for(endpoint)
             if desc is not None:
                 self._pending_prime |= ENDPOINT_BITS[endpoint]
@@ -236,7 +252,9 @@ class UsbDeviceModel:
             desc = self._descriptor_for(endpoint)
             if desc is None:
                 self.errors.append({'event': 'prime-without-descriptor',
-                                    'endpoint': endpoint})
+                                    'endpoint': endpoint, 'cycle': done,
+                                    'hardware_next': u32(self.uc, self._queue_head(endpoint) + 8),
+                                    'active_descriptor': next((t.descriptor for t in self.transfers if t.endpoint == endpoint), None)})
                 continue
             self.primed += 1
             self.stat |= bit
@@ -263,9 +281,15 @@ class UsbDeviceModel:
             self.rx_dispatched += 1
         # TOKEN+0 carries residual bytes, not bytes transferred. Native
         # ISR134 reads word +4 and calls back with LENGTH minus residual.
-        put_u32(uc, desc + TOKEN, ((requested - length) << 16) & 0xFFFF0000)
+        # IOC is a persistent control bit, not completion status. Native
+        # submission tests it before pruning a completed software queue head.
+        put_u32(uc, desc + TOKEN, (((requested - length) << 16) & 0xFFFF0000) |
+                (token & 0x8000))
         uc.mem_write(desc + STATUS, b'\x00')
-        put_u32(uc, desc + FRAME, self.frames & 0x7FF)
+        # MCF54418RM 24.5.2.2.3: dTD page1 low11 is the USB frame
+        # number, not FRINDEX's microframe counter (bits2:0).
+        put_u32(uc, desc + FRAME, (u32(uc, desc + FRAME) & ~0x7ff) |
+                ((self.frames >> 3) & 0x7ff))
         self.queued_descriptors.pop(desc, None)
         self.stat &= ~ENDPOINT_BITS[transfer.endpoint]
         self.completed_bits |= ENDPOINT_BITS[transfer.endpoint]
@@ -297,8 +321,13 @@ class UsbDeviceModel:
             return None
         if self._pending_prime:
             return 1
-        if self.transfers:
-            return max(1, min(t.due for t in self.transfers) - done)
+        deadlines = [t.due for t in self.transfers]
+        if self.periodic:
+            deadlines += [n for n in (self.timer_next, self.sof_next) if n is not None]
+            if self.sof_next is None:
+                return 1
+        if deadlines:
+            return max(1, min(deadlines) - done)
         return None
 
     def _clear_acks(self):
@@ -315,6 +344,31 @@ class UsbDeviceModel:
         changed = self._clear_acks()
         if not self.command & 1:
             return changed
+        if self.periodic:
+            # MCF54418RM 24.3.2: GPTLD is microseconds minus one.
+            # Native boot writes LD=9999, CTL=0x81000000 (repeat/run).
+            period = max(1, (self.timer_load + 1) * self.ips // 1000000)
+            if self.timer_control & (1 << 31):
+                if self.timer_next is None:
+                    self.timer_next = done + period
+                if done >= self.timer_next:
+                    ticks = 1 + (done - self.timer_next) // period
+                    self.timer_ticks += ticks
+                    self.status |= 1 << 24
+                    if self.timer_control & (1 << 24):
+                        self.timer_next += ticks * period
+                    else:
+                        self.timer_control &= ~(1 << 31)
+                        self.timer_next = None
+                    changed = True
+            if self.sof_next is None:
+                self.sof_next = done + self.poll_cycles
+            if done >= self.sof_next:
+                ticks = 1 + (done - self.sof_next) // self.poll_cycles
+                self.sof_ticks += ticks
+                self.sof_next += ticks * self.poll_cycles
+                self.status |= 0x80
+                changed = True
         if self._pending_prime:
             self._take_primed(done)
             changed = True
@@ -348,6 +402,10 @@ class UsbDeviceModel:
             'status': self.status,
             'run_stop': bool(self.command & 1),
             'interrupt_enable': self.intr,
+            'periodic': {'enabled': self.periodic, 'timer0_load': self.timer_load,
+                         'timer0_control': self.timer_control,
+                         'timer0_period_us': self.timer_load + 1,
+                         'timer0_ticks': self.timer_ticks, 'sof_ticks': self.sof_ticks},
             'endptstat': self.stat,
             'endptcomplete': self.completed_bits,
             'prime_register': self.primed_bits,
@@ -364,7 +422,7 @@ class UsbDeviceModel:
 
 
 class UsbStatusIrq:
-    """Deliver INTC2 vector 209 while the model holds USB status bit 0."""
+    """Deliver INTC2 vector209 for any enabled, latched USB status bit."""
 
     def __init__(self, model):
         self.model = model
@@ -375,16 +433,16 @@ class UsbStatusIrq:
 
     def step(self, done, remaining=None):
         from emu.pit import PENDING_STEP
-        if self.model.status & 1:
+        if self.model.status & self.model.intr:
             return min(PENDING_STEP, remaining) if remaining is not None else PENDING_STEP
         return None
 
     def service(self, done):
         from emu.pit import interrupt_level
         from unicorn.m68k_const import UC_M68K_REG_SR
-        if not self.model.status & 1:
+        if not self.model.status:
             return False
-        if not self.model.intr & 1:
+        if not self.model.status & self.model.intr:
             self.blocked_by_mask += 1
             return False
         level = interrupt_level(self.m, 209)
