@@ -21,12 +21,13 @@
     "boot_config_unchanged": true
   },
   "safely_ejected": true,
-  "boot_verified": false,
-  "digitakt_firmware": "V01G supplied for human Transfer; installation pending",
+  "boot_verified": true,
+  "digitakt_firmware": "V01G installation confirmed by human",
   "playout_delay_frames": 128,
   "rollback": "With Pi off restore kernel8-rpi4.before-v01-compact.img as kernel8-rpi4.img and SHA256SUMS.before-v01-compact as SHA256SUMS; matching exact copies retained locally. Prior recoveries unchanged.",
   "limits": [
     "SD read-back proof only; no boot or physical G responsiveness measurement",
     "Apple filesystem metadata excluded from inventory; original boot and other non-system files hashed"
-  ]
+  ],
+  "boot_verification": "Expected G build timestamp; fresh disconnected boot, FIFO0/fault0, voice mute/trace-off accepted"
 }

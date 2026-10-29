@@ -1,0 +1,22 @@
+{
+  "task": "V01",
+  "date_utc": "2026-10-29T12:40:00.628656+00:00",
+  "scope": "G Pi boot verification before USB reconnection",
+  "build": "Oct 29 2026 12:31:45",
+  "expected_kernel_sha256": "2b027a172e089af8fc273e4b2351d7fd72a7223b92f8ac6dfc8b20c491e2df5f",
+  "kernel_identity_basis": "verified SD read-back plus expected newly built boot timestamp; HTTP does not hash running kernel",
+  "digitakt_installation": "Human confirms G flash completed; no live version readback yet",
+  "assertions": {
+    "expected_build": true,
+    "usb_disconnected": true,
+    "fresh_fifo_zero": true,
+    "voice_muted": true,
+    "trace_off": true,
+    "fault_zero": true,
+    "remote_diagnostic_receiver_present": true,
+    "no_undervoltage_or_throttle": true
+  },
+  "limits": [
+    "No received remote packets before USB connection; no active compact snapshot or responsiveness pass yet"
+  ]
+}

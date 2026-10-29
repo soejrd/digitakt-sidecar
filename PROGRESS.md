@@ -34,24 +34,26 @@ matching Pi accepts v1/v3. F telemetry, priority14/no-self-wake, deadlines and
 128-frame playout unchanged. Hardware must show improvement; no fix claimed.
 [Verified G pair](evidence/v01/compact-candidate.json), staged in
 `private/v01/firmware-V01G/`. G Pi SD now written/read-back verified and
-safely ejected; [deployment](evidence/v01/compact-sd-deployment.json). Boot pending. Full sanitizer host suite, compact
+safely ejected; [deployment](evidence/v01/compact-sd-deployment.json).
+[G boot verified](evidence/v01/compact-boot.json); human confirms G Digitakt flash.
+USB disconnected, FIFO/fault 0, voice muted and trace off. Full sanitizer host suite, compact
 codec/worker/scheduler/recovery, twelve-patch replay and compiled exchange pass
 (12 remote packets, 0 malformed, stack 1368 B); paired Pi kernel builds.
 
-**Next:** human returns ejected SD and boots Pi; flashes G using Transfer,
-keeping USB disconnected until matching Pi boot is verified. Trial starts muted at
+**Next:** human sets SPD32/DEP32 while disconnected, reconnects USB and triggers
+track 1 once; agent verifies active compact stream and captures clean baseline. Trial starts muted at
 32/32, then same SPD64 ramp; stop promptly on lag/fault/FIFO growth. Agent polls
 remote diagnostics; no manual DIAG extraction. Startup/reconnect faults remain
 open; Gates B persistence and C reconnect/soak still outstanding.
 
 ## Hardware / recovery
 
-- Last human-reported installation: **V01F diagnostic**, Pi muted by agent.
+- Last human-reported installation: **V01G diagnostic**, Pi muted by agent.
   Restore I04R before normal use from
   `private/v01/firmware-V01P/Digitakt-I04R-previous.syx`; I04Q/H02F/stock also
   retained. I04R SHA256 `6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b`.
 - Pi card updated to G SHA256 `2b027a172e089af8fc273e4b2351d7fd72a7223b92f8ac6dfc8b20c491e2df5f`,
-  128-frame playout; G boot pending. Fresh on-card pre-compact kernel/manifest
+  128-frame playout; G boot verified. Fresh on-card pre-compact kernel/manifest
   and `private/v01/sd-backup-before-compact/` retain F `0276c26b…`.
   Earlier E rollback `8df83a5a…` is in
   `private/v01/sd-backup-before-duty/` and on-card pre-duty backup files.
