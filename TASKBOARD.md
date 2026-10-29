@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Status | Dependencies / first action | Acceptance |
 | --- | --- | --- | --- | --- |
-| V01 | Persistence and stress | IN PROGRESS — Codex 2026-10-28T22:49:17Z (Gate A candidates verified; hardware unavailable) | [V01B/V01C pair](evidence/v01/gate-a-candidates.json) builds/boots; panel/reset/native task/dense exchange, full host regression and patch replay pass. Corrected interval diagnostics; no hardware result. Human requested resume later. Next: muted V01B 32/32 then 64/64, review before V01C; [runbook](docs/V01-gate-a-runbook.md). Last recorded installed V01P; I04R rollback retained. | Numeric supported workload with responsive UI and no audio/deadline failure; native persistence/edit semantics; reconnect and combined soak; explicit listening acceptance. |
+| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29 physical trial) | [V01B control](evidence/v01/gate-a-v01b-control.json) short muted 32/32 passes; [64/64](evidence/v01/gate-a-v01b-dense.json) reproduces severe setting/SRC lag before Play, UGAP 225 ms. Pi FIFO 18 unchanged, faults 0. Next: human install verified V01C, fresh Pi boot; agent mutes/disables trace and captures counters. [Runbook](docs/V01-gate-a-runbook.md). Last reported installed V01B; I04R rollback retained. | Numeric supported workload with responsive UI and no audio/deadline failure; native persistence/edit semantics; reconnect and combined soak; explicit listening acceptance. |
 
 ## Waiting
 

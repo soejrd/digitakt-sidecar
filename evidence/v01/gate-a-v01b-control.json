@@ -1,0 +1,103 @@
+{
+  "task": "V01",
+  "status": "PASS \u2014 short muted 32/32 control; no audible or supported-budget claim",
+  "date_utc": "2026-10-29T10:17:41.885240+00:00",
+  "firmware": "V01B per human installation report",
+  "clock_calibration": {
+    "class": "human observation",
+    "stopwatch_elapsed_s": 10,
+    "diagnostic_secs_delta": 10,
+    "observation": "exactly 10 between, same with the seconds",
+    "absolute_secs_values": "not reported"
+  },
+  "before_settings": {
+    "uptime_s": 224,
+    "fifo_underruns": 18,
+    "streaming": true,
+    "trx": {
+      "armed": 0,
+      "queue": 0,
+      "peak": 1,
+      "faults": 0,
+      "applied": 5324,
+      "starts": 1,
+      "consumed": 1,
+      "frame": 10619508
+    }
+  },
+  "limits": [
+    "Muted short trial; does not establish audible continuity or sustained modulation budget",
+    "Native UI gaps use render clock; stopwatch calibration passed in preceding interval",
+    "Trial includes time between human reports; exact Play boundaries not automatically timestamped",
+    "Trig presence and responsiveness are human observations; exact trig density not reported"
+  ],
+  "settings": {
+    "track": 1,
+    "machine": "USB1",
+    "destination": "PTCH",
+    "spd": 32,
+    "dep": 32,
+    "mult": "BPM16",
+    "wave": "triangle",
+    "mode": "free",
+    "sph": 0,
+    "fade": "X",
+    "tempo_bpm": 120,
+    "provenance": "human reported FADE/tempo/diagnostics and no lag after requested setup; remaining settings follow requested setup, not independently read back"
+  },
+  "human_before_play": {
+    "WGAP_ms": 34,
+    "BATCH_ms": 1,
+    "UGAP_ms": 35,
+    "FAULT": 0,
+    "observation": "No lag yet",
+    "note": "human typed vgap; interpreted as displayed UGAP"
+  },
+  "pi_before_play": {
+    "uptime_s": 318,
+    "fifo_underruns": 18,
+    "streaming": true,
+    "trx": {
+      "armed": 0,
+      "queue": 1,
+      "peak": 2,
+      "faults": 0,
+      "applied": 23422,
+      "starts": 1,
+      "consumed": 1,
+      "frame": 15094920
+    }
+  },
+  "updated_utc": "2026-10-29T10:20:35.275911+00:00",
+  "human_after_play": {
+    "WGAP_ms": 35,
+    "BATCH_ms": 1,
+    "UGAP_ms": 35,
+    "FAULT": 0,
+    "observation": "felt responsive",
+    "track_1_trigs_present": true,
+    "requested_play_seconds": 10,
+    "elapsed_play_seconds": "not independently measured; human followed ten-second instruction"
+  },
+  "pi_after_play": {
+    "uptime_s": 398,
+    "fifo_underruns": 18,
+    "streaming": true,
+    "trx": {
+      "armed": 0,
+      "queue": 1,
+      "peak": 2,
+      "faults": 0,
+      "applied": 43641,
+      "starts": 24,
+      "consumed": 24,
+      "frame": 18941760
+    }
+  },
+  "delta": {
+    "fifo_underruns": 0,
+    "playout_faults": 0,
+    "starts": 23,
+    "consumed_starts": 23
+  }
+}

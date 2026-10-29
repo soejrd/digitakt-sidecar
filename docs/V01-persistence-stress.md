@@ -120,6 +120,25 @@ no audio stop, no new deadline/order/overflow fault or FIFO underrun, bounded
 queues and intact guards. Record effective updates/s and delivery slack as well
 as knob settings. Existing short passes do not establish a supported budget.
 
+### V01B physical baseline — failure reproduced (2026-10-29)
+
+[Preflight](../evidence/v01/gate-a-v01b-preflight.json),
+[32/32 control](../evidence/v01/gate-a-v01b-control.json),
+[64/64 failure](../evidence/v01/gate-a-v01b-dense.json).
+Human confirmed the diagnostic SECS advanced ten seconds over an independent
+ten-second interval. At 32/32, FADE X and 120 BPM, settings and a short Play/Stop
+run with track-1 trigs were responsive: WGAP 35 ms, BATCH 1 ms, UGAP 35 ms,
+FAULT 0. Pi FIFO stayed 18; no playout faults; 23 new STARTs were consumed.
+This is a short muted control pass, not audible or sustained qualification.
+
+At 64/64, setting depth was extremely laggy before Play; SRC took about ten
+seconds to act and the UI then lagged behind for roughly half a minute. The
+human extracted WGAP 33 ms, BATCH 9 ms, UGAP 225 ms, FAULT 0. Pi remained muted,
+FIFO 18, playout faults 0, source queue peak 6. No dense Play was attempted.
+The service-tick metric does not explain the whole input-response delay; do not
+conflate UI tick continuity with panel response. Next: verified V01C paired
+trial, starting with a fresh Pi boot and 32/32 control before dense settings.
+
 ## Gate B — native persistence and musical edit semantics
 
 Source/emulator mapping may proceed while Gate A awaits hardware. Establish
@@ -198,8 +217,8 @@ I04Q, H02F and stock 1.54 recoveries are in that package. Freshly reboot the Pi
 before establishing counter baselines.
 
 Next step is the controlled V01B/V01C Gate A hardware comparison in the runbook.
-The human confirmed hardware is unavailable for now; resume when available.
-Offline preparation is complete; no physical trial or scheduling fix is claimed.
+Hardware resumed: V01B baseline reproduces the failure; V01C is next.
+Offline preparation is complete; no scheduling fix is claimed.
 Before hardware audio tests, confirm human availability, lowered speakers,
 known routing and disposable backed-up state, per `AGENTS.md`. The human handles
 firmware flashing; no bootloader or wiring changes. Offline work needs no such

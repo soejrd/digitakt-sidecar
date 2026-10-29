@@ -1,0 +1,54 @@
+{
+  "task": "V01",
+  "status": "FAIL \u2014 64/64 setting phase reproduces severe physical UI lag; stopped before Play",
+  "date_utc": "2026-10-29T10:23:27.789584+00:00",
+  "firmware": "V01B per human installation report",
+  "settings": {
+    "track": 1,
+    "machine": "USB1",
+    "spd": 64,
+    "dep": 64,
+    "held_settings": "same requested PTCH/BPM16/triangle/free/SPH0/FADE X/120 BPM setup as 32/32 control; not independently read back"
+  },
+  "measurement_window": "Human instructed to switch away from USB1 then back before configuring; reset not remotely verified",
+  "human_observation": {
+    "setting_depth": "Setting DEP 64 with SPD 64 was extremely laggy and took a long time",
+    "ui": "SRC press took about 10 seconds to act, then UI lagged behind for about half a minute",
+    "WGAP_ms": 33,
+    "BATCH_ms": 9,
+    "UGAP_ms": 225,
+    "FAULT": 0,
+    "play_attempted": false
+  },
+  "pi_at_capture": {
+    "uptime_s": 570,
+    "fifo_underruns": 18,
+    "streaming": true,
+    "trx": {
+      "armed": 0,
+      "queue": 3,
+      "peak": 6,
+      "faults": 0,
+      "applied": 191310,
+      "starts": 24,
+      "consumed": 24,
+      "frame": 27222660
+    }
+  },
+  "delta_from_previous_control_capture": {
+    "fifo_underruns": 0,
+    "playout_faults": 0,
+    "starts": 0
+  },
+  "evidence_classes": {
+    "physical_measurement": "Pi status/TRX counters and human-read diagnostic display",
+    "human_observation": "Severe setting/SRC UI action delay before Play",
+    "hypothesis": "Repeated high-priority readiness or native USB/send critical-section pressure; not isolated"
+  },
+  "interpretation": "UI service gap max 225 ms does not directly account for reported 10-second action delay and prolonged backlog. Do not equate service-tick continuity with input response latency. Compare no-self-wake candidate under same settings.",
+  "limits": [
+    "No independent wall-time trace during this dense interval",
+    "Pi deltas span the interval since the previous control capture, including machine reselection and setup",
+    "No dense Play or audible pass attempted; exact root cause remains unproven"
+  ]
+}
