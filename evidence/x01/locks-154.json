@@ -1,0 +1,105 @@
+{
+  "scope": "booted OS1.54 native two-track stored PTCH locks and real host engines; modelled USB; no hardware",
+  "native_start_values_8_8": [
+    [
+      15360,
+      15360,
+      18432,
+      15360,
+      18432,
+      15360
+    ],
+    [
+      15360,
+      21504,
+      15360,
+      15360,
+      15360,
+      21504,
+      15360
+    ]
+  ],
+  "host_start_values_8_8": [
+    [
+      15360,
+      15360,
+      18432,
+      15360,
+      18432,
+      15360
+    ],
+    [
+      15360,
+      21504,
+      15360,
+      15360,
+      15360,
+      21504,
+      15360
+    ]
+  ],
+  "expected_consecutive_starts": [
+    [
+      15360,
+      18432,
+      15360
+    ],
+    [
+      15360,
+      21504,
+      15360
+    ]
+  ],
+  "same_session": true,
+  "host_allowed": true,
+  "host_fault": 0,
+  "base_sounds_preserved": true,
+  "pass": true,
+  "candidate": {
+    "firmware_label": "X01E",
+    "usb_track_version": "0.6",
+    "syx_sha256": "224534159213a04b6f88006366e5b69d209257f2a654d7f4901a4f88a5d504d6",
+    "stock_main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
+    "source_hashes": {
+      "control/dt1_transport.c": "7660dd4f8bea7580029e297c0bb31f0f533526e76857586e8829ee5cab6fb6e2",
+      "control/dt1_transport.h": "c2e42ea943c3ba06a94f44dad5b3111838dab69839022694a63c03f5355532ab",
+      "control/link.c": "a77605f80a299c502c7a39d36db2287682f133210bf924ab3567b64933294f43",
+      "control/link.h": "cc551384d65e30b2d7799a623ff163c31a3aa76958ed499f18ab6167ad5e2d08",
+      "control/sc_memory.h": "f45d7f79fe37f563581f751f9330709b35d912d9ddc68a42a7453dbbb2ed5ca1",
+      "control/sysex_split.c": "edfcffa64dea00fd50be0f909f27ce8d1a843eceb1888b2fe98a712751b425d4",
+      "control/sysex_split.h": "bdc3f393187f792419b955514e56c6704811ea4e0e64332dab4916276f09580d",
+      "control/track_frame.c": "316d87cb04f2cc23ff51fd24abd78b53dfda51f65310af8f7c72587fd638e03f",
+      "control/track_frame.h": "707915cd877e0ab1711dc13469aa09377d6ffb15a4ce469d7e2b05f65df926d2",
+      "control/track_session.c": "2d0152f473a69bb6a7cf9479094d613d922f639b6e274d1c452f6d1d2f050a87",
+      "control/track_session.h": "ca055af3e5b057a7fa00fdc18cb27c7a9a392ce71b9e0c58ebe4f9f21e72e5fa",
+      "control/usbmidi.c": "1e8d69223b593ca5c6293e5931d617aa2c46806b0a2ff1fcb0b10fb03fbdd93b",
+      "control/usbmidi.h": "1d7479908f0bf4ac186fc37978a758bebf18bc5f16e4296d017ed1973830e82d",
+      "mods/usb-midi/mod.json": "42237ba9db973bb9de4aafcb426b0effd881800a39e611c13a0a8ab6a835ea1c",
+      "mods/usb-midi/usb_midi.c": "d2779f21c9e70edbdacdc0aaff18549bed940214f62566eee30a9a692e01c84f",
+      "mods/usb-midi/usb_midi.h": "12db1c576ba6802319589615bae93c4a2a1ef473938cef30e118bc7187709e8f",
+      "mods/usb-track/core_candidate_rtos.h": "60714763f69eb908aa63b360729182176a0f96c3a9b0cc087f19026ccb27a7bd",
+      "mods/usb-track/core_candidate_rtos.s": "a85a8ed629996aa4ef674ef7ac278d5fcd8fc2e0dace20d3f5e9bc6e590c9e65",
+      "mods/usb-track/return_lanes.c": "af154add6212cd76f9cfc0d2ea189beabbcbe24ffdb0f9d7c23428c649abf25d",
+      "mods/usb-track/return_lanes.h": "c214e6a7333ca0643d1ece9da1ee443a1bcfa3a35ddd784e532c77897c994115",
+      "mods/usb-track/src_queue.c": "2de5d0209e05151065d6f9a4af09967b904b95c6b13e9ab7427eb90f5d7a79ab",
+      "mods/usb-track/src_queue.h": "577dbad5a473c637234ce3874b57669e3005b654a353c78ddc64481303e007cf",
+      "mods/usb-track/task_worker.c": "3dc91a68c8615b69489240cfa3e074df06978bd2aecc9b032dc02572792eb6f7",
+      "mods/usb-track/usb_track.h": "2f42d53a93197f86878b5b97fbc586316483e1aa7e2e4a5cbfe60e0dd55c5e8a",
+      "mods/usb-track/x01_render.c": "79736bc948ac7bac5a714a57f992272e57dbc2d93c8234f586f62ca46ba10fdf",
+      "mods/usb-track/x01_track.h": "605b4cdc12704f129784a2cafab16bd69cbf81c44a70b84fd02226a24e222eac",
+      "mods/usb-track/x01_worker.c": "623acdd39e2b8a644883e286a8deec93bc4f6141bd62b33f3319023fb4fa0746"
+    }
+  },
+  "probe_sha256": "2a791a8c216c1b044fc7e7fbfc36824cfd814308f9809633cb7fa680c8ba9302",
+  "peer_source_sha256": {
+    "tests/x01_emulator_peer.c": "202283327881e1b4146e8976d9eaca8a32a2dcd6f0ccc28cc319bfcf81a7c7cf",
+    "control/link.c": "a77605f80a299c502c7a39d36db2287682f133210bf924ab3567b64933294f43",
+    "control/track_frame.c": "316d87cb04f2cc23ff51fd24abd78b53dfda51f65310af8f7c72587fd638e03f",
+    "control/track_session.c": "2d0152f473a69bb6a7cf9479094d613d922f639b6e274d1c452f6d1d2f050a87",
+    "control/track_host.c": "df8d7a8e659b9cda85c843e288f11e395bf892974c40fd02dfd96f2ae514898b",
+    "audio/track_playout.c": "5fe6981acfbced7b7ca1897af8c95a88a5080fc97f06c2d459d4ce39a45267b6",
+    "audio/trx_voice.c": "92c9cc5fd3ff91f184e1c45ab88574d90750a590d986ca9d35030b4f39d2c31a",
+    "audio/src_44148.c": "17e34f1a05ab474336837fe85b1c75d6a56859de9780b2bb0f0bb15d592070b7",
+    "deps/mdkit/src/trx/b2/mdkit_trx_b2.c": "f8dd0be639ed263926c97ab83a36bc28d76100a89ab4f358b8ce78468f55dc54"
+  }
+}

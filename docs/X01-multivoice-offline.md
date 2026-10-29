@@ -199,6 +199,39 @@ not a flash candidate. The host preparation command is
 `python3 scripts/x01_prepare_host.py --output <new-directory>`; no normal Pi
 overlay, SD card or installed kernel is changed by it.
 
+## Native modulation and lock probes
+
+The separate `--lfo-probe` scenario seeds the disposable track 2 sound before
+its first native trigger. Native final PTCH values vary; the actual host engine
+observes 44 and 75 after the transport's integer quantization, while track 1
+stays at 60. [Evidence](../evidence/x01/lfo-fixture.json) records the native and
+host values, candidate and source hashes. This is a three-second emulator test,
+with USB DMA/host timing modelled; it does not qualify dense modulation on hardware.
+
+The earlier late-seeding experiment left both the native render values and the
+host unchanged, despite an exact sound-slot readback. Moving the seed before the
+first trigger matches the passing I03 fixture. The mechanism behind late-seeding
+is still unproven; this does not establish native live-edit/persistence semantics
+or fix V01-A.
+
+```sh
+PYTHONPATH=private/r03-runtime:deps/digiemu deps/digiemu/.venv/bin/python \
+  tools/x01_integrated_probe.py --candidate private/x01-control --lfo-probe
+```
+
+The `--locks-probe` scenario seeds four native sequencer steps on both tracks,
+with different PTCH locks on step 3 (72 and 84). Both the native capture and
+host engine START sequences contain baseline → distinct lock → baseline, and
+all captured native/host START values match in the observed run. The base sound
+slots stay unchanged and the session remains active without a host fault.
+[Evidence](../evidence/x01/locks-154.json). This tests disposable RAM pattern
+fixtures, not project persistence or panel lock entry.
+
+```sh
+PYTHONPATH=private/r03-runtime:deps/digiemu deps/digiemu/.venv/bin/python \
+  tools/x01_integrated_probe.py --candidate private/x01-control --locks-probe
+```
+
 ## Next work and remaining gates
 
 Follow-up regression: `tests/x01_session.c` now also proves a single mapped
@@ -211,11 +244,10 @@ passes with these cases under ASan/UBSan and the ColdFire import checks.
 Pi cross-build preflight is currently blocked: the local Docker socket is
 absent and `docker image inspect rytm-circle` cannot reach a running daemon.
 Release condition: start the local Docker daemon, then build the isolated X01
-host tree; no ARM kernel build result is claimed. Native lock/LFO coverage can
-proceed independently.
+host tree; no ARM kernel build result is claimed. Native lock/LFO coverage now passes independently.
 
-1. Offline: add two-track native p-lock/LFO/sound-lock/copy semantics coverage;
-   the current new native controls test covers manual triggers and a panel edit.
+1. Offline: add native sound-lock/copy semantics coverage; manual triggers,
+   a panel edit, seeded LFO and distinct per-track stored locks now pass.
    Cross-build the isolated Pi kernel and inspect target memory/stack footprint.
 2. After V01-A's release condition, prepare a reviewed hardware candidate and
    recovery; measure Pi/device margin, USB stability, timing and independent

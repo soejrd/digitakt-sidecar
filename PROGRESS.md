@@ -64,9 +64,14 @@ Native lock/LFO tests remain independent offline work.
 unchanged by V01K. Packages and recovery hashes are in the report. No new
 hardware candidate is ready.
 
-X01 native LFO fixture investigation: opt-in `--lfo-probe` currently fails to
-produce variation over 3 seconds (target stays80; other track stays60).
-[evidence](evidence/x01/lfo-fixture.json). Native sound-fixture application is
-unproven; no LFO pass or transport-failure claim. Next: observe seeded live
-sound slots and native final values before host capture. Default probe retains
-the previously passing scenarios.
+X01 native modulation follow-up: first-trigger seeded LFO now passes through
+native capture/transport to the actual host engine (track 2 alternates44/75;
+track 1 stays60). Distinct stored locks72/84 and following unlocked restoration
+to60 pass on both tracks; native and host START values match, base sounds stay
+unchanged, same active session and no host fault. Evidence:
+[evidence/x01/lfo-fixture.json](evidence/x01/lfo-fixture.json),
+[evidence/x01/locks-154.json](evidence/x01/locks-154.json). Earlier late seeding
+did not affect native values; its live-edit semantics remain unproven. These
+are disposable RAM fixtures with modelled USB/host timing, not persistence,
+dense stress or hardware qualification. Docker was started for an isolated Pi
+cross-build; build result pending. Sound-lock/copy coverage remains open.
