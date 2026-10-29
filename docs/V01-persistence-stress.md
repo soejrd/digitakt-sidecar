@@ -3,7 +3,7 @@
 **IN PROGRESS.** Ownership renewed by Codex at `2026-10-28T18:41:42Z`.
 Phase 0 preservation passed; Phase 1 reproduced the dense-LFO failure.
 Phase 2 is incomplete. V01P is rejected; V01N is physically untested.
-V01 is not accepted. E was installed/tested; F SD update is verified, with boot and Digitakt flash confirmation pending.
+V01 is not accepted. F was installed and reproduced the lag; G compact full-snapshot pair is verified/staged offline, hardware untested.
 
 Target remains Digitakt mk1 OS 1.54 + Pi 4B/Circle, one USB1 voice on track 1.
 More voices, Teensy and a separate persistence database remain outside scope.
@@ -206,6 +206,44 @@ paired Pi accepts legacy E snapshots with an explicit version tag. No voice,
 event-order, priority or deadline fix is claimed. Next step is the paired
 installation and a short source-rate-matched capture, with no manual DIAG reads.
 
+### V01F physical result and V01G targeted candidate (2026-10-29)
+
+[Boot](../evidence/v01/duty-boot.json),
+[32/32 baseline](../evidence/v01/duty-baseline.json),
+[dense ramp](../evidence/v01/duty-dense-result.json).
+F and its matching Pi kernel were physically installed and verified. At SPD64,
+the human reports noticeable lag generally above DEP32, obvious around DEP55;
+exact final DEP was not recorded. Unplugging USB restored responsiveness.
+FIFO remained 17, faults 0, guards 0. This is a responsiveness failure despite
+clean Pi counters, not a supported workload pass.
+
+Native render brackets measured ~83% at baseline and ~85% during dense updates.
+Worker elapsed fraction rose from ~3.6% to 33–36% at ~850–912 native sends/s.
+Masked sends remained ~1.5–1.6%, individual max ~24.7 us. These elapsed brackets
+overlap under IRQ preemption and must never be added or called pure CPU usage.
+The association supports reducing per-event work, but does not isolate its
+precise scheduling cause. UI tick gap peaked at 141 ms; this is not panel latency.
+
+[Verified V01G pair](../evidence/v01/compact-candidate.json) tests a lossless compact full-snapshot format: version 3, 45 SysEx bytes
+instead of 61 when all eight SRC values are integer 0..127. Each becomes one
+7-bit byte and decodes to the identical 8.8 value. Every event, START, timestamp,
+session, sequence, generation, signed note and velocity remains intact; no
+coalescing, throttling or new latency. Fractional/negative/out-of-range SRC falls
+back to exact legacy v1. Replays retain their original wire format. Version-2
+session control and F diagnostic telemetry are unchanged.
+
+The native serializer emits 60 USB-MIDI bytes for 45 SysEx bytes, versus 84 for
+61. Both fit the measured bulk endpoint; this is not a USB packet-boundary claim.
+The shorter message also uses the native serializer's existing short-message
+branch. Retain masked capacity preflight and completion checks. Source facts
+predict less per-event work; only hardware can establish responsiveness margin.
+
+G requires the matching Pi decoder (accepts v1 and v3); F Pi does not support v3.
+Keep USB disconnected while installing both. Recovery is F Pi plus existing
+I04R/stock Digitakt recoveries. No physical G pass is claimed. After paired
+verification, compare muted 32/32 then the same SPD64 ramp, stopping at lag or
+new faults/underruns. Do not repeat prolonged frozen-panel extraction.
+
 ## Gate B — native persistence and musical edit semantics
 
 Source/emulator mapping may proceed while Gate A awaits hardware. Establish
@@ -276,18 +314,17 @@ then; more voices and Teensy stay deferred.
 
 ## Hardware and next action
 
-Last recorded installation is **V01P diagnostic**, Pi muted; this has not been
-verified live in this session. Before normal use, the human should restore
-`private/v01/firmware-V01P/Digitakt-I04R-previous.syx` (I04R SHA256
-`6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b`).
-I04Q, H02F and stock 1.54 recoveries are in that package. Freshly reboot the Pi
-before establishing counter baselines.
+Current installed pair: **V01F diagnostic** and Pi kernel
+`0276c26b58092490f2b3b3fee89c99d4b4c8309144b0f53b13fbae0104354068`.
+The last test ended USB disconnected and the UI responsive; Pi output muted,
+trace off, FIFO 17 and fault 0. Freshly boot Pi for the next counter baseline.
+G is an offline verified pair pending human installation and hardware trial.
 
-Next step is the paired V01F/Pi aggregate elapsed diagnostic procedure in [the probe runbook](V01-remote-probe.md).
-Hardware resumed: E measured severe failure; F is the next staged diagnostic.
-Offline preparation is complete; no scheduling fix is claimed.
-Before hardware audio tests, confirm human availability, lowered speakers,
-known routing and disposable backed-up state, per `AGENTS.md`. The human handles
-firmware flashing; no bootloader or wiring changes. Offline work needs no such
-confirmation. Keep raw firmware, projects, traces and recordings private;
-dependency changes require replayable patches at the pinned base.
+Restore I04R before normal use from
+`private/v01/firmware-V01P/Digitakt-I04R-previous.syx` (SHA256
+`6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b`).
+I04Q, H02F and stock 1.54 recoveries remain preserved. The agent controls Pi
+mute/trace/status; the human handles Transfer and SD insertion. Keep lowered
+speakers, known routing and disposable backed-up state for hardware audio tests,
+per `AGENTS.md`. No bootloader/wiring changes. Keep firmware/projects/raw traces
+private; replay dependency changes at the pinned base. V01 remains unaccepted.

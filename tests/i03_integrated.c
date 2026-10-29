@@ -42,6 +42,11 @@ static void advance_during_worker(void) { ++usb_track_clock; }
 static void stock(const uint8_t *p,uint32_t n) { (void)p; foreign+=n; }
 static void collect(const uint8_t *p,uint32_t n)
 {
+#ifdef V01_COMPACT_SNAPSHOTS
+    if (n>7 && p[6]!=SC_CONTROL_VERSION) {
+        assert(n==SC_COMPACT_WIRE_SIZE && p[6]==3);
+    }
+#endif
     assert(write_at-read_at<256); memcpy(packets[write_at%256],p,n);
     lengths[write_at%256]=n; ++write_at;
 }

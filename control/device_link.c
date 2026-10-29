@@ -58,11 +58,12 @@ int sc_dev_open(struct sc_device_link *d, uint32_t session, uint32_t block,
     return 1;
 }
 
-int sc_dev_send_start(struct sc_device_link *d, const struct sc_frame *source,
-                      uint32_t block, uint8_t out[SC_WIRE_SIZE])
+static unsigned send_snapshot(struct sc_device_link *d, const struct sc_frame *source,
+                      uint32_t block, uint8_t out[SC_WIRE_SIZE], int compact)
 {
     struct sc_frame f;
     struct sc_device_replay *r;
+    unsigned size;
     if (d == NULL || source == NULL || out == NULL ||
         (d->state != SC_DEVICE_WAIT_ACTIVATE && d->state != SC_DEVICE_ACTIVE) ||
         d->next_sequence == 0 || d->next_sequence == UINT32_MAX) return 0;
@@ -77,15 +78,31 @@ int sc_dev_send_start(struct sc_device_link *d, const struct sc_frame *source,
     f.session = d->session;
     f.sequence = d->next_sequence;
     f.block = block;
-    if ((d->state == SC_DEVICE_WAIT_ACTIVATE && !(f.flags & SC_START)) ||
-        !sc_encode(out, &f)) return 0;
+    if (d->state == SC_DEVICE_WAIT_ACTIVATE && !(f.flags & SC_START)) return 0;
+    size=compact ? sc_encode_compact(out,&f) : (sc_encode(out,&f) ? SC_WIRE_SIZE : 0);
+    if (!size) return 0;
     r = &d->replay[(d->head + d->count) % SC_DEVICE_REPLAY];
     r->frame = f;
     r->used = 1;
+    r->compact = size==SC_COMPACT_WIRE_SIZE;
     ++d->count;
     ++d->next_sequence;
     d->last_tx_block = block;
-    return 1;
+    return size;
+}
+int sc_dev_send_start(struct sc_device_link *d, const struct sc_frame *source,
+                      uint32_t block, uint8_t out[SC_WIRE_SIZE])
+{ return send_snapshot(d,source,block,out,0)==SC_WIRE_SIZE; }
+unsigned sc_dev_send_compact_start(struct sc_device_link *d, const struct sc_frame *source,
+                                  uint32_t block, uint8_t out[SC_WIRE_SIZE])
+{ return send_snapshot(d,source,block,out,1); }
+
+unsigned sc_dev_resend_frame(struct sc_device_link *d, uint8_t out[SC_WIRE_SIZE])
+{
+    if (d == NULL || out == NULL || !d->count || d->state == SC_DEVICE_CLOSED ||
+        d->state == SC_DEVICE_INVALID || d->state == SC_DEVICE_WAIT_HELLO_ACK) return 0;
+    return d->replay[d->head].compact ? sc_encode_compact(out,&d->replay[d->head].frame) :
+        (sc_encode(out,&d->replay[d->head].frame) ? SC_WIRE_SIZE : 0);
 }
 
 int sc_dev_resend_start(struct sc_device_link *d, uint8_t out[SC_WIRE_SIZE])
@@ -93,6 +110,8 @@ int sc_dev_resend_start(struct sc_device_link *d, uint8_t out[SC_WIRE_SIZE])
     if (d == NULL || out == NULL || !d->count || d->state == SC_DEVICE_CLOSED ||
         d->state == SC_DEVICE_INVALID || d->state == SC_DEVICE_WAIT_HELLO_ACK)
         return 0;
+    /* Legacy callers have no length result; never hand them a short frame. */
+    if (d->replay[d->head].compact) return 0;
     return sc_encode(out, &d->replay[d->head].frame);
 }
 

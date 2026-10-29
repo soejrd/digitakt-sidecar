@@ -127,6 +127,8 @@ def candidate_prepare(args):
                 manifest['subscribe']=manifest.get('subscribe',[])+[
                     {'event':'ev_render_in','fn':'usb_track_diag_render_in','order':10},
                     {'event':'ev_render_out','fn':'usb_track_diag_render_out','order':90}]
+            if getattr(args, 'compact_snapshots', False):
+                cflags.append('-DV01_COMPACT_SNAPSHOTS')
             if getattr(args, 'no_self_wake', False):
                 cflags.append('-DV01_NO_SELF_WAKE')
             if getattr(args, 'worker_priority', None) is not None:
@@ -150,11 +152,11 @@ def candidate_prepare(args):
     os.environ.update(p.env())
     first_run(p,progress=lambda e:print(e.step,e.kind,flush=True) if e.kind in ('start','done') else None)
     assign_project(p,root)
-    write_candidate_metadata(root,p,version,args.diagnostic,getattr(args,'label',None),getattr(args,'no_self_wake',False),getattr(args,'worker_priority',None),getattr(args,'remote_diagnostic',False))
+    write_candidate_metadata(root,p,version,args.diagnostic,getattr(args,'label',None),getattr(args,'no_self_wake',False),getattr(args,'worker_priority',None),getattr(args,'remote_diagnostic',False),getattr(args,'compact_snapshots',False))
     print('CANDIDATE BOOTED AND ASSIGNED',flush=True)
 
 
-def write_candidate_metadata(root,p,version,diagnostic=False,label=None,no_self_wake=False,worker_priority=None,remote_diagnostic=False):
+def write_candidate_metadata(root,p,version,diagnostic=False,label=None,no_self_wake=False,worker_priority=None,remote_diagnostic=False,compact_snapshots=False):
     artifacts=root/'artifacts'
     (root/'fixture.json').write_text(json.dumps({
         'firmware_root':str(Path(p.root).relative_to(root)),
@@ -166,6 +168,7 @@ def write_candidate_metadata(root,p,version,diagnostic=False,label=None,no_self_
         'compiler_defines':(['USB_TRACK_DIAGNOSTIC'] if diagnostic else []) +
             (['V01_NO_SELF_WAKE'] if no_self_wake else []) +
             (['V01_REMOTE_DIAGNOSTIC'] if remote_diagnostic else []) +
+            (['V01_COMPACT_SNAPSHOTS'] if compact_snapshots else []) +
             ([f'V01_WORKER_PRIORITY={worker_priority}'] if worker_priority is not None else []),
         'source_hashes':{str(f.relative_to(ROOT)):r03.sha(f) for f in
             sorted(set([p for folder in ('mods/usb-track','mods/usb-midi')
@@ -464,10 +467,13 @@ def main():
     p.add_argument('--fixture', type=Path, required=True)
     p.add_argument('--diagnostic', action='store_true', help='H02F: corrected native mode with SRC diagnostics')
     p.add_argument('--remote-diagnostic', action='store_true', help='V01 raw-timer and one-Hz remote telemetry (requires --diagnostic)')
+    p.add_argument('--compact-snapshots', action='store_true', help='V01 exact integer SRC full snapshots (paired Pi required)')
     p.add_argument('--no-self-wake', action='store_true', help='V01 diagnostic: disable worker self-reschedule')
     p.add_argument('--worker-priority', type=int, help='V01 diagnostic: override USB worker priority')
     p.add_argument('--label', help='explicit private candidate four-character firmware label')
     args = ap.parse_args()
+    if getattr(args,'compact_snapshots',False) and not getattr(args,'diagnostic',False):
+        ap.error('--compact-snapshots requires --diagnostic')
     if getattr(args,'remote_diagnostic',False) and not getattr(args,'diagnostic',False):
         ap.error('--remote-diagnostic requires --diagnostic')
     {'prepare':prepare,'candidate':candidate_prepare,'check':check}[args.command](args)

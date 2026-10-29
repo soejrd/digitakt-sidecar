@@ -1,0 +1,32 @@
+{
+  "task": "V01",
+  "scope": "offline V01G compact full-snapshot receiver build; not deployed",
+  "platform": "Pi 4B Circle",
+  "command": "bash deps/sidecar-firmware/pi/engine/build.sh kernel",
+  "result": "PASS",
+  "kernel_bytes": 2476872,
+  "kernel_sha256": "2b027a172e089af8fc273e4b2351d7fd72a7223b92f8ac6dfc8b20c491e2df5f",
+  "playout_delay_frames": 128,
+  "source_sha256": {
+    "control/v01_diag.h": "56b196d7683d4f1697a38f949d8c9055c369194aa861697fd52a54411c6bea6d",
+    "scripts/i03_prepare_circle.sh": "c3c64bf3007d21df46ee130bafdcecc05c19e33b8ffc00320ef68ecdf22d13a4",
+    "patches/sidecar-firmware/0011-v01-remote-diagnostics.patch": "cb8e2cb3925b7c2618e7ad2b42c6227b382fa051f41bb377cf75a80ceb21cd60",
+    "patches/sidecar-firmware/0012-v01-duty-counters.patch": "840e8ffaa7bee8255b223041bdc8581dae8ca89c36f42b17204dcf2dff7c8830",
+    "deps/sidecar-firmware/pi/engine/dt_link.cpp": "cc30bdd22317e2214888e2bde0b815f5a9e663b92bd34593236616c262daad21",
+    "deps/sidecar-firmware/pi/engine/dt_link.h": "21cf4881dcb02f26ca54cf74799f2918ded964b43bd06fb7b1570edd6c13c0ea",
+    "deps/sidecar-firmware/pi/engine/cores.cpp": "4e28f63b869404f91161949f483dace15d849a6a96fef737bedc0ca4d9531df7",
+    "deps/sidecar-firmware/pi/engine/Makefile": "0cfa15feab464e8f8901c8dec43fc5491de71fa84422a2b4966f7ff2b25e6c6e",
+    "deps/sidecar-firmware/pi/engine/dt_control/v01_diag.h": "56b196d7683d4f1697a38f949d8c9055c369194aa861697fd52a54411c6bea6d",
+    "control/link.c": "a77605f80a299c502c7a39d36db2287682f133210bf924ab3567b64933294f43",
+    "control/link.h": "cc551384d65e30b2d7799a623ff163c31a3aa76958ed499f18ab6167ad5e2d08",
+    "deps/sidecar-firmware/pi/engine/dt_control/link.c": "a77605f80a299c502c7a39d36db2287682f133210bf924ab3567b64933294f43",
+    "deps/sidecar-firmware/pi/engine/dt_control/link.h": "cc551384d65e30b2d7799a623ff163c31a3aa76958ed499f18ab6167ad5e2d08"
+  },
+  "base_revision": "6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457",
+  "patches": "0001 through 0012 and tracked overlay",
+  "limits": [
+    "Not deployed; no physical compact-format scheduling measurement",
+    "Accepts legacy v1 plus compact v3 snapshots; prior F Pi cannot receive compact v3",
+    "No change to deadlines, synthesis rate or update cadence"
+  ]
+}

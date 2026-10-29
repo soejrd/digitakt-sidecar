@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Status | Dependencies / first action | Acceptance |
 | --- | --- | --- | --- | --- |
-| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29 physical trial) | [E severe result](evidence/v01/remote-severe-result.json): SPD64/DEP100 ~3 fps, FIFO grows before unplug; recovery after USB removal. Measured send critical max ~24 us/~1.5% near onset; aggregate worker/render remains unresolved. [F pair](evidence/v01/duty-candidate.json) verified; [F SD updated/read-back/ejected](evidence/v01/duty-sd-deployment.json), boot pending. Human F Transfer flash authorized in parallel, confirmation pending. Next boot/build check and version-2 remote baseline. USB disconnected; E is last confirmed Digitakt firmware. Startup/reconnect faults still open. | Numeric supported workload with responsive UI and no audio/deadline failure; native persistence/edit semantics; reconnect and combined soak; explicit listening acceptance. |
+| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29 physical trial) | [F dense ramp](evidence/v01/duty-dense-result.json): SPD64 lag above ~DEP32, obvious ~55; unplug restores UI; fault 0/FIFO17 stable. Worker elapsed ~3.6→33–36%, native render ~83→85% (overlapping brackets). F pair installed/boot verified; USB disconnected, muted. [G lossless compact pair verified/staged](evidence/v01/compact-candidate.json), paired Pi required. Next human SD/Transfer trial. Startup/reconnect faults remain open. | Numeric supported workload with responsive UI and no audio/deadline failure; native persistence/edit semantics; reconnect and combined soak; explicit listening acceptance. |
 
 ## Waiting
 

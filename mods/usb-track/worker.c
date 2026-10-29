@@ -109,7 +109,12 @@ void usb_track_tick(void *ctrl)
         f.voice=voice; f.flags=(first || (r.flags & UT_START)) ? SC_START : 0;
         f.note=r.note; f.velocity=r.velocity;
         for(k=0;k<8;++k) f.params[k]=r.params[k];
-        if (!sc_dev_send_start(&device,&f,f.block,out) || !send_bytes(out,SC_WIRE_SIZE)) {
+#ifdef V01_COMPACT_SNAPSHOTS
+        unsigned size=sc_dev_send_compact_start(&device,&f,f.block,out);
+#else
+        unsigned size=sc_dev_send_start(&device,&f,f.block,out) ? SC_WIRE_SIZE : 0;
+#endif
+        if (!size || !send_bytes(out,size)) {
             retire(SC_REASON_OVERFLOW); return;
         }
         first=0;

@@ -7,7 +7,7 @@ from pathlib import Path
 root=Path(__file__).resolve().parent.parent
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 ap=argparse.ArgumentParser(description=__doc__)
-ap.add_argument('--label',choices=('V01E','V01F'),default='V01E')
+ap.add_argument('--label',choices=('V01E','V01F','V01G'),default='V01E')
 ap.add_argument('--evidence',default='evidence/v01/remote-pi-build.json')
 ap.add_argument('--rollback',default='private/i04/event-worker-final/kernel8-rpi4.img')
 ap.add_argument('--rollback-sha',default='c057f063c24770a520b842e66d4d7e10655bdda3d45de05e1b67edc85d34a0f2')

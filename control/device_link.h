@@ -27,7 +27,7 @@ struct sc_device_update {
 
 struct sc_device_replay {
     struct sc_frame frame;
-    uint8_t used;
+    uint8_t used, compact;
 };
 
 struct sc_device_link {
@@ -47,6 +47,12 @@ int sc_dev_open(struct sc_device_link *d, uint32_t session, uint32_t block,
  * owned here. The START is retained until its matching ACTIVATE is received. */
 int sc_dev_send_start(struct sc_device_link *d, const struct sc_frame *source,
                       uint32_t block, uint8_t out[SC_WIRE_SIZE]);
+/* Exact full-snapshot compact variant; returns actual wire size, or zero.
+ * Legacy fallback preserves fractional/out-of-range SRC state exactly. */
+unsigned sc_dev_send_compact_start(struct sc_device_link *d, const struct sc_frame *source,
+                                  uint32_t block, uint8_t out[SC_WIRE_SIZE]);
+/* Matching replay API, preserving original wire encoding and size. */
+unsigned sc_dev_resend_frame(struct sc_device_link *d, uint8_t out[SC_WIRE_SIZE]);
 /* Resends the oldest unacknowledged START without consuming a sequence. */
 int sc_dev_resend_start(struct sc_device_link *d, uint8_t out[SC_WIRE_SIZE]);
 /* Applies HELLO_ACK/ACTIVATE/DEACTIVATE/KEEPALIVE. Only ACTIVATE that names the

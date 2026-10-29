@@ -1,0 +1,314 @@
+{
+  "task": "V01",
+  "date_utc": "2026-10-29T12:33:20.412800+00:00",
+  "scope": "V01F muted dense ramp; physical responsiveness failure, not accepted",
+  "human_report": {
+    "speed": 64,
+    "depth": "lag obvious around 55; generally above ~32; exact final depth unrecorded",
+    "response": "unplugging USB restored responsiveness"
+  },
+  "installed_digitakt": "V01F",
+  "installed_pi_sha256": "0276c26b58092490f2b3b3fee89c99d4b4c8309144b0f53b13fbae0104354068",
+  "samples": 55,
+  "unique_received_samples": 36,
+  "observations": {
+    "fifo_underruns_start": 17,
+    "fifo_underruns_end": 17,
+    "faults_max": 0,
+    "guards_max": 0,
+    "ui_gap_ms_max": 141,
+    "worker_batch_max_us": 3334.848484848485,
+    "native_send_max_us": 24.71212121212121
+  },
+  "source_intervals": [
+    {
+      "source_sequence": 142,
+      "source_elapsed_s": 3.0000013333333335,
+      "native_sends_per_s": 275.9998773333878,
+      "worker_elapsed_fraction": 0.035391499421959856,
+      "native_render_elapsed_fraction": 0.8306658808151641,
+      "masked_send_fraction": 0.004820649372640683
+    },
+    {
+      "source_sequence": 144,
+      "source_elapsed_s": 2.000002606060606,
+      "native_sends_per_s": 276.4996397125907,
+      "worker_elapsed_fraction": 0.03561616192439507,
+      "native_render_elapsed_fraction": 0.8308315651285666,
+      "masked_send_fraction": 0.0048241187140271305
+    },
+    {
+      "source_sequence": 146,
+      "source_elapsed_s": 2.0000130227272725,
+      "native_sends_per_s": 275.9982028753381,
+      "worker_elapsed_fraction": 0.033812431350115565,
+      "native_render_elapsed_fraction": 0.8306995682857656,
+      "masked_send_fraction": 0.004827661747157033
+    },
+    {
+      "source_sequence": 148,
+      "source_elapsed_s": 2.0000130378787877,
+      "native_sends_per_s": 276.4981975250078,
+      "worker_elapsed_fraction": 0.036994046716839396,
+      "native_render_elapsed_fraction": 0.8307821826661501,
+      "masked_send_fraction": 0.004825923085554431
+    },
+    {
+      "source_sequence": 150,
+      "source_elapsed_s": 1.9999946287878787,
+      "native_sends_per_s": 276.0007412292634,
+      "worker_elapsed_fraction": 0.03639847275195902,
+      "native_render_elapsed_fraction": 0.8308643184954614,
+      "masked_send_fraction": 0.0048227288610407665
+    },
+    {
+      "source_sequence": 153,
+      "source_elapsed_s": 3.000018106060606,
+      "native_sends_per_s": 276.3316655740386,
+      "worker_elapsed_fraction": 0.03658846351912169,
+      "native_render_elapsed_fraction": 0.8307295241324175,
+      "masked_send_fraction": 0.004830963267671188
+    },
+    {
+      "source_sequence": 155,
+      "source_elapsed_s": 2.000002393939394,
+      "native_sends_per_s": 275.9996696367591,
+      "worker_elapsed_fraction": 0.034991560388889835,
+      "native_render_elapsed_fraction": 0.8307512480401728,
+      "masked_send_fraction": 0.004811880603961095
+    },
+    {
+      "source_sequence": 157,
+      "source_elapsed_s": 1.999994962121212,
+      "native_sends_per_s": 276.00069522902396,
+      "worker_elapsed_fraction": 0.037049453173811975,
+      "native_render_elapsed_fraction": 0.8309704605884708,
+      "masked_send_fraction": 0.004826716703661394
+    },
+    {
+      "source_sequence": 159,
+      "source_elapsed_s": 2.0000097424242425,
+      "native_sends_per_s": 276.49865311640946,
+      "worker_elapsed_fraction": 0.03705819448167385,
+      "native_render_elapsed_fraction": 0.8308338884379526,
+      "masked_send_fraction": 0.004828385570818773
+    },
+    {
+      "source_sequence": 162,
+      "source_elapsed_s": 3.000013106060606,
+      "native_sends_per_s": 275.9987942476918,
+      "worker_elapsed_fraction": 0.03539497668356146,
+      "native_render_elapsed_fraction": 0.8308662742458222,
+      "masked_send_fraction": 0.004817645619881509
+    },
+    {
+      "source_sequence": 164,
+      "source_elapsed_s": 2.0000019924242425,
+      "native_sends_per_s": 276.49972454762286,
+      "worker_elapsed_fraction": 0.03528058227729872,
+      "native_render_elapsed_fraction": 0.8306257747932623,
+      "masked_send_fraction": 0.004828745189545512
+    },
+    {
+      "source_sequence": 166,
+      "source_elapsed_s": 2.0000031590909093,
+      "native_sends_per_s": 275.9995640461431,
+      "worker_elapsed_fraction": 0.035230781472591385,
+      "native_render_elapsed_fraction": 0.830573191859769,
+      "masked_send_fraction": 0.004828465858067186
+    },
+    {
+      "source_sequence": 168,
+      "source_elapsed_s": 2.0000234090909093,
+      "native_sends_per_s": 276.49676373106087,
+      "worker_elapsed_fraction": 0.03677553546816441,
+      "native_render_elapsed_fraction": 0.830497711219971,
+      "masked_send_fraction": 0.004831636629707629
+    },
+    {
+      "source_sequence": 171,
+      "source_elapsed_s": 2.9999955454545453,
+      "native_sends_per_s": 276.00040981879033,
+      "worker_elapsed_fraction": 0.03584672999463949,
+      "native_render_elapsed_fraction": 0.8304886952710929,
+      "masked_send_fraction": 0.004819593014951245
+    },
+    {
+      "source_sequence": 173,
+      "source_elapsed_s": 2.0000114848484847,
+      "native_sends_per_s": 276.49841222881463,
+      "worker_elapsed_fraction": 0.03835086689426435,
+      "native_render_elapsed_fraction": 0.8303995610388843,
+      "masked_send_fraction": 0.004831483619207702
+    },
+    {
+      "source_sequence": 175,
+      "source_elapsed_s": 2.000001818181818,
+      "native_sends_per_s": 275.99974909113723,
+      "worker_elapsed_fraction": 0.03644850095590822,
+      "native_render_elapsed_fraction": 0.8306414456289888,
+      "masked_send_fraction": 0.004827825156522585
+    },
+    {
+      "source_sequence": 177,
+      "source_elapsed_s": 2.000007734848485,
+      "native_sends_per_s": 275.9989325950372,
+      "worker_elapsed_fraction": 0.036737240497263075,
+      "native_render_elapsed_fraction": 0.8307147683341725,
+      "masked_send_fraction": 0.004822602561071156
+    },
+    {
+      "source_sequence": 180,
+      "source_elapsed_s": 3.000003984848485,
+      "native_sends_per_s": 276.3329662849993,
+      "worker_elapsed_fraction": 0.035404134791477526,
+      "native_render_elapsed_fraction": 0.8308504140724298,
+      "masked_send_fraction": 0.004822124907985602
+    },
+    {
+      "source_sequence": 182,
+      "source_elapsed_s": 2.000012409090909,
+      "native_sends_per_s": 275.9982875560795,
+      "worker_elapsed_fraction": 0.036557769387779326,
+      "native_render_elapsed_fraction": 0.8307660689590115,
+      "masked_send_fraction": 0.004830769269696728
+    },
+    {
+      "source_sequence": 184,
+      "source_elapsed_s": 2.0000008333333334,
+      "native_sends_per_s": 276.49988479171463,
+      "worker_elapsed_fraction": 0.03466764464605716,
+      "native_render_elapsed_fraction": 0.8306201576961464,
+      "masked_send_fraction": 0.0048201229916154205
+    },
+    {
+      "source_sequence": 186,
+      "source_elapsed_s": 2.000006015151515,
+      "native_sends_per_s": 275.99916991158744,
+      "worker_elapsed_fraction": 0.03551655606005488,
+      "native_render_elapsed_fraction": 0.8306576911280047,
+      "masked_send_fraction": 0.004830977894710423
+    },
+    {
+      "source_sequence": 189,
+      "source_elapsed_s": 3.000007575757576,
+      "native_sends_per_s": 276.33263552364764,
+      "worker_elapsed_fraction": 0.0356024151454163,
+      "native_render_elapsed_fraction": 0.8307990964669281,
+      "masked_send_fraction": 0.004831164567766243
+    },
+    {
+      "source_sequence": 191,
+      "source_elapsed_s": 2.0000136136363635,
+      "native_sends_per_s": 275.9981213309696,
+      "worker_elapsed_fraction": 0.035287994649521266,
+      "native_render_elapsed_fraction": 0.8306344482950622,
+      "masked_send_fraction": 0.00482775501713725
+    },
+    {
+      "source_sequence": 193,
+      "source_elapsed_s": 2.0006859393939393,
+      "native_sends_per_s": 279.40417283551056,
+      "worker_elapsed_fraction": 0.04563747272980739,
+      "native_render_elapsed_fraction": 0.8331287658675125,
+      "masked_send_fraction": 0.0049041399982878596
+    },
+    {
+      "source_sequence": 195,
+      "source_elapsed_s": 2.0046144015151515,
+      "native_sends_per_s": 330.2380744644154,
+      "worker_elapsed_fraction": 0.07784516829600657,
+      "native_render_elapsed_fraction": 0.838473998670212,
+      "masked_send_fraction": 0.005870028635182884
+    },
+    {
+      "source_sequence": 198,
+      "source_elapsed_s": 3.0026758636363637,
+      "native_sends_per_s": 451.5971958284663,
+      "worker_elapsed_fraction": 0.11727889760470064,
+      "native_render_elapsed_fraction": 0.8425297593272449,
+      "masked_send_fraction": 0.008096654414917902
+    },
+    {
+      "source_sequence": 200,
+      "source_elapsed_s": 2.0047206742424244,
+      "native_sends_per_s": 340.19702034435545,
+      "worker_elapsed_fraction": 0.10822216526658937,
+      "native_render_elapsed_fraction": 0.8422286813787921,
+      "masked_send_fraction": 0.006081762414652726
+    },
+    {
+      "source_sequence": 202,
+      "source_elapsed_s": 2.0020120833333332,
+      "native_sends_per_s": 334.6633147610456,
+      "worker_elapsed_fraction": 0.11351036823389742,
+      "native_render_elapsed_fraction": 0.8425616471186875,
+      "masked_send_fraction": 0.005975257581298087
+    },
+    {
+      "source_sequence": 204,
+      "source_elapsed_s": 2.0019976818181817,
+      "native_sends_per_s": 415.58489680387197,
+      "worker_elapsed_fraction": 0.1110306321533521,
+      "native_render_elapsed_fraction": 0.8438934067121607,
+      "masked_send_fraction": 0.007429408748066618
+    },
+    {
+      "source_sequence": 206,
+      "source_elapsed_s": 1.999992696969697,
+      "native_sends_per_s": 528.0019280070401,
+      "worker_elapsed_fraction": 0.09553161777454369,
+      "native_render_elapsed_fraction": 0.8399678171552112,
+      "masked_send_fraction": 0.009459818633580162
+    },
+    {
+      "source_sequence": 209,
+      "source_elapsed_s": 3.002034075757576,
+      "native_sends_per_s": 569.6137874679101,
+      "worker_elapsed_fraction": 0.15692494688285819,
+      "native_render_elapsed_fraction": 0.8444395850007739,
+      "masked_send_fraction": 0.010210460888061811
+    },
+    {
+      "source_sequence": 211,
+      "source_elapsed_s": 1.9999534015151514,
+      "native_sends_per_s": 852.5198630669611,
+      "worker_elapsed_fraction": 0.34115802826906017,
+      "native_render_elapsed_fraction": 0.8510657382778642,
+      "masked_send_fraction": 0.015035926083262645
+    },
+    {
+      "source_sequence": 213,
+      "source_elapsed_s": 2.001325083333333,
+      "native_sends_per_s": 912.3954999647942,
+      "worker_elapsed_fraction": 0.3330365993763882,
+      "native_render_elapsed_fraction": 0.8509407655293958,
+      "masked_send_fraction": 0.016043022344389094
+    },
+    {
+      "source_sequence": 215,
+      "source_elapsed_s": 2.001345856060606,
+      "native_sends_per_s": 912.3860298660462,
+      "worker_elapsed_fraction": 0.3408463584162435,
+      "native_render_elapsed_fraction": 0.8513848898491047,
+      "masked_send_fraction": 0.015997094954886288
+    },
+    {
+      "source_sequence": 217,
+      "source_elapsed_s": 2.0006812803030303,
+      "native_sends_per_s": 912.1892717082748,
+      "worker_elapsed_fraction": 0.36323769847353776,
+      "native_render_elapsed_fraction": 0.8513643206742655,
+      "masked_send_fraction": 0.01587672432597761
+    }
+  ],
+  "raw_sha256": "41724a897849477db583d594b605af165f873bc609736b9e5d8a13e61f7348bf",
+  "limits": [
+    "Approximate human ramp onset, not a fixed 64/64 pass/fail or supported limit",
+    "Elapsed worker brackets include preemptions and overlap native render; never sum as CPU use",
+    "132MHz timer calibrated on F hardware; unsigned 32-bit deltas used; stale repeats excluded",
+    "Muted synthesis still renders; no audible qualification",
+    "USB removal changes multiple subsystems; precise contention mechanism remains unproven"
+  ],
+  "next_hypothesis": "Reduce per-snapshot native serializer work while retaining every event, identity, timestamp and complete state; compare same hardware profile"
+}

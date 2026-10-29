@@ -30,7 +30,10 @@ static void start(unsigned id,unsigned block) {
 #else
   f.block=block; f.voice=1; f.flags=SC_START; f.params[0]=60<<8;
 #endif
-  assert(sc_encode(b,&f)); assert(dt_link::SysEx(b,sizeof b));
+  // Exercise both encodings through the actual Circle receiver and scheduler.
+  unsigned size = id%2 ? (sc_encode(b,&f) ? SC_WIRE_SIZE : 0) : sc_encode_compact(b,&f);
+  assert(size && (id%2 || size==SC_COMPACT_WIRE_SIZE));
+  assert(dt_link::SysEx(b,size));
   auto c=reply(); assert(c.kind==SC_ACTIVATE && c.value==block);
 }
 int main() {

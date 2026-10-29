@@ -1,0 +1,32 @@
+{
+  "task": "V01",
+  "date_utc": "2026-10-29T12:12:55.862191+00:00",
+  "scope": "F Pi boot/receiver/mute check before USB reconnection",
+  "digitakt": "V01F per human installation confirmation; USB disconnected per human report",
+  "pi_build": "Oct 29 2026 12:02:53",
+  "uptime_s": 32,
+  "streaming": false,
+  "fifo_underruns": 0,
+  "trx": {
+    "armed": 0,
+    "queue": 0,
+    "peak": 0,
+    "faults": 0,
+    "applied": 0,
+    "starts": 0,
+    "consumed": 0,
+    "frame": 0
+  },
+  "receiver_confirmed": true,
+  "total_line": {
+    "sequence": 0,
+    "worker_ticks_total": 0,
+    "render_ticks_total": 0,
+    "protocol_version": 0
+  },
+  "trace_disabled_confirmed": true,
+  "limits": [
+    "No source telemetry expected before USB; version 0 means no packet received, not legacy or empty CPU totals",
+    "F hardware counter calibration/progress still required"
+  ]
+}

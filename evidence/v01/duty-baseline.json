@@ -1,0 +1,84 @@
+{
+  "task": "V01",
+  "date_utc": "2026-10-29T12:14:42.782359+00:00",
+  "scope": "F muted active 32/32 calibration and elapsed baseline; no playback requested",
+  "settings": "SPD32/DEP32 per human report; same held PTCH profile",
+  "sample_count": 6,
+  "assertions": {
+    "version2": true,
+    "source_progress": true,
+    "worker_total_progress": true,
+    "render_total_progress": true,
+    "no_malformed": true,
+    "muted": true,
+    "fault_free": true,
+    "guards_intact": true,
+    "fifo_stable": true,
+    "control_active": true
+  },
+  "fifo_baseline": 17,
+  "source_intervals": [
+    {
+      "source_elapsed_s": 3.0,
+      "timer_hz": 132000695.33333333,
+      "worker_elapsed_fraction": 0.03628653612698394,
+      "render_elapsed_fraction": 0.8307375355593455,
+      "masked_send_fraction": 0.0048232548956825445,
+      "worker_entries_per_s": 281.9985145229765
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "timer_hz": 131999842.5,
+      "worker_elapsed_fraction": 0.0355062014562631,
+      "render_elapsed_fraction": 0.8309930748591613,
+      "masked_send_fraction": 0.004814869381378239,
+      "worker_entries_per_s": 282.0003364776742
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "timer_hz": 131999470.0,
+      "worker_elapsed_fraction": 0.03691617095129245,
+      "render_elapsed_fraction": 0.8306434753109236,
+      "masked_send_fraction": 0.0048258564977571505,
+      "worker_entries_per_s": 282.00113227727354
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "timer_hz": 132001259.5,
+      "worker_elapsed_fraction": 0.03643235692004893,
+      "render_elapsed_fraction": 0.8308332391328432,
+      "masked_send_fraction": 0.004828321354009505,
+      "worker_entries_per_s": 281.997309275674
+    },
+    {
+      "source_elapsed_s": 1.0,
+      "timer_hz": 132001099.0,
+      "worker_elapsed_fraction": 0.03672512605368536,
+      "render_elapsed_fraction": 0.8307954011807129,
+      "masked_send_fraction": 0.004830452207068367,
+      "worker_entries_per_s": 281.9976521559112
+    }
+  ],
+  "medians": {
+    "source_elapsed_s": 2.0,
+    "timer_hz": 132000695.33333333,
+    "worker_elapsed_fraction": 0.03643235692004893,
+    "render_elapsed_fraction": 0.8307954011807129,
+    "masked_send_fraction": 0.0048258564977571505,
+    "worker_entries_per_s": 281.9985145229765
+  },
+  "latest_maxima": {
+    "ui_gap_ms": 34,
+    "worker_gap_ms": 34,
+    "batch_ms": 3,
+    "send_ticks_max": 3191,
+    "ui_ticks_max": 4711487,
+    "batch_ticks_max": 440200
+  },
+  "limits": [
+    "Worker/render elapsed overlap during preemption; never sum as pure CPU",
+    "All fractions computed between source-snapshot counters in the same raw clock domain",
+    "No audible or sustained stress acceptance; startup underruns remain outside this measured interval"
+  ],
+  "status": "PASS \u2014 short muted active baseline only"
+}

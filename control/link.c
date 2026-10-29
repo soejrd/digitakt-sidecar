@@ -12,21 +12,33 @@ static uint32_t get(const uint8_t **p, unsigned n)
     while (n--) { v |= (uint32_t)*(*p)++ << shift; shift += 7; }
     return v;
 }
-int sc_encode(uint8_t out[SC_WIRE_SIZE], const struct sc_frame *f)
+static unsigned encode_snapshot(uint8_t out[SC_WIRE_SIZE], const struct sc_frame *f, int compact)
 {
     uint8_t *p = out; unsigned i;
+    if (!out || !f) return 0;
     if (!f->session || !f->sequence || f->sequence == UINT32_MAX ||
         f->flags & ~SC_START) return 0;
+    if (compact) for (i=0; i<8; ++i)
+        if (f->params[i]<0 || f->params[i]>(127<<8) || (f->params[i]&255)) {
+            compact=0; break;
+        }
     *p++ = 0xf0; *p++ = 0x7d; *p++ = 'D'; *p++ = 'T';
-    *p++ = 'S'; *p++ = 'C'; *p++ = 1;
+    *p++ = 'S'; *p++ = 'C'; *p++ = compact ? 3 : 1;
     put(&p, f->session, 5); put(&p, f->sequence, 5);
     put(&p, f->block, 5); put(&p, f->voice, 5);
     put(&p, (uint32_t)f->note, 5);
-    for (i=0; i<8; ++i) put(&p, (uint16_t)f->params[i], 3);
+    for (i=0; i<8; ++i) {
+        if (compact) *p++=(uint8_t)(f->params[i]>>8);
+        else put(&p, (uint16_t)f->params[i], 3);
+    }
     put(&p, (uint16_t)f->velocity, 3);
     *p++ = f->flags; *p++ = 0xf7;
-    return p-out == SC_WIRE_SIZE;
+    return p-out == (compact ? SC_COMPACT_WIRE_SIZE : SC_WIRE_SIZE) ? (unsigned)(p-out) : 0;
 }
+int sc_encode(uint8_t out[SC_WIRE_SIZE], const struct sc_frame *f)
+{ return encode_snapshot(out,f,0)==SC_WIRE_SIZE; }
+unsigned sc_encode_compact(uint8_t out[SC_WIRE_SIZE], const struct sc_frame *f)
+{ return encode_snapshot(out,f,1); }
 static int32_t signed32(uint32_t v)
 {
     return v <= INT32_MAX ? (int32_t)v : -1-(int32_t)(UINT32_MAX-v);
@@ -37,18 +49,22 @@ static int16_t signed16(uint32_t v)
 }
 int sc_decode(struct sc_frame *f, const uint8_t *in, unsigned size)
 {
-    const uint8_t *p; struct sc_frame x = {0}; unsigned i;
-    static const uint8_t prefix[] = {0xf0,0x7d,'D','T','S','C',1};
-    if (size != SC_WIRE_SIZE || sc_compare(in,prefix,sizeof prefix) ||
+    const uint8_t *p; struct sc_frame x = {0}; unsigned i; int compact;
+    static const uint8_t prefix[] = {0xf0,0x7d,'D','T','S','C'};
+    if (!in || !f || (size!=SC_WIRE_SIZE && size!=SC_COMPACT_WIRE_SIZE)) return 0;
+    compact=size==SC_COMPACT_WIRE_SIZE;
+    if (sc_compare(in,prefix,sizeof prefix) || in[6]!=(compact ? 3 : 1) ||
         in[size-1] != 0xf7) return 0;
     for (i=7; i<size-1; ++i) if (in[i] & 128) return 0;
     /* Reject overlong integers rather than silently truncating. */
     for (i=11; i<=31; i+=5) if (in[i] > 15) return 0;
-    for (i=34; i<=58; i+=3) if (in[i] > 3) return 0;
+    if (compact) { if (in[42]>3) return 0; }
+    else for (i=34; i<=58; i+=3) if (in[i] > 3) return 0;
     p = in+7;
     x.session=get(&p,5); x.sequence=get(&p,5);
     x.block=get(&p,5); x.voice=get(&p,5); x.note=signed32(get(&p,5));
-    for (i=0; i<8; ++i) x.params[i]=signed16(get(&p,3));
+    for (i=0; i<8; ++i)
+        x.params[i]=compact ? (int16_t)((uint16_t)*p++<<8) : signed16(get(&p,3));
     x.velocity=signed16(get(&p,3)); x.flags=*p;
     if (!x.session || !x.sequence || x.sequence==UINT32_MAX || x.flags & ~SC_START) return 0;
     *f=x; return 1;

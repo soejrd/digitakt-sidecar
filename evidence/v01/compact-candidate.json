@@ -1,0 +1,51 @@
+{
+  "task": "V01",
+  "date_utc": "2026-10-29T12:35:15.714059+00:00",
+  "scope": "offline V01G exact compact full-snapshot candidate and paired Pi; not installed or accepted",
+  "candidate_sha256": "77709fcc7d0db75ffce3ed3d0e89f3f9e13f883e72f5f6c8109ad3124cc3a0f1",
+  "kernel_sha256": "2b027a172e089af8fc273e4b2351d7fd72a7223b92f8ac6dfc8b20c491e2df5f",
+  "compiler_defines": [
+    "USB_TRACK_DIAGNOSTIC",
+    "V01_NO_SELF_WAKE",
+    "V01_REMOTE_DIAGNOSTIC",
+    "V01_COMPACT_SNAPSHOTS"
+  ],
+  "protocol": {
+    "snapshot_versions_accepted": [
+      1,
+      3
+    ],
+    "legacy_sysex_bytes": 61,
+    "compact_sysex_bytes": 45,
+    "legacy_native_usb_midi_bytes": 84,
+    "compact_native_usb_midi_bytes": 60,
+    "compact_eligibility": "all eight SRC values integer 0..127; exact legacy fallback otherwise",
+    "semantics": "every full snapshot, identity, generation, timestamp, START, signed note and velocity unchanged; no cadence or latency change",
+    "pairing": "matching Pi required; old F Pi rejects compact v3; keep USB disconnected through both installations"
+  },
+  "checks": {
+    "full_host_suite": "bash scripts/test_i04.sh: PASS (includes compact dense worker 1000 updates, 64 STARTs, ACK loss/recovery, starvation)",
+    "patch_replay": "python3 scripts/test_i04_replay.py: PASS, all twelve patches at pinned base",
+    "compiled_diagnostic": "evidence/v01/compact-diagnostic.json",
+    "compiled_ui": "evidence/v01/compact-ui.json",
+    "native_worker_runtime": "evidence/v01/compact-runtime.json",
+    "compiled_native_serializer_exchange": "evidence/v01/compact-exchange.json",
+    "pi_build": "evidence/v01/compact-pi-build.json",
+    "full_host_log_sha256": "c236563367eeaa809226a238b97113d370a7785c0954a2633a172d556f4154a0"
+  },
+  "recovery": {
+    "digitakt": {
+      "Digitakt-I04R-previous.syx": "6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b",
+      "Digitakt-I04Q-previous.syx": "75f5b66ae5db95676eb767ece3239ec81a9281a42966fbca7689b22a8b14bb8b",
+      "Digitakt-H02F-previous.syx": "5acb609a4b409153d2eed7b528becf4ca553d7cce548031f00d4910c4e0ebd33",
+      "Digitakt-OS1.54-stock-recovery.syx": "f78ba80fa7b1da5fb0e1ff61ad61e9e71aafe79f4364fc49679f3651353e3cf6"
+    },
+    "pi_previous_F_sha256": "0276c26b58092490f2b3b3fee89c99d4b4c8309144b0f53b13fbae0104354068"
+  },
+  "physical_status": "F remains installed; G package only. Gate A responsiveness unresolved. Gates B/C outstanding.",
+  "limitations": [
+    "USB DMA completions and returned PCM modelled in emulator; no hardware responsiveness proof",
+    "Potential benefit from shorter/native short-branch serialization is a falsifiable hypothesis, not measured improvement",
+    "Worker/render elapsed brackets overlap; no additive CPU claim"
+  ]
+}

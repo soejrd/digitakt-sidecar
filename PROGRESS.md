@@ -10,62 +10,48 @@ Task status/claims: [TASKBOARD.md](TASKBOARD.md). Pins: sources.json. Read AGENT
 
 **Known failure explicitly deferred to V01:** increasing LFO speed/amount (e.g. PTCH) can stop TRX audio and make Digitakt sluggish. Captured code3 late parameter event **260frames/5.417ms late**; host disarmed. Retained fault 1, FIFO later 29 versus clean 3; interval includes later listening/high modulation, no precise boundary. No OS crash dump; sender CPU/transport/host scheduling cause unisolated. [Failure/reproduction lead](evidence/i04/v01-dense-lfo-handoff.json).
 
-## V01 — severe case measured; aggregate elapsed probe ready
+## V01 — F reproduces lag; compact full-snapshot G candidate
 
-V01 IN PROGRESS, Codex owner. [Plan](docs/V01-persistence-stress.md),
-[remote procedure](docs/V01-remote-probe.md). B/C both failed dense settings;
-priority-5 V01P rejected earlier, no-self-wake alone insufficient. USB removal
-restores UI after a few seconds. The agent controls Pi mute/trace/status via
-Sidecar HTTP; human handles Digitakt panel/Transfer and Pi SD insertion.
+V01 IN PROGRESS, Codex owner. [Plan](docs/V01-persistence-stress.md).
+B/C fail; V01P priority reduction rejected. No-self-wake alone insufficient.
+E severe SPD64/DEP100 gave ~3 fps, FIFO growth before unplug and late faults.
+[Result](evidence/v01/remote-severe-result.json). Corrected diagnostic clock is
+1500 blocks/s; old D/N/P displays overstate ms by 46.875×.
 
-**Installed pair:** human confirmed V01E and Pi remote kernel `8df83a5a…`.
-Pi boot/receiver verified; SECS and read-only DTIM0 calibrated at ~132 MHz,
-mode 3. [Boot](evidence/v01/remote-boot.json),
-[calibration](evidence/v01/remote-control-calibration.json).
-32/32 muted active baseline: FIFO 14 stable, faults 0. SPD64/DEP32 mild lag,
-approximate onset above SPD40, reversible when SPD returns to 32. Native send
-rate ~284→533/s. [Reversal](evidence/v01/remote-speed-reversal.json).
+**Installed F pair verified:** [boot](evidence/v01/duty-boot.json),
+[32/32 baseline](evidence/v01/duty-baseline.json),
+[dense result](evidence/v01/duty-dense-result.json). At SPD64, lag generally above
+DEP32 and obvious around DEP55 (approximate human ramp, final value unrecorded).
+USB removal restored responsiveness. Pi muted, faults 0, FIFO 17 stable, guards 0.
+Native render elapsed ~83→85%, worker ~3.6→33–36% at ~850–912 sends/s. Brackets
+overlap under preemption; never sum as CPU utilization. Masked send ~1.6%,
+max ~24.7 us; no proof of a single dominant mechanism. USB now disconnected.
 
-**Severe result:** human confirms SPD64/DEP100 (not a fixed 64/64 trial), about
-3 fps; unplugging restored response after uncertain few seconds. Recorder
-stopped at first new FIFO underrun, 14→101; log shows 145 before unplug and
-7 retained late faults queried afterward. Longest send critical section ~23.8 us,
-aggregate measured send critical fraction ~1.5% near first FIFO failure. Final
-retained UI service gap ~215 ms, worker batch elapsed max ~8.7 ms. Pi core-3
-average about 4.3%, block max 10 us. These argue against long masked sender
-calls alone as the dominant mechanism; aggregate worker/render occupancy and
-other task/IRQ work remain unmeasured. [Result](evidence/v01/remote-severe-result.json).
-No raw tick UI gap is a direct input latency or screen-FPS measurement.
+**G candidate:** preserves every event/full state/START/timestamp/order, reduces
+integer-SRC snapshots 61→45 SysEx bytes (native encoded bytes 84→60). Exact v1
+fallback for fractional/negative SRC. Sender replay keeps original format;
+matching Pi accepts v1/v3. F telemetry, priority14/no-self-wake, deadlines and
+128-frame playout unchanged. Hardware must show improvement; no fix claimed.
+[Verified G pair](evidence/v01/compact-candidate.json), staged in
+`private/v01/firmware-V01G/`; no deployment. Full sanitizer host suite, compact
+codec/worker/scheduler/recovery, twelve-patch replay and compiled exchange pass
+(12 remote packets, 0 malformed, stack 1368 B); paired Pi kernel builds.
 
-**Next probe V01F:** [verified pair](evidence/v01/duty-candidate.json), package
-`private/v01/firmware-V01F/`. Adds cumulative worker and native-render elapsed
-ticks via existing core events; version-2 packet 92 bytes, same low rate,
-priority14/no-self-wake/deadlines. Pi accepts/tags legacy v1 packets. Worker
-elapsed includes preemptions and overlaps renderer: never sum as pure CPU.
-Host/sanitizer/codec/receiver tests, twelve-patch replay, Pi build and compiled
-exchange pass (12 snapshots, 0 malformed, both totals advance, stack 1368 B).
-F Pi SD kernel now written/read-back verified and safely ejected;
-[deployment](evidence/v01/duty-sd-deployment.json). Boot pending. All 21 manifest
-entries pass; 62 other existing non-system files unchanged. Fresh card rollback
-`kernel8-rpi4.before-v01-duty.img` / `SHA256SUMS.before-v01-duty` and local
-`private/v01/sd-backup-before-duty/` preserve E `8df83a5a…`. Older pre-E/I04
-recovery is unchanged. Human may flash V01F via Transfer in parallel; completion
-not yet reported.
-
-**Next human step:** return the ejected SD and boot Pi; complete V01F Transfer
-flash, keeping Pi–Digitakt USB disconnected. Agent verifies Pi build/receiver,
-then version-2 counters/calibration at 32/32 after controlled reconnection. No more manual page extraction.
-Watch tool now saves each sample continuously and supports a stop marker.
-The early activation FIFO rise and hotplug fault remain separate open issues.
+**Next:** human can
+insert SD for verified write/read-back/eject and flash G using Transfer, keeping
+USB disconnected until matching Pi boot is verified. Trial starts muted at
+32/32, then same SPD64 ramp; stop promptly on lag/fault/FIFO growth. Agent polls
+remote diagnostics; no manual DIAG extraction. Startup/reconnect faults remain
+open; Gates B persistence and C reconnect/soak still outstanding.
 
 ## Hardware / recovery
 
-- Last human-reported installation: **V01E diagnostic**, Pi muted by agent.
+- Last human-reported installation: **V01F diagnostic**, Pi muted by agent.
   Restore I04R before normal use from
   `private/v01/firmware-V01P/Digitakt-I04R-previous.syx`; I04Q/H02F/stock also
   retained. I04R SHA256 `6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b`.
 - Pi card updated to F SHA256 `0276c26b58092490f2b3b3fee89c99d4b4c8309144b0f53b13fbae0104354068`,
-  128-frame playout; F boot pending. Immediate E rollback `8df83a5a…` is in
+  128-frame playout; F boot verified. Immediate E rollback `8df83a5a…` is in
   `private/v01/sd-backup-before-duty/` and on-card pre-duty backup files.
   Earlier `c057…` remains in pre-remote backups.
   Earlier I04 rollback remains in `private/i04/sd-backup-event-worker/`.

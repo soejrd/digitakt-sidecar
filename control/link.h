@@ -9,6 +9,7 @@ extern "C" {
  * packet can arrive too late for its trigger. Caller supplies a fresh nonzero
  * session on boot/reconnect; sequence numbers never wrap within a session. */
 #define SC_WIRE_SIZE 61
+#define SC_COMPACT_WIRE_SIZE 45
 #define SC_START 1u
 
 /* Session control frames are a separate, additive protocol version. They do
@@ -57,6 +58,10 @@ struct sc_control {
 /* Experimental noncommercial SysEx ID 0x7d, signature DTSC, version 1.
  * No packed C structs go on the wire. Returns zero on invalid input. */
 int sc_encode(uint8_t out[SC_WIRE_SIZE], const struct sc_frame *f);
+/* Version 3 retains the entire snapshot and every identity/timestamp field.
+ * Only integer 0..127 SRC values get one-byte encoding; otherwise exact v1
+ * fallback. Returns wire size (45 or 61), or zero. Output capacity is 61. */
+unsigned sc_encode_compact(uint8_t out[SC_WIRE_SIZE], const struct sc_frame *f);
 int sc_decode(struct sc_frame *f, const uint8_t *in, unsigned size);
 /* Version 2 session control. Returns zero on invalid/unknown input. */
 int sc_encode_control(uint8_t out[SC_CONTROL_WIRE_SIZE],
