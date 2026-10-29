@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Status | Dependencies / first action | Acceptance |
 | --- | --- | --- | --- | --- |
-| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29 physical trial) | [V01B control](evidence/v01/gate-a-v01b-control.json) short muted 32/32 passes; [64/64](evidence/v01/gate-a-v01b-dense.json) reproduces severe setting/SRC lag before Play, UGAP 225 ms. Pi FIFO 18 unchanged, faults 0. Next: human install verified V01C, fresh Pi boot; agent mutes/disables trace and captures counters. [Runbook](docs/V01-gate-a-runbook.md). Last reported installed V01B; I04R rollback retained. | Numeric supported workload with responsive UI and no audio/deadline failure; native persistence/edit semantics; reconnect and combined soak; explicit listening acceptance. |
+| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29 physical trial) | V01B and [V01C](evidence/v01/gate-a-v01c-dense.json) both reproduce severe setting/UI lag; no-self-wake alone insufficient. Active 32/32 controls pass; V01C first activation FIFO 7→14 remains unresolved, then stable at 14/faults 0 during dense lag. Stop manual panel extraction; next brief USB-disconnect responsiveness isolation and remote diagnostics. Last reported installed V01C; Pi muted/trace off; I04R rollback retained. | Numeric supported workload with responsive UI and no audio/deadline failure; native persistence/edit semantics; reconnect and combined soak; explicit listening acceptance. |
 
 ## Waiting
 

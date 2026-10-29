@@ -139,6 +139,27 @@ The service-tick metric does not explain the whole input-response delay; do not
 conflate UI tick continuity with panel response. Next: verified V01C paired
 trial, starting with a fresh Pi boot and 32/32 control before dense settings.
 
+### V01C physical comparison — no-self-wake insufficient (2026-10-29)
+
+[Preflight](../evidence/v01/gate-a-v01c-preflight.json),
+[control](../evidence/v01/gate-a-v01c-control.json),
+[dense failure](../evidence/v01/gate-a-v01c-dense.json).
+A manual first trigger was needed to establish an active control stream after
+boot. FIFO rose 7→14 during that interval; this activation issue remains open.
+The subsequent active 32/32 muted control was responsive, with no new Pi faults
+or underruns and all 20 new STARTs consumed. Diagnostics: WGAP 34 ms, BATCH 1 ms,
+UGAP 36 ms, FAULT 0. Human stopwatch/SECS check passed again.
+
+Attempting 64/64 made setting controls extremely laggy and nearly unusable before
+Play. Human estimated extracting the page would take about ten minutes; further
+panel reading was stopped. Exact final knob settings and dense diagnostics are
+unavailable. Pi faults stayed 0, FIFO stayed 14, queue peak 4. Thus removing
+self-wake alone does not remove this failure; it does not exclude contention
+from render-driven worker wakes or native USB/send critical sections. Future
+trials should avoid manual diagnostic extraction under this failure. Next low
+cost isolation is active-link versus cable-disconnected panel responsiveness;
+no further firmware candidate is prepared yet.
+
 ## Gate B — native persistence and musical edit semantics
 
 Source/emulator mapping may proceed while Gate A awaits hardware. Establish
@@ -217,7 +238,7 @@ I04Q, H02F and stock 1.54 recoveries are in that package. Freshly reboot the Pi
 before establishing counter baselines.
 
 Next step is the controlled V01B/V01C Gate A hardware comparison in the runbook.
-Hardware resumed: V01B baseline reproduces the failure; V01C is next.
+Hardware resumed: V01B and V01C both reproduce severe setting/UI lag.
 Offline preparation is complete; no scheduling fix is claimed.
 Before hardware audio tests, confirm human availability, lowered speakers,
 known routing and disposable backed-up state, per `AGENTS.md`. The human handles

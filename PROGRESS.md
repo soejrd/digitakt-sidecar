@@ -10,7 +10,7 @@ Task status/claims: [TASKBOARD.md](TASKBOARD.md). Pins: sources.json. Read AGENT
 
 **Known failure explicitly deferred to V01:** increasing LFO speed/amount (e.g. PTCH) can stop TRX audio and make Digitakt sluggish. Captured code3 late parameter event **260frames/5.417ms late**; host disarmed. Retained fault 1, FIFO later 29 versus clean 3; interval includes later listening/high modulation, no precise boundary. No OS crash dump; sender CPU/transport/host scheduling cause unisolated. [Failure/reproduction lead](evidence/i04/v01-dense-lfo-handoff.json).
 
-## V01 — V01B physical failure reproduced; V01C next
+## V01 — V01B and V01C both reproduce severe UI lag
 
 Codex ownership renewed `2026-10-28T22:49:17Z`. V01 remains IN PROGRESS.
 [Plan](docs/V01-persistence-stress.md), [trial runbook](docs/V01-gate-a-runbook.md),
@@ -35,10 +35,21 @@ WGAP 33/BATCH 9/UGAP 225 ms, FAULT 0. Pi FIFO still 18, faults 0, queue peak 6.
 Stopped before dense Play. [Control](evidence/v01/gate-a-v01b-control.json),
 [failure](evidence/v01/gate-a-v01b-dense.json). Tick gap is not input latency.
 
-**Next physical action:** human install verified V01C, fresh Pi reboot; agent
-re-confirms muted/trace-off and new counter baseline. Repeat 32/32 control then
-64/64 setting phase; stop at lag/new faults/underruns. Do not adopt a UI-only
-improvement. Runbook and private capture script remain available.
+**V01C physical result:** human installed no-self-wake candidate; agent confirmed
+Pi muted/trace off. Initial Pi control stream was inactive until a manual trig;
+first activation raised FIFO 7→14 (unresolved), then it stayed stable. Active
+32/32 Play/Stop was responsive, WGAP 34/BATCH 1/UGAP 36 ms, FAULT 0; no new
+faults/underruns and all 20 new STARTs consumed. Attempting 64/64 again caused
+extreme UI lag before Play; final achieved knobs/diagnostics were not extracted
+because the panel was nearly unusable. Pi remained fault 0, FIFO 14, queue peak
+4. [Control](evidence/v01/gate-a-v01c-control.json),
+[failure](evidence/v01/gate-a-v01c-dense.json). No-self-wake alone is not a fix.
+
+**Next physical action:** stop demanding panel diagnostic readings. With play
+stopped/Pi muted, a brief USB disconnect and one SRC response observation can
+separate active-link work from a disconnected native/LFO path. No further flash
+is prepared. Future probes should capture device telemetry remotely rather than
+requiring prolonged navigation while starved.
 
 Earlier V01D/N/P times were inflated by 46.875×; UGAP 8469 is ~181 ms, not
 8.469 s. Human-observed multi-second lag remains valid. Do not reuse old
@@ -48,7 +59,7 @@ self-post readiness remains a hypothesis. V01P priority 5 stays rejected.
 
 ## Hardware / recovery
 
-- Last human-reported installation: **V01B diagnostic**, Pi muted by agent.
+- Last human-reported installation: **V01C diagnostic**, Pi muted by agent.
   Restore I04R before normal use from
   `private/v01/firmware-V01P/Digitakt-I04R-previous.syx`; I04Q/H02F/stock also
   retained. I04R SHA256 `6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b`.

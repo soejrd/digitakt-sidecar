@@ -1,0 +1,34 @@
+{
+  "task": "V01",
+  "status": "preflight only; awaiting V01C 32/32 control",
+  "date_utc": "2026-10-29T10:28:50.881200+00:00",
+  "digitakt_firmware": "V01C per human installation report; no remote version readback",
+  "commands": [
+    "trx=off",
+    "trxtrace=off",
+    "trxstatus"
+  ],
+  "pi": {
+    "uptime_start_s": 65,
+    "uptime_end_s": 70,
+    "fifo_underruns_start": 7,
+    "fifo_underruns_end": 7,
+    "streaming": true,
+    "link": "usb",
+    "out": "main",
+    "trx": {
+      "armed": 0,
+      "queue": 0,
+      "peak": 0,
+      "faults": 0,
+      "applied": 0,
+      "starts": 0,
+      "consumed": 0,
+      "frame": 0
+    }
+  },
+  "limits": [
+    "FIFO counter is cumulative since boot; prior underruns are not assigned to this trial",
+    "No physical control/dense or audible pass claimed"
+  ]
+}

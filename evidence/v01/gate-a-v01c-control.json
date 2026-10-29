@@ -1,0 +1,122 @@
+{
+  "task": "V01",
+  "status": "PASS \u2014 short active muted 32/32 interval; seven activation underruns remain unresolved",
+  "date_utc": "2026-10-29T10:32:44.313165+00:00",
+  "firmware": "V01C per human installation report",
+  "settings": {
+    "track": 1,
+    "machine": "USB1",
+    "destination": "PTCH",
+    "spd": 32,
+    "dep": 32,
+    "mult": "BPM16",
+    "wave": "triangle",
+    "mode": "free",
+    "sph": 0,
+    "fade": "X",
+    "tempo_bpm": 120,
+    "provenance": "requested same setup as V01B; not independently read back"
+  },
+  "clock_calibration": {
+    "class": "human observation",
+    "stopwatch_elapsed_s": 10,
+    "diagnostic_secs_delta": 10,
+    "observation": "secs 10 fine"
+  },
+  "human_before_play": {
+    "WGAP_ms": 34,
+    "BATCH_ms": 1,
+    "UGAP_ms": 34,
+    "FAULT": 0,
+    "lag_observation": "not explicitly reported"
+  },
+  "pi_before_play": {
+    "uptime_s": 303,
+    "fifo_underruns": 7,
+    "streaming": true,
+    "trx": {
+      "armed": 0,
+      "queue": 0,
+      "peak": 0,
+      "faults": 0,
+      "applied": 0,
+      "starts": 0,
+      "consumed": 0,
+      "frame": 0
+    }
+  },
+  "limits": [
+    "Seven FIFO underruns occurred across first activation before the measured active control; startup is not a clean pass",
+    "No audible continuity or sustained modulation budget established",
+    "Panel readings and responsiveness are human observations; exact Play boundaries not independently timestamped"
+  ],
+  "first_trigger_check": {
+    "date_utc": "2026-10-29T10:34:42.526944+00:00",
+    "human_report": "done i think",
+    "uptime_s": 422,
+    "fifo_underruns": 14,
+    "trx": {
+      "armed": 0,
+      "queue": 1,
+      "peak": 1,
+      "faults": 0,
+      "applied": 5987,
+      "starts": 1,
+      "consumed": 1,
+      "frame": 1140456
+    }
+  },
+  "activation_interval": {
+    "previous_inactive_baseline": 7,
+    "after_first_trigger": 14,
+    "delta": 7,
+    "interpretation": "New underruns observed across first-control activation; inactive pre-trigger interval is not an active control baseline. Pause before playback; do not count as a passing zero-underrun trial. Exact cause unproven."
+  },
+  "active_stability_check": {
+    "date_utc": "2026-10-29T10:35:15.504982+00:00",
+    "uptime_start_s": 450,
+    "uptime_end_s": 455,
+    "fifo_start": 14,
+    "fifo_end": 14,
+    "observed_log_counter_changes": [
+      {
+        "log_time": "00:05:31.24",
+        "fifo_underruns": 7
+      },
+      {
+        "log_time": "00:06:38.24",
+        "fifo_underruns": 14
+      }
+    ]
+  },
+  "human_after_play": {
+    "WGAP_ms": 34,
+    "BATCH_ms": 1,
+    "UGAP_ms": 36,
+    "FAULT": 0,
+    "requested_play_seconds": 10,
+    "responsiveness": "felt responsive good"
+  },
+  "pi_after_play": {
+    "uptime_s": 550,
+    "fifo_underruns": 14,
+    "streaming": true,
+    "trx": {
+      "armed": 0,
+      "queue": 1,
+      "peak": 1,
+      "faults": 0,
+      "applied": 38313,
+      "starts": 21,
+      "consumed": 21,
+      "frame": 7297692
+    }
+  },
+  "active_interval_delta": {
+    "fifo_underruns": 0,
+    "playout_faults": 0,
+    "starts": 20,
+    "consumed_starts": 20
+  },
+  "updated_utc": "2026-10-29T10:37:42.993531+00:00"
+}

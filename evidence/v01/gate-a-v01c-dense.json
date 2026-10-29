@@ -1,0 +1,68 @@
+{
+  "task": "V01",
+  "status": "FAIL \u2014 no-self-wake still severely unresponsive during dense setting; stop panel extraction",
+  "firmware": "V01C per human installation report",
+  "date_utc": "2026-10-29T10:37:42.994362+00:00",
+  "before_setup": {
+    "uptime_s": 550,
+    "fifo_underruns": 14,
+    "streaming": true,
+    "trx": {
+      "armed": 0,
+      "queue": 1,
+      "peak": 1,
+      "faults": 0,
+      "applied": 38313,
+      "starts": 21,
+      "consumed": 21,
+      "frame": 7297692
+    }
+  },
+  "requested_settings": {
+    "track": 1,
+    "machine": "USB1",
+    "destination": "PTCH",
+    "spd": 64,
+    "dep": 64,
+    "mult": "BPM16",
+    "wave": "triangle",
+    "mode": "free",
+    "sph": 0,
+    "fade": "X",
+    "tempo_bpm": 120
+  },
+  "protocol": "Fresh machine-selection diagnostic window; set dense values with playback stopped; stop at first lag/fault; do not Play before reviewing setting phase",
+  "limits": [
+    "Dense settings were requested but final achieved values not read back",
+    "No dense diagnostics or wall-time input trace; no dense Play or audible pass",
+    "Seven earlier activation FIFO underruns remain unresolved"
+  ],
+  "updated_utc": "2026-10-29T10:45:14.874173+00:00",
+  "human_observation": {
+    "setting_phase": "super laggy; incredibly unresponsive, almost undoable; human estimated extracting readings would take about ten minutes",
+    "diagnostic_readings": "not requested further; inaccessible without prolonged struggle",
+    "play_attempted": "not requested; instructed to remain stopped",
+    "exact_spd_dep_reached": "not confirmed; failure occurred while attempting requested 64/64"
+  },
+  "pi_at_capture": {
+    "uptime_s": 1054,
+    "fifo_underruns": 14,
+    "streaming": true,
+    "trx": {
+      "armed": 0,
+      "queue": 3,
+      "peak": 4,
+      "faults": 0,
+      "applied": 434612,
+      "starts": 21,
+      "consumed": 21,
+      "frame": 31493184
+    }
+  },
+  "delta_from_active_control": {
+    "fifo_underruns": 0,
+    "playout_faults": 0,
+    "starts": 0
+  },
+  "interpretation": "Disabling worker self-wake at priority 14 did not remove the human-observed setting/UI failure. Self-wake alone is not a sufficient fix; this does not exclude worker/USB contention driven by render producer signals."
+}
