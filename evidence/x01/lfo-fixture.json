@@ -1,0 +1,12 @@
+{
+  "scope": "experimental native LFO fixture; no hardware",
+  "pass": false,
+  "track0_values_8_8": [
+    15360
+  ],
+  "track1_values_8_8": [
+    20480
+  ],
+  "observation_ms": 3000,
+  "limit": "Fixture application to the live sound is unproven; not a transport failure or LFO qualification."
+}

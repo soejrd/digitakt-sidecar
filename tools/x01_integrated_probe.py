@@ -19,7 +19,7 @@ import r03_probe as r03
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def run(candidate, output):
+def run(candidate, output, lfo_probe=False):
     from emu.session import Session
     from emu.harness import call
     from unicorn import UC_HOOK_CODE
@@ -162,6 +162,28 @@ def run(candidate, output):
             'changed_sound_slots': [(i,a,b) for i,(a,b) in enumerate(zip(slots_before,dynamic._sound_slots(session.m.uc,kit,1))) if a!=b],
             'reason': peer.peer_reason(), 'fault': peer.peer_fault()}
         assert peer.peer_session() == generation
+        lfo_values=[set(),set()]
+        if lfo_probe:
+            # Disposable native sound fixture: modulate only track 1. Observe the
+            # real host engine after native final-value capture/transport/playout.
+            kit=get(session.m.uc,sym('fw_kit'))
+            saved_slots=dynamic._sound_slots(session.m.uc,kit,1)
+            lfo_slots=saved_slots[:]
+            for slot,value in {1:0x5000,4:17<<8,5:2<<8,6:0x4000,7:1<<8,8:0x4800,17:60<<8}.items():
+                lfo_slots[slot]=value
+            dynamic._write_sound_slots(session.m.uc,kit,1,lfo_slots)
+            session.press(25); step(30); session.release(25)
+            lfo_values=[set(),set()]
+            for _ in range(600):
+                step(5)
+                for t in range(2): lfo_values[t].add(peer.peer_param(t,0))
+            diagnostic={'scope':'experimental native LFO fixture; no hardware','pass':len(lfo_values[1])>=2 and lfo_values[0]=={changed[0]},'track0_values_8_8':sorted(lfo_values[0]),'track1_values_8_8':sorted(lfo_values[1]),'observation_ms':3000,'limit':'Fixture application to the live sound is unproven; not a transport failure or LFO qualification.'}
+            (ROOT/'evidence/x01/lfo-fixture.json').write_text(json.dumps(diagnostic,indent=2)+'\n')
+            assert diagnostic['pass'], diagnostic
+            assert peer.peer_session()==generation and peer.peer_allowed()
+            dynamic._write_sound_slots(session.m.uc,kit,1,saved_slots)
+            session.press(25); step(30); session.release(25); step(100)
+            assert peer.peer_param(1,0)==changed[1]
         assert all(state['audible']) and all(state['silent']) and all(state['halves'])
         state['drop'] = True; step(650)
         assert not get(session.m.uc, sym('usb_track_gate'))
@@ -181,6 +203,9 @@ def run(candidate, output):
         report = {'scope': 'booted X01E OS1.54, native RTOS worker/serializer/RX bridge and dual real-engine peer; USB DMA/PCM modelled',
                   'hardware_test': False, 'candidate': {**dynamic._candidate_summary(meta),
                       'emulator_only': True, 'manifest_sha256': meta['manifest_sha256']},
+                  'native_lfo': {'attempted':lfo_probe,'fixture':'native track1 sound slots seeded in disposable RAM; real capture/transport/engine',
+                      'track0_values_8_8':sorted(lfo_values[0]),'track1_values_8_8':sorted(lfo_values[1]),
+                      'restored_track1_8_8':changed[1], 'same_session':True},
                   'peer_source_sha256': {name: hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in sources},
                   'checks': ['two USB1 machines selected through native UI', 'matching v5/v4 two-lane session',
                              'native simultaneous manual triggers consumed on both engines',
@@ -199,4 +224,5 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--candidate', type=Path, required=True)
     p.add_argument('--output', type=Path, default=ROOT/'evidence/x01/integrated-154.json')
-    a = p.parse_args(); run(a.candidate, a.output)
+    p.add_argument('--lfo-probe',action='store_true',help='experimental fixture, currently unqualified')
+    a = p.parse_args(); run(a.candidate, a.output,a.lfo_probe)

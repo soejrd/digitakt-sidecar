@@ -63,3 +63,10 @@ Native lock/LFO tests remain independent offline work.
 **Installed:** V01K (frozen); restore I04R before normal use. Pi kernel
 unchanged by V01K. Packages and recovery hashes are in the report. No new
 hardware candidate is ready.
+
+X01 native LFO fixture investigation: opt-in `--lfo-probe` currently fails to
+produce variation over 3 seconds (target stays80; other track stays60).
+[evidence](evidence/x01/lfo-fixture.json). Native sound-fixture application is
+unproven; no LFO pass or transport-failure claim. Next: observe seeded live
+sound slots and native final values before host capture. Default probe retains
+the previously passing scenarios.
