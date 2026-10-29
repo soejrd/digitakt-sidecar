@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Status | Dependencies / first action | Acceptance |
 | --- | --- | --- | --- | --- |
-| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29T16:15:00Z) | **Next: coherent native diagnostic clock reads, then hardware/model cost comparison.** [Native periodic/audio component](evidence/v01/native-audio-component.json) now sustains3431–3432 gap-free audio packets/500ms alongside native MIDI/ACK paths; dense panel max3.775ms/9.195ms at assumed250/200MHz. No lag reproduction or root cause. DTIM0 short brackets use stale boundary time; DTIM2 external clock remains undriven. [Exact continuation](docs/V01-persistence-stress.md#native-periodic-usb-and-audio--continuation-2026-10-29). Physical [G64/48 lag](evidence/v01/compact-depth48-result.json) remains unresolved. No new candidate/flash; Gates B/C and startup/reconnect open. | Numeric supported workload with responsive UI and no audio/deadline failure; native persistence/edit semantics; reconnect and combined soak; explicit listening acceptance. |
+| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29T16:15:00Z) | [Current investigation](docs/V01-persistence-stress.md#current-next-work--emulator-reproduction-and-causal-isolation): fix diagnostic clock fidelity, then compare hardware/model costs. Physical dense-LFO lag unresolved; no new flash. | [Gates A–C](docs/V01-persistence-stress.md#acceptance-gates): responsive dense modulation, native persistence/edit semantics, recovery/soak and listening acceptance. |
 
 ## Waiting
 
