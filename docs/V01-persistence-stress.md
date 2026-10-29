@@ -3,21 +3,25 @@
 **IN PROGRESS; unaccepted.** Ownership: [TASKBOARD.md](../TASKBOARD.md).
 Target: Digitakt mk1 OS 1.54 + Pi 4B/Circle, one USB1 voice on track 1.
 Gate A resolves dense-LFO UI lag; Gates B/C qualify persistence and recovery.
-A hard freeze at maximum LFO speed is reproduced; the USB attach path is the
-suspect but the send-versus-attach split is not yet resolved. No root cause is
-proven and no fix exists yet. More voices and Teensy remain deferred.
+A hard freeze at maximum LFO speed is reproduced and isolated to our
+per-snapshot traffic, not the LFO or the USB attach itself. A source defect in
+the preflight/send ordering is identified; it is not yet proven as the cause and
+no fix exists. More voices and Teensy remain deferred.
 
-## Current next work — one discriminating hardware test
+## Current next work — fix the mask/preflight race offline
 
-1. Run the [2K attach test](../evidence/v01/2k-attach-freeze.json): power-cycle
-   the Digitakt, keep SPD down, reconnect USB, select USB1, then set the LFO to
-   maximum speed with destination OFF so the hook emits nothing. ~30 s, no
-   flash. Responsive ⇒ send path/volume; frozen ⇒ attach/enumeration or the
-   ISR-context RX path. Report both outcomes before any candidate work.
-2. If it is the send path, replace the interrupt-masked native submission with
-   a bounded path that never enters a busy wait with IRQs masked, and keep a
-   host regression that fails when it does. Validate offline first.
-3. Keep DTIM2's external rate unresolved: firmware selects T2IN, but does not
+1. Do the authoritative preflight inside `fw_send` after `irq_save`, and refuse
+   (`return 0`) instead of calling the native sender while near either limit.
+   Keep `dt1_transport`'s check as an early filter only. Add a host regression
+   that pushes the model to the limit between the early check and the masked
+   call and asserts `0x40004990` is never entered. See the
+   [fix plan](../evidence/v01/2k-attach-freeze.json).
+2. Bound the RX/ACK path so interrupt context only appends bytes; the Pi ACKs
+   every snapshot, so that handler runs at the same rate and is the remaining
+   alternate explanation.
+3. Validate both in host tests and the emulator, then one muted paired
+   candidate on the 2K workload. No hardware test is requested before that.
+4. Keep DTIM2's external rate unresolved: firmware selects T2IN, but does not
    establish the board signal. Snapshot PLL registers are zero; do not infer a
    hardware core clock from them. Do not invent clock rates or memory delays.
 
@@ -43,7 +47,8 @@ answer a specific hypothesis with a short procedure and stop condition.
 | Evidence | Finding |
 | --- | --- |
 | [2K attach freeze](../evidence/v01/2k-attach-freeze.json), [live capture](../evidence/v01/2k-freeze-live-2026-10-29.txt) | At maximum LFO speed the Digitakt is fully responsive with USB detached and freezes the instant the cable is attached; the freeze survives detaching and needs a power cycle. Last healthy counters were small (UI gap34ms, batch4ms, guards0) and then all Digitakt counters stopped together, so this is a stop, not saturation. Native 2K LFO cost is therefore excluded. |
-| [Sender waits](../evidence/i03/transport-anchors-154.json), [send path](../mods/usb-midi/usb_midi.c) | Source fact: `fw_send` masks all interrupts and calls the native sender, whose two busy waits are drained only by the completion interrupt. Entering a wait with IRQs masked cannot terminate. Fits the signature; not yet proven to be what happened. |
+| [Destination-OFF test](../evidence/v01/2k-attach-freeze.json) | USB attached, USB1 selected, LFO at maximum speed with destination NONE: fully responsive. Attach alone is harmless; the trigger is our per-snapshot traffic (snapshot sends plus Pi ACKs). The freeze is immediate on connect. |
+| [Sender waits](../evidence/i03/transport-anchors-154.json), [send path](mods/usb-midi/usb_midi.c) | Source fact: the preflight reads `0x40610478`/`0x4061047C` unlocked, then `fw_send` masks all interrupts and calls `0x40004990` without re-checking. Its two busy waits spin on that counter, drained only by the completion interrupt. Any queue growth in that window turns a refusal into a permanent hang. The comment claiming the critical section closes this race is wrong. Not yet proven as the cause; RX/ACK ISR work is the alternative. |
 | [G 32/32](../evidence/v01/compact-baseline.json), [64/32](../evidence/v01/compact-speed-result.json), [64/48](../evidence/v01/compact-depth48-result.json) | Short baseline stable; slight sluggishness at 64/32; quite laggy at 64/48 despite Pi fault/guards0 and FIFO11 unchanged. Dense native sends reached ~816/s. |
 | [Lower worker priority](../evidence/v01/phase2-v01p-result.json) | Improved UI but caused late audio/FIFO failures; rejected. |
 | [No-self-wake](../evidence/v01/gate-a-v01c-dense.json) | Did not solve lag. USB removal subsequently restored responsiveness; this changes several workloads together and does not identify the cause. |

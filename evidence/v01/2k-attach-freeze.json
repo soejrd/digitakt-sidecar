@@ -1,7 +1,7 @@
 {
   "task": "V01 Gate A",
   "date_utc": "2026-10-29T18:45:00Z",
-  "status": "new failure class identified; Gate A still IN PROGRESS and unaccepted",
+  "status": "trigger isolated to our per-snapshot traffic; Gate A still IN PROGRESS and unaccepted",
   "hardware_test": true,
   "gate_a_verdict": "NOT SCORED",
   "scope": "human panel test at maximum LFO speed with and without USB; one live Pi sample of the frozen device",
@@ -15,6 +15,8 @@
     "Earlier: pressing SPD to 2K while connected also froze it, and unplugging did not restore the UI within 1 minute."
   ],
   "findings": {
+    "discriminating_test_result": "31 Oct run of the destination-OFF test: USB attached, USB1 selected, LFO at maximum speed with destination NONE -> fully responsive. Attach alone is therefore harmless; what freezes the device is our per-snapshot traffic (device sends plus Pi ACKs), which destination OFF reduces to the periodic sample only.",
+    "freeze_is_immediate": "Human reports the freeze happens on connect within about a second, not after a slow build-up.",
     "native_2k_is_cheap": "With USB detached, the native LFO at maximum rate is free: no lag. Any 'the Digitakt cannot compute a 2 kHz LFO' explanation is excluded.",
     "freeze_survives_detach": "Once frozen, removing the cable does not recover it, and re-attaching triggers it immediately. The permanent stop is tied to USB attachment/handling, not to sustained LFO cost.",
     "not_cpu_saturation": "Last healthy values before death were small: ui gap max 34 ms, worker gap max 34 ms, batch 4 ms, guards 0. An overload degrades gradually; this stops atomically.",
@@ -23,30 +25,36 @@
     "no_hardware_fault": "Pi stayed alive, answered HTTP, stayed at 54 C with no throttling. The earlier fresh Pi boot was a human restart, not a spontaneous reboot."
   },
   "leading_hypothesis": {
-    "name": "irq-masked busy wait in the native USB-MIDI sender",
-    "mechanism": "fw_send() masks all interrupts (move.w #0x2700,%sr) across the call to 0x40004990. That routine contains two unbounded busy waits (wrap at 0x400049D0..D8, capacity at 0x400049FE..0x40004A0C) whose only drain is the completion callback 0x40004404 lowering 0x40610478. If a wait is entered, interrupts are already masked, so the drain can never run and the device hangs. The staging ring wraps every ~120 ms at the observed ~816 sends/s, so the condition is reached repeatedly.",
-    "why_density_scales": "The wrap probability and submission rate both rise with effective update rate, matching that 64/48 slowed and 2K froze.",
+    "name": "non-atomic preflight: the sender can enter a busy wait with every interrupt masked",
+    "mechanism": "dt1_transport submit() calls fw_can_send(), which reads 0x40610478/0x4061047C with interrupts enabled, and only then calls fw_send(), which does irq_save() (move.w #0x2700,%sr) and calls 0x40004990 without re-checking. The native sender re-reads the same counters and enters the unbounded capacity wait (0x400049FE..0x40004A0C, spins while queued+d2 > 0xFFB) or wrap wait (0x400049D0..0x400049D8, spins while queued >= index-0x3F). Those waits are drained only by the USB completion callback 0x40004404 lowering 0x40610478, which cannot run at IPL7. Any other writer of the queue in the window between check and mask therefore converts a refused send into a permanent hang.",
+    "why_attach_freezes": "On attach the stock USB stack is busy, so the queue is most likely to be pushed past the limit exactly while our first snapshot burst begins. This matches the human's immediate-on-connect observation with an empty queue of our own.",
+    "why_density_scales": "Every snapshot is one check-then-send window, so exposure rises with the snapshot rate: ~12/s with destination OFF stays responsive, 366-816/s freezes. One clean source defect explains the graded sluggishness at 64/48 and the hard stop at 2K.",
     "second_order": "With the cable out the 256-record session ring fills in ~170 ms and latches fatal; that explains the lost audio but not the frozen UI.",
-    "confidence": "hypothesis, not proof: the busy-wait instructions and the masking are both source facts; that they coincided here is inferred from the failure signature."
+    "code_comment_is_wrong": "fw_send's comment claims 'One single-core critical section closes the preflight/send race with stock MIDI writers'. The critical section contains only the send; the preflight sits outside it. That is the defect.",
+    "confidence": "hypothesis with a proven source-level defect: the disassembly, the non-atomic ordering and the masking are facts. That this specific race caused this specific hang is inferred from the trigger shape, not traced on hardware."
   },
   "alternate_hypotheses": [
-    "Attach/enumeration path (dt1_transport_open / RX-slot replacement / chain_stock into the stock handler) rather than send volume.",
-    "ISR-context work: native_rx -> receive() -> sc_dev_receive_control and device_wakeup running at interrupt level.",
+    "RX/ACK side: Pi ACKs one snapshot each, so native_rx runs at the same rate and does sc_dev_receive_control and the wake inside interrupt context; that work and any ring overflow scale with the snapshot rate too.",
     "Unmodelled divergence between the emulator's can_send thresholds and the real 0x40610478/0x4061047C state."
   ],
   "discriminating_test": {
-    "procedure": "USB attached, USB1 selected, LFO running at 2K with destination OFF (not routed to TRX-B2) so the hook emits nothing while the native LFO runs at full speed.",
-    "if_responsive": "send path/volume; fix in fw_send/can_send and worker batching.",
-    "if_frozen": "attach/enumeration or ISR-context path; search dt1_transport_open, native_rx, chain_stock.",
-    "cost": "~30 s, no flash; power-cycle the Digitakt first"
+    "procedure": "DONE: USB attached, USB1 selected, LFO at maximum speed with destination OFF.",
+    "outcome": "fully responsive",
+    "conclusion": "trigger is our per-snapshot traffic; attach/enumeration path alone is excluded. TX race versus RX/ACK ISR work remains open and is settled offline by the instrumented model rather than another flash."
   },
   "source_anchors": {
     "mask": "mods/usb-midi/usb_midi.c: irq_save() -> move.w #0x2700,%sr",
-    "send": "mods/usb-midi/usb_midi.c: fw_send() -> USB_SEND 0x40004990 inside the masked section",
-    "preflight": "mods/usb-midi/usb_midi.c: fw_can_send()",
-    "waits": "0x400049D0..D8 wrap, 0x400049FE..0x40004A0C capacity (docs/I03-transport.md)",
+    "send": "mods/usb-midi/usb_midi.c: fw_send() -> USB_SEND 0x40004990 inside the masked section, no re-check",
+    "preflight": "mods/usb-midi/usb_midi.c: fw_can_send() called from dt1_transport.c submit() with interrupts enabled",
+    "disassembly": "0x40004990..0x40004A20 re-read 0x40610478 at 0x400049D0 and 0x400049FE; the waits spin on that counter alone",
     "drain": "0x40004404 only decrement of 0x40610478 (evidence/i03/transport-anchors-154.json)"
   },
+  "fix_plan": [
+    "Do the full preflight inside fw_send after irq_save and refuse (return 0) instead of calling the native sender when the limit is close, so a deferral replaces a possible wait.",
+    "Keep dt1_transport's can_send as a cheap early filter only; the masked re-check is the authoritative gate.",
+    "Add a host regression that drives the firmware model to the limit between the early check and the masked call and asserts the sender is never entered.",
+    "Separately bound the RX/ACK path so the interrupt handler only appends bytes."
+  ],
   "raw": {"file": "evidence/v01/2k-freeze-live-2026-10-29.txt", "sha256": "356a98ffe5bd1807be4a395c8dff154b851b041f4e361155caaefbe6fa93fb84"},
   "limits": [
     "Single human trial per condition; no repeated freeze to measure determinism.",
