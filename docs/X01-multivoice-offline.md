@@ -241,14 +241,32 @@ but an outstanding snapshot never receives its ACK. The outstanding frame's
 own lease still closes the device gate. `bash scripts/test_x01_transport.sh`
 passes with these cases under ASan/UBSan and the ColdFire import checks.
 
-Pi cross-build preflight is currently blocked: the local Docker socket is
-absent and `docker image inspect rytm-circle` cannot reach a running daemon.
-Release condition: start the local Docker daemon, then build the isolated X01
-host tree; no ARM kernel build result is claimed. Native lock/LFO coverage now passes independently.
+The isolated Pi 4 AArch64 kernel now cross-builds successfully:
+[evidence](../evidence/x01/pi-build.json). The target build caught two adapter
+integration errors hidden by desktop include paths: portable headers needed the
+`dt_control/` prefix, and Circle requires `<circle/util.h>` instead of the
+standard C++ `<cstring>`. The opt-in adapter is corrected and the actual Circle
+glue/Output host regression still passes under ASan/UBSan.
+
+```sh
+python3 scripts/x01_build_host.py --output /tmp/x01-pi-build
+```
+
+This requires the local Docker `rytm-circle` image and existing pinned Pi 4
+Circle/library caches. It stages a new source tree, imports the local public
+upstream base so upstream scripts resolve their root, copies caches, builds and
+records hashes/sizes. It does not change the normal dependency, installed
+kernel, SD card or device. Choose a new output path without spaces, as required
+by upstream source-list scripts. The kernel image is2,482,984 bytes; ELF text
+is2,478,216 bytes, data3,024, BSS1,530,433. The X01 peer's static symbol is68,032
+bytes, including the bank and protocol state. These are static target sizes;
+runtime heap, stack peaks, CPU margin and USB timing remain unmeasured. Cached
+Circle libraries are reused; this is not a clean rebuild of every third-party
+library. The image remains an experimental build, not a hardware candidate.
 
 1. Offline: add native sound-lock/copy semantics coverage; manual triggers,
    a panel edit, seeded LFO and distinct per-track stored locks now pass.
-   Cross-build the isolated Pi kernel and inspect target memory/stack footprint.
+   Measure runtime/stack footprint and worst-case margin when hardware is available.
 2. After V01-A's release condition, prepare a reviewed hardware candidate and
    recovery; measure Pi/device margin, USB stability, timing and independent
    physical routing. Do not flash X01E.

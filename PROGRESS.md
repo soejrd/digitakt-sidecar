@@ -51,14 +51,12 @@ stalled TX recovery; 17,815 render boundaries preserve the other six sources.
 [Evidence](evidence/x01/integrated-154.json). Private `x01-control` / **X01E** is
 emulator-only, never a hardware candidate. Default V01 worker/dependency tree
 unchanged. Earlier 1/2/8-engine host benchmark remains valid within its scope.
-Next offline work: per-track native locks/LFO/sound/copy tests and isolated Pi
-kernel cross-build. Physical timing/margin and V01-A remain open; X01/X01a are
+Next offline work: native sound-lock/copy tests. Seeded LFO, distinct stored
+locks/restore and isolated Pi kernel cross-build now pass (details below). Physical timing/margin and V01-A remain open; X01/X01a are
 not complete. No hardware accessed or installed firmware/kernel changed.
 
 X01 follow-up: single-lane mapping, timestamp/lease wrap and stalled ACKs despite
-valid keepalives pass the session regressions. Pi build preflight is blocked by
-the stopped local Docker daemon (missing socket); start Docker to release it.
-Native lock/LFO tests remain independent offline work.
+valid keepalives pass the session regressions. Docker was started and the isolated Pi build now passes.
 
 **Installed:** V01K (frozen); restore I04R before normal use. Pi kernel
 unchanged by V01K. Packages and recovery hashes are in the report. No new
@@ -73,5 +71,9 @@ unchanged, same active session and no host fault. Evidence:
 [evidence/x01/locks-154.json](evidence/x01/locks-154.json). Earlier late seeding
 did not affect native values; its live-edit semantics remain unproven. These
 are disposable RAM fixtures with modelled USB/host timing, not persistence,
-dense stress or hardware qualification. Docker was started for an isolated Pi
-cross-build; build result pending. Sound-lock/copy coverage remains open.
+dense stress or hardware qualification. The isolated Pi4 ARM build now passes after fixing adapter header paths and
+using Circle util declarations; actual Circle host regression passes again.
+[Build evidence](evidence/x01/pi-build.json): image2,482,984 bytes, ELF
+BSS1,530,433 bytes, peer static68,032 bytes. Cached libraries reused; runtime
+heap/stack peaks and Pi/device margin remain unmeasured. Sound-lock/copy
+coverage remains open.

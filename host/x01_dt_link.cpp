@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Opt-in X01 Circle adapter. Default I04/V01 glue is not replaced in deps/.
 #include "dt_link.h"
-#include "track_host.h"
-#include "v01_diag.h"
+#include "dt_control/track_host.h"
+#include "dt_control/v01_diag.h"
 #include "shared.h"
-#include <cstring>
+#include <circle/util.h>
 namespace dt_link {
 static sc_track_host peer;
 static uint32_t selected,losses,seen_loss,clock_block,remainder,armed_session,faded;

@@ -16,7 +16,7 @@ def run():
         engine = stage/'pi/engine'
         overlay = engine/'dt_control'
         flags = ['-O1', '-g', '-Wall', '-Wextra', '-Werror', '-fsanitize=address,undefined']
-        includes = ['-I'+str(overlay), '-I'+str(engine), '-I'+str(stage/'core')]
+        includes = ['-I'+str(ROOT/'tests/circle'), '-I'+str(overlay), '-I'+str(engine), '-I'+str(stage/'core')]
         objects = []
         for name in ('link.c', 'track_frame.c', 'track_session.c', 'track_host.c',
                      'track_playout.c', 'trx_voice.c', 'src_44148.c', 'mdkit_trx_b2.c'):

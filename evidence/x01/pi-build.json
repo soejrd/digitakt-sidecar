@@ -1,0 +1,28 @@
+{
+  "scope": "isolated opt-in X01 Pi 4 AArch64 kernel cross-build; cached Circle libraries; no hardware",
+  "command": "python3 scripts/x01_build_host.py --output /tmp/x01-pi-build",
+  "dependency_base": "6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457",
+  "circle_base": "7a81e1b480fe7d19fc1fc695b89bff0a0848f44b",
+  "docker_image": "sha256:9884c930765ac6ed3a0d173b1b74cfb4e5e400d026552142401241304f6b6db0",
+  "compiler": "aarch64-none-elf-g++ (Arm GNU Toolchain 13.3.Rel1 (Build arm-13.24)) 13.3.1 20240614",
+  "kernel_sha256": "640560532f413f8db843f3d08990f3b933b9267858c4006ced0f0fbb2c45b708",
+  "kernel_bytes": 2482984,
+  "elf_sections_bytes": {
+    "text": 2478216,
+    "data": 3024,
+    "bss": 1530433
+  },
+  "x01_peer_static_bytes": 68032,
+  "source_sha256": {
+    "host/x01_dt_link.cpp": "7ee1126d65dd50d7b952188b5d971dad92e89fb407792f77cb96f6e9d87866f3",
+    "scripts/x01_prepare_host.py": "852f38157735fa78efad18912db501a50ff50935def6a5ea6448cb0c7977c709",
+    "scripts/x01_build_host.py": "5d6521c7a9404c0d66a395a5fd90daa3d5406b18028407ecc6ea53aa411dbec9",
+    "patches/sidecar-firmware/experimental/0001-x01-stereo-return.patch": "41b56dc549ca6a7078c05774f5f0bdfbb747af331969d1f441888c7cdc3a7745"
+  },
+  "limits": [
+    "Cross-build only; not a reviewed hardware candidate.",
+    "Static ELF sizes do not measure runtime heap, stack peaks, CPU margin or USB timing.",
+    "Existing cached Circle libraries are reused; not a clean rebuild of all third-party libraries."
+  ],
+  "pass": true
+}
