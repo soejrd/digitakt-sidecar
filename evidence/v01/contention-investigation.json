@@ -1,0 +1,84 @@
+{
+  "task": "V01 Gate A",
+  "date_utc": "2026-10-29T13:20:02.756723+00:00",
+  "status": "emulator-gap; Gate A remains IN PROGRESS and unaccepted",
+  "scope": "native mk1 panel/LFO preflight; disconnected USB; no hardware experiment",
+  "source_revision": "d785180",
+  "candidate_sha256": "77709fcc7d0db75ffce3ed3d0e89f3f9e13f883e72f5f6c8109ad3124cc3a0f1",
+  "probe_sha256": "3da90dfd7bcbc852f34d524af6afc4f4d19b7c2090a0a7b36eb1fc6dc91aa0ec",
+  "repeat_250mhz": {
+    "reports_exactly_equal": true,
+    "report_sha256": "883d8dfcbb2e59d0d891c06f15c98492e82fb8b443053e4a72b461f2c59fc50f"
+  },
+  "profiles": [
+    {
+      "fsys_assumed_hz": 250000000,
+      "speed": 32,
+      "depth": 32,
+      "effective_changes_per_s": 249.675,
+      "arrival_to_dispatch_pass_completion_max_ms": 0.60894,
+      "queue_depth_max": 1,
+      "audio_irq_runs": 751,
+      "audio_irq_late": 0,
+      "usb_irq_runs": 0,
+      "native_submissions": 0,
+      "native_rx_bridge_calls": 0,
+      "decode_mismatches": 0,
+      "artificial_waits": 0
+    },
+    {
+      "fsys_assumed_hz": 250000000,
+      "speed": 64,
+      "depth": 48,
+      "effective_changes_per_s": 747.027,
+      "arrival_to_dispatch_pass_completion_max_ms": 0.619356,
+      "queue_depth_max": 1,
+      "audio_irq_runs": 751,
+      "audio_irq_late": 0,
+      "usb_irq_runs": 0,
+      "native_submissions": 0,
+      "native_rx_bridge_calls": 0,
+      "decode_mismatches": 0,
+      "artificial_waits": 0
+    },
+    {
+      "fsys_assumed_hz": 200000000,
+      "speed": 32,
+      "depth": 32,
+      "effective_changes_per_s": 249.674,
+      "arrival_to_dispatch_pass_completion_max_ms": 1.19561,
+      "queue_depth_max": 2,
+      "audio_irq_runs": 751,
+      "audio_irq_late": 0,
+      "usb_irq_runs": 0,
+      "native_submissions": 0,
+      "native_rx_bridge_calls": 0,
+      "decode_mismatches": 0,
+      "artificial_waits": 0
+    },
+    {
+      "fsys_assumed_hz": 200000000,
+      "speed": 64,
+      "depth": 48,
+      "effective_changes_per_s": 747.025,
+      "arrival_to_dispatch_pass_completion_max_ms": 1.19561,
+      "queue_depth_max": 2,
+      "audio_irq_runs": 751,
+      "audio_irq_late": 0,
+      "usb_irq_runs": 0,
+      "native_submissions": 0,
+      "native_rx_bridge_calls": 0,
+      "decode_mismatches": 0,
+      "artificial_waits": 0
+    }
+  ],
+  "established_gap": "Native USB ISR209 (IPL6) forces INTC1 source6 for deferred USB ISR134 (IPL4). Existing Session/probes omit this source. A fixed scheduled native status event remains pending without it and is dispatched/cleared when the generic source alone is added. USB DMA/ACK arrivals remain unmodelled.",
+  "not_established": [
+    "Hardware CPU saturation",
+    "Cause of dense active-link UI lag",
+    "Any firmware fix or Gate A pass"
+  ],
+  "next": "Use the demonstrated INTC1 source6 adapter while modeling native USB descriptor/prime/completion/RX paths. If physical service timing/batching remains ambiguous, measure both USB IRQs and panel dispatch in the single bounded procedure in docs/V01-persistence-stress.md.",
+  "usb_dispatch_regression": "evidence/v01/usb-dispatch-gap.json",
+  "usb_dispatch_reports_exactly_equal": true
+}

@@ -28,15 +28,30 @@ and [E](evidence/v01/remote-severe-result.json) retain useful negative findings.
 Worker/render elapsed brackets overlap; never sum as CPU utilization. UI tick
 gaps are not panel latency. Old D/N/P ms displays were inflated by46.875×.
 
-**Next work, offline:** audit emulator substitutions; run native routines with
-cycle timing assumptions recorded; reproduce dense input→UI dispatch latency;
-attribute self execution, IRQs and runnable/blocked time; isolate wake/dispatch,
-ACK processing, native USB and UI backlog one path at a time. Planned probe
-`tools/v01_contention_probe.py` does not exist yet. Establish a deterministic
-failing panel-service test before claiming a fix. If emulation disagrees,
-document the concrete missing model behavior and justify one targeted hardware
-measurement. No speculative new firmware or repeated depth sweep. Full steps,
-hypothesis predictions, deliverables and physical exit criteria live in Gate A.
+**Offline preflight implemented:** `tools/v01_contention_probe.py` validates
+mk1 OS1.54 panel enqueue→dispatch-pass completion under native LFO load,
+native float/pixel routines, estimated cycles and mask-respecting panel IRQs.
+Corrected/byte-verified SPD/DEP display encodings; two 250MHz reports match
+exactly. [Evidence](evidence/v01/contention-investigation.json): ~250/~747
+effective changes/s, max panel service0.619ms (1.196ms at assumed200MHz),
+no artificial waits/decoder mismatches. **Disconnected component result only:**
+USB_READY/gate0, no USB submissions, native RX callbacks or USB IRQs; it cannot
+reproduce the active-link failure or establish CPU margin.
+
+**Specific USB gap reproduced:** native ISR209 forces INTC1 source6 for
+deferred ISR134 (IPL4), absent from existing probe sources.
+[Fixed event comparison](evidence/v01/usb-dispatch-gap.json): without it status
+stays pending; adding only the existing generic source dispatches/clears it.
+
+**Next work, offline:** integrate that source and model native USB
+descriptor/prime/completion/RX dispatch before active-link latency and self-cost
+attribution. Existing integrated
+exchange bypasses submission/completion and context-injects ACKs.
+[Audit and one bounded measurement proposal](docs/V01-persistence-stress.md#native-panel-lfo-preflight-and-evidenced-usb-gap-2026-10-29)
+identify the missing path and how to distinguish USB IRQ bursts from worker/UI
+cost if source-derived modeling remains insufficient. No root cause/fix,
+active-link red test or new firmware candidate yet. Hardware sweeps remain on
+hold; no flash requested. Gates B/C remain open.
 
 **Physical state:** G pair installed/boot verified; last captured fault0/FIFO11,
 muted/trace off. Unplug requested; recovery/disconnection confirmation pending.

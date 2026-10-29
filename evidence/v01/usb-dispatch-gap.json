@@ -1,0 +1,255 @@
+{
+  "schema": "v01-usb-dispatch/1",
+  "status": "verified-emulator-gap",
+  "hardware_test": false,
+  "gate_a_verdict": "NOT SCORED",
+  "candidate_sha256": "77709fcc7d0db75ffce3ed3d0e89f3f9e13f883e72f5f6c8109ad3124cc3a0f1",
+  "probe_sha256": "8e36efcc8a9b436e71cce903654d8870416a3399ef29765c0116d2b3daa7a7e9",
+  "without_intc1_source6": {
+    "usb_isr_entries": 1,
+    "deferred_isr_entries": 0,
+    "deferred_source_modelled": false,
+    "pending_status": 4,
+    "intc1_source6_pending": true,
+    "halted": null,
+    "decode_mismatches": 0,
+    "artificial_waits": 0,
+    "cycle_model": {
+      "fsys_hz": 250000000,
+      "cycles": 2500472,
+      "instructions": 1584678,
+      "cycles_per_instruction": 1.578,
+      "seconds": 0.010002,
+      "idle_cycles": 921189,
+      "busy_fraction": 0.6316,
+      "stall_cycles": 39497,
+      "flow_cycles": 97497,
+      "interrupt_entry_cycles": 1044,
+      "branches": {
+        "pt_predicted": 23744,
+        "mispredicted": 7091,
+        "rts_predicted": 8370,
+        "bc_folded": 62185,
+        "rts_unpredicted": 25,
+        "rts_mispredicted": 6,
+        "bc_predicted": 31
+      },
+      "blocks_decoded": 1679,
+      "decode_mismatches": 0,
+      "accel": "max",
+      "vectors": {
+        "32": {
+          "count": 21,
+          "wall_cycles_max": 63,
+          "wall_cycles_mean": 63.0,
+          "self_cycles_max": 63,
+          "self_cycles_total": 1323,
+          "wall_us_max": 0.252
+        },
+        "99": {
+          "count": 1,
+          "wall_cycles_max": 108,
+          "wall_cycles_mean": 108.0,
+          "self_cycles_max": 108,
+          "self_cycles_total": 108,
+          "wall_us_max": 0.432
+        },
+        "108": {
+          "count": 2,
+          "wall_cycles_max": 119,
+          "wall_cycles_mean": 109.5,
+          "self_cycles_max": 119,
+          "self_cycles_total": 219,
+          "wall_us_max": 0.476
+        },
+        "121": {
+          "count": 2,
+          "wall_cycles_max": 1250,
+          "wall_cycles_mean": 812.5,
+          "self_cycles_max": 1250,
+          "self_cycles_total": 1625,
+          "wall_us_max": 5.0
+        },
+        "155": {
+          "count": 3,
+          "wall_cycles_max": 40,
+          "wall_cycles_mean": 35.333333333333336,
+          "self_cycles_max": 40,
+          "self_cycles_total": 106,
+          "wall_us_max": 0.16
+        },
+        "174": {
+          "count": 14,
+          "wall_cycles_max": 41,
+          "wall_cycles_mean": 41.0,
+          "self_cycles_max": 41,
+          "self_cycles_total": 574,
+          "wall_us_max": 0.164
+        },
+        "191": {
+          "count": 14,
+          "wall_cycles_max": 101182,
+          "wall_cycles_mean": 100870.78571428571,
+          "self_cycles_max": 101115,
+          "self_cycles_total": 1412124,
+          "wall_us_max": 404.728
+        },
+        "205": {
+          "count": 4,
+          "wall_cycles_max": 167,
+          "wall_cycles_mean": 89.0,
+          "self_cycles_max": 81,
+          "self_cycles_total": 270,
+          "wall_us_max": 0.668
+        },
+        "207": {
+          "count": 1,
+          "wall_cycles_max": 86,
+          "wall_cycles_mean": 86.0,
+          "self_cycles_max": 86,
+          "self_cycles_total": 86,
+          "wall_us_max": 0.344
+        },
+        "209": {
+          "count": 1,
+          "wall_cycles_max": 67,
+          "wall_cycles_mean": 67.0,
+          "self_cycles_max": 67,
+          "self_cycles_total": 67,
+          "wall_us_max": 0.268
+        }
+      }
+    }
+  },
+  "with_intc1_source6": {
+    "usb_isr_entries": 1,
+    "deferred_isr_entries": 1,
+    "deferred_source_modelled": true,
+    "pending_status": 0,
+    "intc1_source6_pending": false,
+    "halted": null,
+    "decode_mismatches": 0,
+    "artificial_waits": 0,
+    "cycle_model": {
+      "fsys_hz": 250000000,
+      "cycles": 2500488,
+      "instructions": 1584673,
+      "cycles_per_instruction": 1.578,
+      "seconds": 0.010002,
+      "idle_cycles": 921084,
+      "busy_fraction": 0.6316,
+      "stall_cycles": 39499,
+      "flow_cycles": 97533,
+      "interrupt_entry_cycles": 1062,
+      "branches": {
+        "pt_predicted": 23750,
+        "mispredicted": 7094,
+        "rts_predicted": 8369,
+        "bc_folded": 62183,
+        "rts_unpredicted": 26,
+        "rts_mispredicted": 6,
+        "bc_predicted": 31
+      },
+      "blocks_decoded": 1687,
+      "decode_mismatches": 0,
+      "accel": "max",
+      "vectors": {
+        "32": {
+          "count": 21,
+          "wall_cycles_max": 63,
+          "wall_cycles_mean": 63.0,
+          "self_cycles_max": 63,
+          "self_cycles_total": 1323,
+          "wall_us_max": 0.252
+        },
+        "99": {
+          "count": 1,
+          "wall_cycles_max": 108,
+          "wall_cycles_mean": 108.0,
+          "self_cycles_max": 108,
+          "self_cycles_total": 108,
+          "wall_us_max": 0.432
+        },
+        "108": {
+          "count": 2,
+          "wall_cycles_max": 119,
+          "wall_cycles_mean": 109.5,
+          "self_cycles_max": 119,
+          "self_cycles_total": 219,
+          "wall_us_max": 0.476
+        },
+        "121": {
+          "count": 2,
+          "wall_cycles_max": 1356,
+          "wall_cycles_mean": 865.5,
+          "self_cycles_max": 1261,
+          "self_cycles_total": 1636,
+          "wall_us_max": 5.424
+        },
+        "134": {
+          "count": 1,
+          "wall_cycles_max": 95,
+          "wall_cycles_mean": 95.0,
+          "self_cycles_max": 95,
+          "self_cycles_total": 95,
+          "wall_us_max": 0.38
+        },
+        "155": {
+          "count": 3,
+          "wall_cycles_max": 40,
+          "wall_cycles_mean": 35.333333333333336,
+          "self_cycles_max": 40,
+          "self_cycles_total": 106,
+          "wall_us_max": 0.16
+        },
+        "174": {
+          "count": 14,
+          "wall_cycles_max": 41,
+          "wall_cycles_mean": 41.0,
+          "self_cycles_max": 41,
+          "self_cycles_total": 574,
+          "wall_us_max": 0.164
+        },
+        "191": {
+          "count": 14,
+          "wall_cycles_max": 101182,
+          "wall_cycles_mean": 100870.78571428571,
+          "self_cycles_max": 101115,
+          "self_cycles_total": 1412124,
+          "wall_us_max": 404.728
+        },
+        "205": {
+          "count": 4,
+          "wall_cycles_max": 167,
+          "wall_cycles_mean": 89.0,
+          "self_cycles_max": 81,
+          "self_cycles_total": 270,
+          "wall_us_max": 0.668
+        },
+        "207": {
+          "count": 1,
+          "wall_cycles_max": 86,
+          "wall_cycles_mean": 86.0,
+          "self_cycles_max": 86,
+          "self_cycles_total": 86,
+          "wall_us_max": 0.344
+        },
+        "209": {
+          "count": 1,
+          "wall_cycles_max": 67,
+          "wall_cycles_mean": 67.0,
+          "self_cycles_max": 67,
+          "self_cycles_total": 67,
+          "wall_us_max": 0.268
+        }
+      }
+    }
+  },
+  "finding": "Native USB ISR209 forces INTC1 source6. Without that source, native deferred USB ISR134 never runs and status remains pending. Existing generic ForcedInterrupts can model this handoff.",
+  "limits": [
+    "One scheduled status4 ISR-entry test; not USB controller or DMA emulation.",
+    "The ISR-entry test bypasses the peripheral mask and respects native priority/CPU IPL.",
+    "Status4 exercises a bounded native status-clear branch, not RX/ACK or descriptor completion.",
+    "No physical UI-lag cause or firmware fix established."
+  ]
+}

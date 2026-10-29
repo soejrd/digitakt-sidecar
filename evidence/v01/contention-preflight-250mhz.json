@@ -1,0 +1,560 @@
+{
+  "task": "V01 Gate A",
+  "status": "emulator-gap",
+  "schema": "v01-contention-preflight/1",
+  "hardware_test": false,
+  "gate_a_verdict": "NOT SCORED",
+  "candidate_sha256": "77709fcc7d0db75ffce3ed3d0e89f3f9e13f883e72f5f6c8109ad3124cc3a0f1",
+  "stock_main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
+  "snapshot_sha256": "2c6c0314244015778358c5f97514e5f5f79e5d175d151d73538a5555dc15fdfe",
+  "prepared_snapshot_sha256": "068c892906bd6acac087918a2e38daf44e76da9647c8fe59935f1fb3a694fb12",
+  "probe_sha256": "3da90dfd7bcbc852f34d524af6afc4f4d19b7c2090a0a7b36eb1fc6dc91aa0ec",
+  "emulator_revision": "f57c2f237e84b8ff91bc3adb2a2931bccf9928e9",
+  "profiles": [
+    {
+      "profile": {
+        "speed": 32,
+        "depth": 32,
+        "scope": "native LFO/panel, disconnected; not physical profile replay"
+      },
+      "duration_ms": 500.651168,
+      "halted": null,
+      "cycle_minus_timer_clock": 19000,
+      "hooks": {
+        "queue_send": "0x40001b7a",
+        "ui_queue": "0x40610c28",
+        "mainloop": "0x4000b6e4",
+        "ui_key_dispatch": "0x4000b764"
+      },
+      "panel_hook_sequence_valid": true,
+      "panel": {
+        "events": [
+          {
+            "code": 24,
+            "flags": 1,
+            "enqueue_cycle": 2601937,
+            "pop_cycle": 2603773,
+            "dispatch_cycle": 2603803,
+            "complete_cycle": 2616489,
+            "enqueue_to_pop_ms": 0.007344,
+            "enqueue_to_dispatch_ms": 0.007464,
+            "enqueue_to_complete_ms": 0.058208,
+            "arrival_to_complete_ms": 0.464172
+          },
+          {
+            "code": 24,
+            "flags": 16,
+            "enqueue_cycle": 10100858,
+            "pop_cycle": 10147668,
+            "dispatch_cycle": 10147691,
+            "complete_cycle": 10153845,
+            "enqueue_to_pop_ms": 0.18724,
+            "enqueue_to_dispatch_ms": 0.187332,
+            "enqueue_to_complete_ms": 0.211948,
+            "arrival_to_complete_ms": 0.60894
+          },
+          {
+            "code": 20,
+            "flags": 1,
+            "enqueue_cycle": 15101938,
+            "pop_cycle": 15124651,
+            "dispatch_cycle": 15124674,
+            "complete_cycle": 15128428,
+            "enqueue_to_pop_ms": 0.090852,
+            "enqueue_to_dispatch_ms": 0.090944,
+            "enqueue_to_complete_ms": 0.10596,
+            "arrival_to_complete_ms": 0.50424
+          },
+          {
+            "code": 20,
+            "flags": 16,
+            "enqueue_cycle": 22603022,
+            "pop_cycle": 22629028,
+            "dispatch_cycle": 22629058,
+            "complete_cycle": 22641596,
+            "enqueue_to_pop_ms": 0.104024,
+            "enqueue_to_dispatch_ms": 0.104144,
+            "enqueue_to_complete_ms": 0.154296,
+            "arrival_to_complete_ms": 0.552308
+          }
+        ],
+        "max_queue_depth": 1,
+        "unmatched_dispatches": 0,
+        "unfinished": 0
+      },
+      "panel_arrivals": [
+        {
+          "code": 24,
+          "down": true,
+          "due_cycle": 2500000,
+          "arrival_timer_cycle": 2500013,
+          "arrival_cycle": 2500446
+        },
+        {
+          "code": 24,
+          "down": false,
+          "due_cycle": 10000000,
+          "arrival_timer_cycle": 10000003,
+          "arrival_cycle": 10001610
+        },
+        {
+          "code": 20,
+          "down": true,
+          "due_cycle": 15000000,
+          "arrival_timer_cycle": 15000005,
+          "arrival_cycle": 15002368
+        },
+        {
+          "code": 20,
+          "down": false,
+          "due_cycle": 22500000,
+          "arrival_timer_cycle": 22500004,
+          "arrival_cycle": 22503519
+        }
+      ],
+      "panel_irq_delivery_cycles": [
+        2601634,
+        10100574,
+        15101601,
+        22602704
+      ],
+      "counters": {
+        "render_blocks": 751,
+        "effective_changes": 125,
+        "starts": 1,
+        "raw_param_changes": 735,
+        "native_usb_submit_calls": 0,
+        "native_rx_bridge_calls": 0,
+        "sound_lfo_slots_1_to_8": [
+          24576,
+          1024,
+          16384,
+          4352,
+          0,
+          0,
+          0,
+          20480
+        ],
+        "display_speed_8_8": 8192,
+        "display_depth_8_8": 8192,
+        "machine_id": 121,
+        "native_lfo_tempo_argument": 14400,
+        "effective_changes_per_s": 249.675,
+        "worker_runs": 15,
+        "worker_guard_faults": 0,
+        "gate": 0,
+        "usb_ready": 0,
+        "usb_queued": 0,
+        "usb_irq_vector209_count": 0
+      },
+      "cycle_model": {
+        "fsys_hz": 250000000,
+        "cycles": 125181792,
+        "instructions": 80117068,
+        "cycles_per_instruction": 1.562,
+        "seconds": 0.500727,
+        "idle_cycles": 47155074,
+        "busy_fraction": 0.6233,
+        "stall_cycles": 1516745,
+        "flow_cycles": 3909428,
+        "interrupt_entry_cycles": 49878,
+        "branches": {
+          "pt_predicted": 1022489,
+          "rts_predicted": 191124,
+          "mispredicted": 312112,
+          "bc_folded": 3108054,
+          "bc_predicted": 3049,
+          "rts_unpredicted": 501,
+          "rts_mispredicted": 82
+        },
+        "blocks_decoded": 3743,
+        "decode_mismatches": 0,
+        "accel": "max",
+        "vectors": {
+          "32": {
+            "count": 877,
+            "wall_cycles_max": 63,
+            "wall_cycles_mean": 63.0,
+            "self_cycles_max": 63,
+            "self_cycles_total": 55251,
+            "wall_us_max": 0.252
+          },
+          "99": {
+            "count": 15,
+            "wall_cycles_max": 108,
+            "wall_cycles_mean": 108.0,
+            "self_cycles_max": 108,
+            "self_cycles_total": 1620,
+            "wall_us_max": 0.432
+          },
+          "108": {
+            "count": 96,
+            "wall_cycles_max": 140,
+            "wall_cycles_mean": 108.17708333333333,
+            "self_cycles_max": 140,
+            "self_cycles_total": 10385,
+            "wall_us_max": 0.56
+          },
+          "121": {
+            "count": 96,
+            "wall_cycles_max": 1742,
+            "wall_cycles_mean": 597.1354166666666,
+            "self_cycles_max": 1293,
+            "self_cycles_total": 56000,
+            "wall_us_max": 6.968
+          },
+          "154": {
+            "count": 4,
+            "wall_cycles_max": 545,
+            "wall_cycles_mean": 523.0,
+            "self_cycles_max": 545,
+            "self_cycles_total": 2092,
+            "wall_us_max": 2.18
+          },
+          "155": {
+            "count": 183,
+            "wall_cycles_max": 40,
+            "wall_cycles_mean": 33.076502732240435,
+            "self_cycles_max": 40,
+            "self_cycles_total": 6053,
+            "wall_us_max": 0.16
+          },
+          "174": {
+            "count": 750,
+            "wall_cycles_max": 41,
+            "wall_cycles_mean": 41.0,
+            "self_cycles_max": 41,
+            "self_cycles_total": 30750,
+            "wall_us_max": 0.164
+          },
+          "191": {
+            "count": 751,
+            "wall_cycles_max": 102468,
+            "wall_cycles_mean": 101004.18641810918,
+            "self_cycles_max": 102468,
+            "self_cycles_total": 75854144,
+            "wall_us_max": 409.872
+          },
+          "205": {
+            "count": 60,
+            "wall_cycles_max": 174,
+            "wall_cycles_mean": 86.55,
+            "self_cycles_max": 81,
+            "self_cycles_total": 4014,
+            "wall_us_max": 0.696
+          },
+          "207": {
+            "count": 30,
+            "wall_cycles_max": 93,
+            "wall_cycles_mean": 92.0,
+            "self_cycles_max": 93,
+            "self_cycles_total": 2760,
+            "wall_us_max": 0.372
+          }
+        }
+      },
+      "audio_irq_deadlines": {
+        "period_cycles": 166666.66666666666,
+        "runs": 751,
+        "worst_cycles": 102468,
+        "p99_cycles": 101366,
+        "mean_cycles": 101004.2,
+        "late": 0,
+        "worst_fraction": 0.6148,
+        "margin": 0.3852
+      },
+      "artificial_waits_by_sem": {},
+      "artificial_waits_by_caller": {},
+      "native_worker_wait_faked": 0,
+      "irq_sources": [
+        "Ssi0Dma",
+        "SoftwareBank",
+        "ForcedInterrupts",
+        "ForcedInterrupts",
+        "PanelArrival"
+      ],
+      "timer_sources": [
+        "Pits",
+        "Dtims"
+      ]
+    },
+    {
+      "profile": {
+        "speed": 64,
+        "depth": 48,
+        "scope": "native LFO/panel, disconnected; not physical profile replay"
+      },
+      "duration_ms": 500.651168,
+      "halted": null,
+      "cycle_minus_timer_clock": 19016,
+      "hooks": {
+        "queue_send": "0x40001b7a",
+        "ui_queue": "0x40610c28",
+        "mainloop": "0x4000b6e4",
+        "ui_key_dispatch": "0x4000b764"
+      },
+      "panel_hook_sequence_valid": true,
+      "panel": {
+        "events": [
+          {
+            "code": 24,
+            "flags": 1,
+            "enqueue_cycle": 2601937,
+            "pop_cycle": 2603773,
+            "dispatch_cycle": 2603803,
+            "complete_cycle": 2616489,
+            "enqueue_to_pop_ms": 0.007344,
+            "enqueue_to_dispatch_ms": 0.007464,
+            "enqueue_to_complete_ms": 0.058208,
+            "arrival_to_complete_ms": 0.464172
+          },
+          {
+            "code": 24,
+            "flags": 16,
+            "enqueue_cycle": 10100858,
+            "pop_cycle": 10150272,
+            "dispatch_cycle": 10150295,
+            "complete_cycle": 10156449,
+            "enqueue_to_pop_ms": 0.197656,
+            "enqueue_to_dispatch_ms": 0.197748,
+            "enqueue_to_complete_ms": 0.222364,
+            "arrival_to_complete_ms": 0.619356
+          },
+          {
+            "code": 20,
+            "flags": 1,
+            "enqueue_cycle": 15101936,
+            "pop_cycle": 15127280,
+            "dispatch_cycle": 15127303,
+            "complete_cycle": 15131057,
+            "enqueue_to_pop_ms": 0.101376,
+            "enqueue_to_dispatch_ms": 0.101468,
+            "enqueue_to_complete_ms": 0.116484,
+            "arrival_to_complete_ms": 0.514764
+          },
+          {
+            "code": 20,
+            "flags": 16,
+            "enqueue_cycle": 22603013,
+            "pop_cycle": 22631842,
+            "dispatch_cycle": 22631872,
+            "complete_cycle": 22644410,
+            "enqueue_to_pop_ms": 0.115316,
+            "enqueue_to_dispatch_ms": 0.115436,
+            "enqueue_to_complete_ms": 0.165588,
+            "arrival_to_complete_ms": 0.56356
+          }
+        ],
+        "max_queue_depth": 1,
+        "unmatched_dispatches": 0,
+        "unfinished": 0
+      },
+      "panel_arrivals": [
+        {
+          "code": 24,
+          "down": true,
+          "due_cycle": 2500000,
+          "arrival_timer_cycle": 2500013,
+          "arrival_cycle": 2500446
+        },
+        {
+          "code": 24,
+          "down": false,
+          "due_cycle": 10000000,
+          "arrival_timer_cycle": 10000004,
+          "arrival_cycle": 10001610
+        },
+        {
+          "code": 20,
+          "down": true,
+          "due_cycle": 15000000,
+          "arrival_timer_cycle": 15000004,
+          "arrival_cycle": 15002366
+        },
+        {
+          "code": 20,
+          "down": false,
+          "due_cycle": 22500000,
+          "arrival_timer_cycle": 22500006,
+          "arrival_cycle": 22503520
+        }
+      ],
+      "panel_irq_delivery_cycles": [
+        2601634,
+        10100574,
+        15101599,
+        22602695
+      ],
+      "counters": {
+        "render_blocks": 751,
+        "effective_changes": 374,
+        "starts": 1,
+        "raw_param_changes": 735,
+        "native_usb_submit_calls": 0,
+        "native_rx_bridge_calls": 0,
+        "sound_lfo_slots_1_to_8": [
+          32766,
+          1024,
+          16384,
+          4352,
+          0,
+          0,
+          0,
+          22528
+        ],
+        "display_speed_8_8": 16382,
+        "display_depth_8_8": 12288,
+        "machine_id": 121,
+        "native_lfo_tempo_argument": 14400,
+        "effective_changes_per_s": 747.027,
+        "worker_runs": 15,
+        "worker_guard_faults": 0,
+        "gate": 0,
+        "usb_ready": 0,
+        "usb_queued": 0,
+        "usb_irq_vector209_count": 0
+      },
+      "cycle_model": {
+        "fsys_hz": 250000000,
+        "cycles": 125181808,
+        "instructions": 80116326,
+        "cycles_per_instruction": 1.563,
+        "seconds": 0.500727,
+        "idle_cycles": 47147985,
+        "busy_fraction": 0.6234,
+        "stall_cycles": 1516725,
+        "flow_cycles": 3914522,
+        "interrupt_entry_cycles": 49896,
+        "branches": {
+          "pt_predicted": 1022090,
+          "rts_predicted": 191117,
+          "mispredicted": 312798,
+          "bc_folded": 3108054,
+          "bc_predicted": 3028,
+          "rts_unpredicted": 506,
+          "rts_mispredicted": 82
+        },
+        "blocks_decoded": 3722,
+        "decode_mismatches": 0,
+        "accel": "max",
+        "vectors": {
+          "32": {
+            "count": 875,
+            "wall_cycles_max": 101051,
+            "wall_cycles_mean": 178.41485714285713,
+            "self_cycles_max": 63,
+            "self_cycles_total": 55113,
+            "wall_us_max": 404.204
+          },
+          "99": {
+            "count": 15,
+            "wall_cycles_max": 108,
+            "wall_cycles_mean": 108.0,
+            "self_cycles_max": 108,
+            "self_cycles_total": 1620,
+            "wall_us_max": 0.432
+          },
+          "108": {
+            "count": 96,
+            "wall_cycles_max": 140,
+            "wall_cycles_mean": 108.17708333333333,
+            "self_cycles_max": 140,
+            "self_cycles_total": 10385,
+            "wall_us_max": 0.56
+          },
+          "121": {
+            "count": 96,
+            "wall_cycles_max": 1742,
+            "wall_cycles_mean": 597.1354166666666,
+            "self_cycles_max": 1293,
+            "self_cycles_total": 56000,
+            "wall_us_max": 6.968
+          },
+          "154": {
+            "count": 4,
+            "wall_cycles_max": 545,
+            "wall_cycles_mean": 523.0,
+            "self_cycles_max": 545,
+            "self_cycles_total": 2092,
+            "wall_us_max": 2.18
+          },
+          "155": {
+            "count": 183,
+            "wall_cycles_max": 40,
+            "wall_cycles_mean": 33.076502732240435,
+            "self_cycles_max": 40,
+            "self_cycles_total": 6053,
+            "wall_us_max": 0.16
+          },
+          "174": {
+            "count": 750,
+            "wall_cycles_max": 41,
+            "wall_cycles_mean": 41.0,
+            "self_cycles_max": 41,
+            "self_cycles_total": 30750,
+            "wall_us_max": 0.164
+          },
+          "191": {
+            "count": 751,
+            "wall_cycles_max": 102468,
+            "wall_cycles_mean": 101010.85086551265,
+            "self_cycles_max": 102468,
+            "self_cycles_total": 75859149,
+            "wall_us_max": 409.872
+          },
+          "205": {
+            "count": 61,
+            "wall_cycles_max": 174,
+            "wall_cycles_mean": 89.78688524590164,
+            "self_cycles_max": 81,
+            "self_cycles_total": 4113,
+            "wall_us_max": 0.696
+          },
+          "207": {
+            "count": 30,
+            "wall_cycles_max": 93,
+            "wall_cycles_mean": 91.96666666666667,
+            "self_cycles_max": 93,
+            "self_cycles_total": 2759,
+            "wall_us_max": 0.372
+          }
+        }
+      },
+      "audio_irq_deadlines": {
+        "period_cycles": 166666.66666666666,
+        "runs": 751,
+        "worst_cycles": 102468,
+        "p99_cycles": 101342,
+        "mean_cycles": 101010.9,
+        "late": 0,
+        "worst_fraction": 0.6148,
+        "margin": 0.3852
+      },
+      "artificial_waits_by_sem": {},
+      "artificial_waits_by_caller": {},
+      "native_worker_wait_faked": 0,
+      "irq_sources": [
+        "Ssi0Dma",
+        "SoftwareBank",
+        "ForcedInterrupts",
+        "ForcedInterrupts",
+        "PanelArrival"
+      ],
+      "timer_sources": [
+        "Pits",
+        "Dtims"
+      ]
+    }
+  ],
+  "limits": [
+    "No USB controller DMA/IRQ or ACK arrival model; active G transport is not exercised.",
+    "No UI runnable/wait attribution or active-link regression verdict is possible here.",
+    "Cycle estimates assume zero-wait memory, omit DDR/bus contention and misalignment.",
+    "Core frequency is an assumption; 132MHz DTIM0 calibration is not CPU frequency.",
+    "Native sound slot seeds do not establish the complete physical LFO/pattern profile.",
+    "Main-loop return measures dispatch-pass completion, not visible screen latency.",
+    "CycleClock precharges whole blocks; hook timestamps are block-granular estimates.",
+    "Asynchronous exception-entry costs advance CycleClock outside the timer step; clocks differ slightly.",
+    "Snapshot was created with emulator shortcuts; native replay does not validate its history."
+  ]
+}

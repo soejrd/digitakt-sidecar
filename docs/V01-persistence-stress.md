@@ -1,6 +1,6 @@
 # V01 — one-voice qualification
 
-**IN PROGRESS.** Ownership renewed by Codex at `2026-10-28T18:41:42Z`.
+**IN PROGRESS.** Ownership renewed by Codex at `2026-10-29T12:58:23Z`.
 Original Phase 0 preservation passed; Phase 1 reproduced the dense-LFO failure.
 Current Gate A remains incomplete: G was physically installed and failed at
 SPD64/DEP48. V01P is rejected; V01N remains physically untested.
@@ -107,7 +107,7 @@ Use the following sequence before another optimization or hardware flash:
    Retain real native task switching and interrupt context. Replace direct
    context-injected ACK shortcuts with scheduled arrival when testing scheduling.
 3. **Establish the regression verdict.** Provide one reproducible command,
-   planned as `tools/v01_contention_probe.py` (not implemented yet), that runs
+   `tools/v01_contention_probe.py` (now a disconnected preflight; active-link extension pending), that runs
    both profiles and reports panel latency/backlog, task runnable/wait states,
    audio deadlines, queue occupancy and protocol faults. Repeat fixed inputs
    to establish determinism. Start with Gate C's proposed 100ms response limit,
@@ -151,6 +151,168 @@ Use the following sequence before another optimization or hardware flash:
 report with exact revisions/model assumptions, and either a demonstrated causal
 mechanism plus regression or an evidenced emulator gap plus one targeted
 measurement proposal. No emulator reproduction or root cause is claimed yet.
+
+#### Native panel/LFO preflight and evidenced USB gap (2026-10-29)
+
+Implemented [v01_contention_probe.py](../tools/v01_contention_probe.py).
+[Summary](../evidence/v01/contention-investigation.json), detailed runs at
+[250 MHz](../evidence/v01/contention-preflight-250mhz.json) and
+[200 MHz](../evidence/v01/contention-preflight-200mhz.json).
+These are **disconnected component measurements**, not an active-link
+reproduction. The command deliberately reports `emulator-gap; Gate A NOT SCORED`.
+No firmware candidate, hardware change or causal fix resulted from this work.
+
+Reproduce with the existing private G fixture and patched local Unicorn:
+
+```sh
+PYTHONPATH=private/r03-runtime:deps/digiemu \
+  deps/digiemu/.venv/bin/python tools/v01_contention_probe.py \
+  --candidate private/v01-compact-g \
+  --output private/v01/contention-repeat.json
+```
+
+Use `--fsys 200000000` for the second frequency assumption. Each command runs
+both profiles for 500 emulated ms. On this host the JIT needs the host cache
+query permitted by the execution environment; the default sandbox caused
+process exit 132 before emulation. No hardware connection is involved.
+
+**Validated input seam.** The prepared snapshot selects USB1 through the native
+UI, outside the timing window, and is deleted afterward. Measurement uses
+`hle=False`, CycleClock, real RTOS switching and INTC2 source13 reschedules.
+Panel bytes arrive at fixed shared-clock deadlines in UART8's DMA ring; vector
+154 is delivered only when the programmed INTC mask and CPU IPL allow it.
+`Session.press()` itself raises this vector without a level/mask check, so it
+is used only during disposable setup. No ACK or panel callback is inserted by
+saving/restoring the measured CPU context.
+
+The mk1 OS1.54 hooks resolve to queue-send `0x40001b7a`, queue `0x40610c28`,
+main loop `0x4000b6e4` (pop at +12), and key-dispatch call `0x4000b764`.
+All four injected edges (track-1 trig press/release and SRC press/release) were
+observed with matching codes and flags through enqueue, pop, dispatch and next
+main-loop entry. This validates the used 16-byte record layout and dispatch
+seam on mk1; it does not validate every Digitakt II UiTrace hook or prove
+visible screen/Save completion latency. Guarded IRQ delivery and DMA ring wrap
+are covered by `tests/test_v01_contention_probe.py`.
+
+**Native workload encoding.** OS1.54's actual SPD formatter at `0x40065842`
+displays `raw - 0x4000`; DEP at `0x4006585c` displays
+`2*raw - 0x8000`, in 8.8 units. The probe verifies these instruction bytes.
+SPD32 therefore uses `0x6000`; approximate SPD64 uses the valid maximum
+`0x7ffe`, not signed `0x8000`. DEP32/48 use `0x5000`/`0x5800`.
+Early discarded setup runs wrote these fields incorrectly; they are retained
+only in ignored private storage and are not performance evidence.
+The native render call at `0x40077ea2` loads tempo from `0x4020df10`; the
+disposable fixture sets 14400 and observes that native LFO argument (120 BPM).
+Other seeds are MULT4, FADE64, PTCH destination17, triangle0, phase0, FREE0,
+PTCH60. Effective changes use G's integer truncation/clamp, not fractional
+smoothing activity. No synthetic per-render modulation or delay is added.
+
+| Assumed core | Setting | Effective changes/s | Max arrival→dispatch-pass completion | Queue depth max |
+| --- | --- | --- | --- | --- |
+| 250 MHz | 32/32 | 249.675 | 0.609 ms | 1 |
+| 250 MHz | ~64/48 | 747.027 | 0.619 ms | 1 |
+| 200 MHz | 32/32 | 249.674 | 1.196 ms | 1 |
+| 200 MHz | ~64/48 | 747.025 | 1.196 ms | 1 |
+
+Both 250 MHz reports were exactly equal, including snapshot hash, event times,
+cycle counters and all profile results. All runs had one START/profile,
+751 completed audio render IRQs/profile, zero estimated render overruns,
+zero decoder mismatches, zero artificial semaphore releases and intact worker
+guards. These rates count parameter changes, whereas physical ~284/~816/s
+counts native sends (including other protocol traffic); equality is not an
+acceptance target. Four early button edges and 500 ms do not qualify a soak.
+
+**Execution-model audit and gap.** Every measured profile has USB_READY0,
+gate0, zero native submission calls at `0x40004832`, zero compiled native RX
+bridge calls, and zero completed USB IRQs (vector209). Worker execution is
+only the disconnected retry path (15 runs), not the dense active-link worker.
+This is a missing execution path, not a negative test of ACK or USB pressure.
+The measured source list contains SSI, software eDMA, forced INTC sources and
+the panel source; it contains no USB controller/completion source.
+
+The missing handoff is now demonstrated independently by
+[v01_usb_dispatch_probe.py](../tools/v01_usb_dispatch_probe.py) and
+[its evidence](../evidence/v01/usb-dispatch-gap.json). The installed snapshot
+has USB vector209 at `0x4000605e`, programmed IPL6; it ORs status into
+`0x406104d8` and, at `0x400060e6`, forces INTC1 source6 through `0xfc04c014`.
+Vector134 at `0x40007044`, IPL4, acknowledges that force bit and performs the
+deferred USB work. Its status1 path walks endpoint completions at
+`0x400071a2` onward. Existing Session/probe sources cover INTC0 and the added
+INTC2 reschedule source, **not INTC1 source6**.
+
+One fixed scheduled USB status4 event enters the real native vector209 ISR.
+With the existing source set, native vector134 executes zero times and status4
+plus the force bit remain pending after 10 emulated ms. Adding only the generic
+`ForcedInterrupts(..., sources=(6,), base=0xfc04c000, first_vector=128)` source
+makes native vector134 execute once and clear both. No delay, firmware patch,
+handler substitution or saved/restored callback context is involved. Both
+cases have no decoder mismatch or artificial wait. This is a regression for
+the emulator's missing event route, not the hardware UI bug. The deliberate
+ISR-entry test uses native IPL and CPU-mask deferral but bypasses the peripheral
+mask; status4 tests a bounded status-clear branch, not DMA or RX/ACK handling.
+
+```sh
+PYTHONPATH=private/r03-runtime:deps/digiemu \
+  deps/digiemu/.venv/bin/python tools/v01_usb_dispatch_probe.py \
+  --candidate private/v01-compact-g \
+  --output private/v01/usb-dispatch-repeat.json
+```
+
+Result: `Native USB handoff: missing source retains status; modelled source
+dispatches/clears: PASS`. The adapter uses the pinned emulator's existing
+generic interrupt model; no dependency source edits require replay patches.
+
+The existing integrated exchange's native serializer stops at `0x40004832`:
+its hook consumes the payload, increments queued bytes and returns directly.
+Its render hook clears queued bytes as synthetic completion, sets USB status,
+and supplies returned PCM; replies are context-injected every 5 ms. Thus
+native descriptor submission, completion/USB ISR cost, and the real arrival
+context/batching of RX bytes are excluded even if cycle timing is added.
+The new preflight does not recycle those substitutions to claim a workload
+pass. It also found no stock semaphore shortcut actually firing in these
+windows; stock wait faking remains enabled by Session and must be audited
+again when USB tasks become runnable.
+
+Further timing limits: core frequency remains assumed, memory is zero-wait,
+software eDMA copies complete without physical bus time, and cache/DDR/audio
+DMA contention is absent. The cycle hook precharges entire translated blocks,
+so event timestamps have block granularity. Exception-entry charges outside
+the stepper also make the cycle and peripheral clocks differ slightly; the
+report exposes that drift and uses CycleClock consistently for event latency.
+The existing vector statistics are model output, not physical CPU occupancy.
+There is no active-link function/task self-cost or UI runnable-time attribution
+yet, and no hardware CPU-saturation conclusion.
+
+**Next software work:** wire the demonstrated INTC1 source6 adapter into an
+active-link probe and model the native USB descriptor/prime, completion and
+RX-dispatch chain, then extend this validated panel seam to the
+active-link workload. Preserve genuine task/IRQ context and measure the
+previously omitted execution separately. Source-derived semantics should be
+implemented before requesting a hardware run; do not replace missing USB work
+with a fitted synthetic delay.
+
+**One justified hardware measurement, only if source work leaves the USB
+service timing/batching unresolved:** measure native vectors209 **and134** self
+time and their nested overlap with worker spans alongside panel
+enqueue→dispatch latency.
+This specifically tests whether USB interrupt/service bursts consume the UI's
+available service time. Current send critical-section counters exclude this
+path, and worker/render brackets cannot provide it by subtraction.
+
+Prepare/verify bounded counter instrumentation in software first. Collect
+per-window count and total/max self ticks for each USB IRQ, RX callback count/batch size,
+worker self ticks with IRQ overlap removed, and the four panel-event timestamps;
+retain summaries for low-rate retrieval after the timed window. Do not print
+or transmit a full trace during the run. Verify nesting/counter arithmetic
+against emulator execution before proposing an installation.
+The single proposed procedure is 10 s muted 32/32, then 10 s at the already
+failing ~64/48, with one SRC and one FLTR press in each window. Stop immediately
+on lag/new fault/FIFO growth and unplug; no larger depth sweep or manual DIAG
+extraction. If increasing USB self/blocked time accounts for delayed panel
+dispatch, the missing native service path becomes the next causal target.
+If it remains small while worker self time or UI-handler backlog grows, that
+prediction fails and the same capture selects the alternative path. This is a
+measurement proposal, not an optimization candidate or a request to flash now.
 
 Preserve ordered START identity, full effective state, fail-closed deadlines,
 bounded queues, task-only USB and allocation-free/nonblocking audio callbacks.
