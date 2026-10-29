@@ -41,39 +41,36 @@ replayable patch (28 dependency/23 V01 tests), corrected200MHz dense panel
 maximum is8.657ms, and the native-span observer matches firmware totals
 ([comparison](evidence/v01/clock-cost-comparison.json)).
 
-**X01 second offline milestone passes; default production remains one voice.**
-[Report/commands](docs/X01-multivoice-offline.md). Opt-in v5 negotiation/v4
-snapshots, two-track native capture/worker, portable Pi peer and actual Circle
-glue/independent Output lanes pass host/ASan/UBSan/ColdFire checks. Full booted
-OS1.54/native serializer/RX exchange passes UI selection of both USB1 machines,
-simultaneous triggers, isolated panel SRC edit, ACK loss, unplug/reconnect and
-stalled TX recovery; 17,815 render boundaries preserve the other six sources.
-[Evidence](evidence/x01/integrated-154.json). Private `x01-control` / **X01E** is
-emulator-only, never a hardware candidate. Default V01 worker/dependency tree
-unchanged. Earlier 1/2/8-engine host benchmark remains valid within its scope.
-Next offline work: native sound-lock/copy tests. Seeded LFO, distinct stored
-locks/restore and isolated Pi kernel cross-build now pass (details below). Physical timing/margin and V01-A remain open; X01/X01a are
-not complete. No hardware accessed or installed firmware/kernel changed.
+**X01 remains IN PROGRESS; default production is one voice.**
+[Report/commands](docs/X01-multivoice-offline.md). Opt-in v5/v4 two-track native
+capture/worker, portable peer, Circle glue and independent Output lanes pass
+host/ASan/UBSan/ColdFire checks. The booted OS1.54 exchange preserves other
+sources through 17,815 render boundaries, simultaneous hits, panel edits,
+ACK loss, reconnect and stalled TX ([evidence](evidence/x01/integrated-154.json)).
+Session regressions cover single-lane mapping, timestamp/lease wrap and stalled
+ACKs despite valid keepalives. Earlier 1/2/8-engine host benchmark remains valid
+within its scope; eight independent Digitakt returns are not established.
 
-X01 follow-up: single-lane mapping, timestamp/lease wrap and stalled ACKs despite
-valid keepalives pass the session regressions. Docker was started and the isolated Pi build now passes.
+Native seeded LFO and distinct stored-lock restoration pass. New offline
+coverage: all eight SRC controls edited through native UI copy from track2 to
+track1 via held SRC+RECORD / SRC+STOP; exact engine values transfer, neighboring
+sound slots and target non-SRC slots stay intact. Two RAM pool sounds on step3
+(no p-locks) produce60→72→60 and60→84→60 at matching native/host STARTs.
+Both keep the same active session with zero host fault.
+[Page copy](evidence/x01/copy-src-154.json),
+[sound locks](evidence/x01/sound-lock-154.json). Panel gestures service replies
+throughout and wait for native smoothing. These do not pass V01-B, saved-project
+persistence or full track/pattern copy. USB/host timing remains modelled.
+
+Docker now runs and the isolated Pi4 ARM build passes after correcting the
+adapter's target headers; the actual Circle host regression passes.
+[Build evidence](evidence/x01/pi-build.json): image2,482,984 bytes,
+ELF BSS1,530,433 bytes, peer static68,032 bytes. Cached libraries reused;
+runtime heap/stack peaks, CPU margin and physical timing remain unmeasured.
+Next offline: dynamic machine/route changes and full track/pattern copy.
+Hardware expansion still needs V01-A, measured X01a margin and reviewed recovery.
+Private X01E remains emulator-only. No installed firmware/kernel changed.
 
 **Installed:** V01K (frozen); restore I04R before normal use. Pi kernel
-unchanged by V01K. Packages and recovery hashes are in the report. No new
+unchanged by V01K. Packages/recovery hashes are in the V01 report. No new
 hardware candidate is ready.
-
-X01 native modulation follow-up: first-trigger seeded LFO now passes through
-native capture/transport to the actual host engine (track 2 alternates44/75;
-track 1 stays60). Distinct stored locks72/84 and following unlocked restoration
-to60 pass on both tracks; native and host START values match, base sounds stay
-unchanged, same active session and no host fault. Evidence:
-[evidence/x01/lfo-fixture.json](evidence/x01/lfo-fixture.json),
-[evidence/x01/locks-154.json](evidence/x01/locks-154.json). Earlier late seeding
-did not affect native values; its live-edit semantics remain unproven. These
-are disposable RAM fixtures with modelled USB/host timing, not persistence,
-dense stress or hardware qualification. The isolated Pi4 ARM build now passes after fixing adapter header paths and
-using Circle util declarations; actual Circle host regression passes again.
-[Build evidence](evidence/x01/pi-build.json): image2,482,984 bytes, ELF
-BSS1,530,433 bytes, peer static68,032 bytes. Cached libraries reused; runtime
-heap/stack peaks and Pi/device margin remain unmeasured. Sound-lock/copy
-coverage remains open.

@@ -19,7 +19,7 @@ import r03_probe as r03
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def run(candidate, output, lfo_probe=False, locks_probe=False):
+def run(candidate, output, lfo_probe=False, locks_probe=False, copy_probe=False, sound_lock_probe=False):
     from emu.session import Session
     from emu.harness import call
     from unicorn import UC_HOOK_CODE
@@ -187,6 +187,22 @@ def run(candidate, output, lfo_probe=False, locks_probe=False):
         assert get(session.m.uc, sym('usb_track_gate')) and peer.peer_allowed(), (state, peer.peer_reason(), peer.peer_fault())
         assert get(session.m.uc, sym('x01_route_lanes')) == 0x100
         generation = peer.peer_session()
+        if copy_probe or sound_lock_probe:
+            from x01_native_edits import copy_src, sound_lock
+            if sound_lock_probe:
+                observe_locks=True
+                diagnostic=sound_lock(session,step,peer,symbols,native_starts)
+            else:
+                diagnostic=copy_src(session,step,peer,symbols)
+            diagnostic['candidate']=dynamic._candidate_summary(meta)
+            diagnostic['probe_source_sha256']={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest()
+                for name in ('tools/x01_integrated_probe.py','tools/x01_native_edits.py',
+                             'tools/i03_dynamic_probe.py','tools/r03_probe.py')}
+            diagnostic['peer_source_sha256']={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in sources}
+            result_name='sound-lock-154.json' if sound_lock_probe else 'copy-src-154.json'
+            (ROOT/'evidence/x01'/result_name).write_text(json.dumps(diagnostic,indent=2)+'\n')
+            assert diagnostic['pass'],diagnostic
+            print(json.dumps(diagnostic,indent=2)); return
         if locks_probe:
             uc=session.m.uc
             pattern=get(uc,dynamic.PATTERN_POINTER)
@@ -284,6 +300,8 @@ if __name__ == '__main__':
     p.add_argument('--output', type=Path, default=ROOT/'evidence/x01/integrated-154.json')
     p.add_argument('--lfo-probe',action='store_true',help='separate native first-trigger LFO scenario; writes lfo-fixture.json')
     p.add_argument('--locks-probe',action='store_true',help='separate two-track native lock/restore scenario')
+    p.add_argument('--copy-probe',action='store_true',help='separate native SRC page copy/paste scenario')
+    p.add_argument('--sound-lock-probe',action='store_true',help='separate seeded native sound-pool lock/restore scenario')
     a = p.parse_args()
-    if a.lfo_probe and a.locks_probe: p.error('select one scenario')
-    run(a.candidate,a.output,a.lfo_probe,a.locks_probe)
+    if sum((a.lfo_probe,a.locks_probe,a.copy_probe,a.sound_lock_probe))>1: p.error('select one scenario')
+    run(a.candidate,a.output,a.lfo_probe,a.locks_probe,a.copy_probe,a.sound_lock_probe)

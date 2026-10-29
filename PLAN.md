@@ -41,7 +41,8 @@ The [X01 offline milestones](docs/X01-multivoice-offline.md) pass: 1/2/8 real
 host engines, native two-lane AMP/filter insertion, and opt-in v5/v4 negotiation
 with actual two-track capture/worker, Pi glue/Output and booted OS1.54 native
 serializer exchange. Default production remains one voice. Native seeded LFO/distinct lock restoration and the isolated Pi kernel
-cross-build now pass. Sound/copy coverage and physical margin remain open;
+cross-build now pass. Seeded native sound-lock restoration and SRC-page copy
+also pass; full track/pattern copy and physical margin remain open;
 the private X01E build is emulator-only.
 
 ## Design requirements

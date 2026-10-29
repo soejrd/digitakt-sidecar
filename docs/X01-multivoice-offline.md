@@ -232,6 +232,37 @@ PYTHONPATH=private/r03-runtime:deps/digiemu deps/digiemu/.venv/bin/python \
   tools/x01_integrated_probe.py --candidate private/x01-control --locks-probe
 ```
 
+The `--copy-probe` scenario changes all eight source SRC controls through the
+native panel, then performs held SRC+RECORD on track 2 and held SRC+STOP on
+track 1. All eight target controls and host-engine values match the source.
+The source, other six sounds, and target's non-SRC slots stay unchanged; the
+same negotiated session stays active without a host fault.
+[Evidence](../evidence/x01/copy-src-154.json). This covers **SRC-page copy**,
+not complete track/pattern copy or project persistence.
+
+Panel actions here use the integrated five-millisecond scheduler throughout.
+The older standalone helpers advanced native time without servicing host
+replies, causing an artificial session timeout during a longer edit. The copy
+probe also waits for native control smoothing to settle before comparing host
+values. Neither adjustment changes device or host production code.
+
+The `--sound-lock-probe` scenario seeds two disposable runtime sound-pool
+entries and selects them on step 3 of their respective tracks, with **no
+parameter locks**. Native playback and the actual host engines observe
+60→72→60 on track 1 and 60→84→60 on track 2. Every captured host START matches
+its native START; all eight base sounds remain unchanged, and the same session
+stays active without a host fault.
+[Evidence](../evidence/x01/sound-lock-154.json). This proves the native
+sound-pool selection/restore path under a RAM fixture; it does not test UI pool
+loading or saved-project persistence and does not pass V01-B.
+
+```sh
+PYTHONPATH=private/r03-runtime:deps/digiemu deps/digiemu/.venv/bin/python \
+  tools/x01_integrated_probe.py --candidate private/x01-control --copy-probe
+PYTHONPATH=private/r03-runtime:deps/digiemu deps/digiemu/.venv/bin/python \
+  tools/x01_integrated_probe.py --candidate private/x01-control --sound-lock-probe
+```
+
 ## Next work and remaining gates
 
 Follow-up regression: `tests/x01_session.c` now also proves a single mapped
@@ -264,8 +295,9 @@ runtime heap, stack peaks, CPU margin and USB timing remain unmeasured. Cached
 Circle libraries are reused; this is not a clean rebuild of every third-party
 library. The image remains an experimental build, not a hardware candidate.
 
-1. Offline: add native sound-lock/copy semantics coverage; manual triggers,
-   a panel edit, seeded LFO and distinct per-track stored locks now pass.
+1. Offline: exercise machine/route changes and full track/pattern copy;
+   seeded sound locks and native SRC-page copy now pass in addition to
+   manual triggers, panel edits, seeded LFO and per-track stored locks.
    Measure runtime/stack footprint and worst-case margin when hardware is available.
 2. After V01-A's release condition, prepare a reviewed hardware candidate and
    recovery; measure Pi/device margin, USB stability, timing and independent
