@@ -46,12 +46,16 @@ UI gap34 ms. Boot→active FIFO0→11 remains unresolved startup behavior, outsi
 this measured stable interval. Raw timer ~132MHz; worker ~3.4–3.7%, native render
 ~82.9% (overlap), native sends ~284/s. No dense or audible G pass.
 
-**Next:** recorder started for SPD64/DEP32 step. Human increases speed only,
-reports responsiveness and stops/unplugs promptly at lag. Raw capture
-`private/v01/live-gate-a/v01g-speed.json`, stop marker `v01g-speed.stop`;
-watcher runs at most 300s and exits on new FIFO/fault. Depth ramp follows only
-after this step is assessed. No manual DIAG reads. Startup/reconnect issue and
-Gates B persistence/C reconnect-soak remain open.
+**G SPD64/DEP32:** [speed result](evidence/v01/compact-speed-result.json),
+human says maybe slightly sluggish, not super laggy. Fault/guards0 and FIFO11
+stable across 31 samples. Settled sends ~540–543/s, worker elapsed ~8–9%, render
+~83.7–83.9%, masked ~0.82% (elapsed brackets overlap). No clear improvement yet.
+
+**Next:** recorder started for SPD64/DEP48 only; human leaves other settings
+unchanged, reports after ~10 seconds and unplugs promptly if severe lag.
+`private/v01/live-gate-a/v01g-depth48.json`, stop marker `v01g-depth48.stop`,
+watcher max300s or first new fault/FIFO. Do not advance beyond48 before assessing.
+Startup/reconnect issue and Gates B persistence/C reconnect-soak remain open.
 
 ## Hardware / recovery
 

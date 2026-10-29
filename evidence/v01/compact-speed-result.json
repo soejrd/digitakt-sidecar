@@ -1,0 +1,234 @@
+{
+  "task": "V01",
+  "date_utc": "2026-10-29T12:43:27.206718+00:00",
+  "scope": "G muted speed step from32 to64 with DEP32 held",
+  "human_report": "feels maybe a bit more sluggish; not super laggy",
+  "assertions": {
+    "fault_zero": true,
+    "fifo_stable_at11": true,
+    "muted": true,
+    "guards_intact": true
+  },
+  "samples": 31,
+  "latest_ui_gap_ms": 47,
+  "source_intervals": [
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 284.5,
+      "worker_elapsed_fraction": 0.03414812944675513,
+      "native_render_elapsed_fraction": 0.829100823022852,
+      "masked_send_fraction": 0.004224632813038706
+    },
+    {
+      "source_elapsed_s": 3.0,
+      "native_sends_per_s": 284.3333333333333,
+      "worker_elapsed_fraction": 0.03501306923959623,
+      "native_render_elapsed_fraction": 0.828770867945145,
+      "masked_send_fraction": 0.004226119117655318
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 284.0,
+      "worker_elapsed_fraction": 0.036447944597550574,
+      "native_render_elapsed_fraction": 0.828870516910841,
+      "masked_send_fraction": 0.004220577676020156
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 284.5,
+      "worker_elapsed_fraction": 0.03609161942113996,
+      "native_render_elapsed_fraction": 0.828765038591423,
+      "masked_send_fraction": 0.004215759546884759
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 284.0,
+      "worker_elapsed_fraction": 0.035040325104464455,
+      "native_render_elapsed_fraction": 0.8286359120330558,
+      "masked_send_fraction": 0.004213218229441453
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 284.5,
+      "worker_elapsed_fraction": 0.03514880151427415,
+      "native_render_elapsed_fraction": 0.828763971055725,
+      "masked_send_fraction": 0.00421912345056156
+    },
+    {
+      "source_elapsed_s": 3.0,
+      "native_sends_per_s": 284.3333333333333,
+      "worker_elapsed_fraction": 0.034802113615166164,
+      "native_render_elapsed_fraction": 0.8289719497451576,
+      "masked_send_fraction": 0.004219185409689112
+    },
+    {
+      "source_elapsed_s": 2.001333333333333,
+      "native_sends_per_s": 343.7708194536976,
+      "worker_elapsed_fraction": 0.061485799740880885,
+      "native_render_elapsed_fraction": 0.834123889160976,
+      "masked_send_fraction": 0.005177673298685697
+    },
+    {
+      "source_elapsed_s": 2.001333333333333,
+      "native_sends_per_s": 543.1379080612925,
+      "worker_elapsed_fraction": 0.08910657459649196,
+      "native_render_elapsed_fraction": 0.8381614312138723,
+      "masked_send_fraction": 0.00824967891597231
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 541.5,
+      "worker_elapsed_fraction": 0.0925565892034698,
+      "native_render_elapsed_fraction": 0.8386524687099328,
+      "masked_send_fraction": 0.008222622233130623
+    },
+    {
+      "source_elapsed_s": 3.001333333333333,
+      "native_sends_per_s": 548.4229231452688,
+      "worker_elapsed_fraction": 0.11413576836090228,
+      "native_render_elapsed_fraction": 0.8408520829892911,
+      "masked_send_fraction": 0.008329457708697733
+    },
+    {
+      "source_elapsed_s": 2.001333333333333,
+      "native_sends_per_s": 548.6342438374418,
+      "worker_elapsed_fraction": 0.12120629514025459,
+      "native_render_elapsed_fraction": 0.8422788566732353,
+      "masked_send_fraction": 0.008323789237830519
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 540.5,
+      "worker_elapsed_fraction": 0.15299517924814005,
+      "native_render_elapsed_fraction": 0.8459609184467584,
+      "masked_send_fraction": 0.008229826171482367
+    },
+    {
+      "source_elapsed_s": 2.001333333333333,
+      "native_sends_per_s": 542.6382411725517,
+      "worker_elapsed_fraction": 0.13674673968076664,
+      "native_render_elapsed_fraction": 0.843873602945092,
+      "masked_send_fraction": 0.008268824412319081
+    },
+    {
+      "source_elapsed_s": 3.001333333333333,
+      "native_sends_per_s": 541.7592181252777,
+      "worker_elapsed_fraction": 0.14376240895961012,
+      "native_render_elapsed_fraction": 0.8440512616369655,
+      "masked_send_fraction": 0.008241457759152405
+    },
+    {
+      "source_elapsed_s": 2.001333333333333,
+      "native_sends_per_s": 542.1385742838108,
+      "worker_elapsed_fraction": 0.15787768604396668,
+      "native_render_elapsed_fraction": 0.8459840149072277,
+      "masked_send_fraction": 0.008260176695511259
+    },
+    {
+      "source_elapsed_s": 2.001333333333333,
+      "native_sends_per_s": 540.1399067288474,
+      "worker_elapsed_fraction": 0.1477749078043479,
+      "native_render_elapsed_fraction": 0.8451582606717177,
+      "masked_send_fraction": 0.00823067105183274
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 540.5,
+      "worker_elapsed_fraction": 0.09143682587299223,
+      "native_render_elapsed_fraction": 0.838399878151409,
+      "masked_send_fraction": 0.008196681383472418
+    },
+    {
+      "source_elapsed_s": 3.002666666666667,
+      "native_sends_per_s": 541.5186500888099,
+      "worker_elapsed_fraction": 0.09257888673101779,
+      "native_render_elapsed_fraction": 0.8387733798996508,
+      "masked_send_fraction": 0.008214958122595883
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 542.0,
+      "worker_elapsed_fraction": 0.09249585779986942,
+      "native_render_elapsed_fraction": 0.8377212741122184,
+      "masked_send_fraction": 0.008215987173748768
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 542.5,
+      "worker_elapsed_fraction": 0.08512603511976166,
+      "native_render_elapsed_fraction": 0.837256891760578,
+      "masked_send_fraction": 0.008222954598987333
+    },
+    {
+      "source_elapsed_s": 2.001333333333333,
+      "native_sends_per_s": 540.1399067288474,
+      "worker_elapsed_fraction": 0.0856561480035588,
+      "native_render_elapsed_fraction": 0.8374955710616238,
+      "masked_send_fraction": 0.008195213427085648
+    },
+    {
+      "source_elapsed_s": 3.001333333333333,
+      "native_sends_per_s": 542.0924033762773,
+      "worker_elapsed_fraction": 0.08966378303177143,
+      "native_render_elapsed_fraction": 0.8375212103103208,
+      "masked_send_fraction": 0.008217423147047903
+    },
+    {
+      "source_elapsed_s": 2.0006666666666666,
+      "native_sends_per_s": 540.319893368877,
+      "worker_elapsed_fraction": 0.08553687212416358,
+      "native_render_elapsed_fraction": 0.8371414198507834,
+      "masked_send_fraction": 0.008191888107541246
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 541.0,
+      "worker_elapsed_fraction": 0.08386302566389536,
+      "native_render_elapsed_fraction": 0.8372697417864212,
+      "masked_send_fraction": 0.008199824057882148
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 543.5,
+      "worker_elapsed_fraction": 0.0896954843963807,
+      "native_render_elapsed_fraction": 0.8378269042286731,
+      "masked_send_fraction": 0.008246987466915403
+    },
+    {
+      "source_elapsed_s": 3.0006666666666666,
+      "native_sends_per_s": 540.8798044878916,
+      "worker_elapsed_fraction": 0.08615835374240521,
+      "native_render_elapsed_fraction": 0.837257405402105,
+      "masked_send_fraction": 0.008195554404203368
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 541.0,
+      "worker_elapsed_fraction": 0.09006723561440608,
+      "native_render_elapsed_fraction": 0.8375933126383192,
+      "masked_send_fraction": 0.008209953091523423
+    },
+    {
+      "source_elapsed_s": 2.0006666666666666,
+      "native_sends_per_s": 540.319893368877,
+      "worker_elapsed_fraction": 0.08760256565977569,
+      "native_render_elapsed_fraction": 0.8374846691785982,
+      "masked_send_fraction": 0.00818918627320651
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 541.0,
+      "worker_elapsed_fraction": 0.08788007654471035,
+      "native_render_elapsed_fraction": 0.8374406681695928,
+      "masked_send_fraction": 0.00821491967157291
+    }
+  ],
+  "raw_sha256": "30bc7cc1265b2ef3ff19a6ae1406273c87178216260b2cbd9cc3b92ec5e9033c",
+  "status": "Slight perceived sluggishness; no clear improvement established; not dense acceptance",
+  "limits": [
+    "Intervals include the setting transition; final settled intervals ~540\u2013543 sends/s",
+    "Elapsed brackets overlap, never add as CPU",
+    "Same mild sluggishness was reported on earlier E/F profiles; no controlled numeric input-latency comparison",
+    "No new FIFO growth during capture; initial boot-to-active eleven underruns remain open"
+  ]
+}
