@@ -5,16 +5,25 @@ Status/ownership: [TASKBOARD.md](TASKBOARD.md). Read AGENTS.md and PLAN.md.
 I04's one-voice prototype is accepted; dense-LFO qualification remains V01.
 [I04 report](docs/I04-external-trx-voice.md) records accepted behavior and timing.
 
-**V01 IN PROGRESS; hard freeze isolated to our per-snapshot traffic.** The
+**V01 IN PROGRESS; the masked-preflight fix did not stop the freeze.** V01K was
+flashed: at ~256/512 LFO speed the device crashed and lagged extremely, and it
+stayed frozen 30 s after the cable was pulled. All device counters stopped
+together, so it is still a stop, not saturation. The race was a real defect but
+not the cause. [Freeze](evidence/v01/v01k-freeze.json),
+[live capture](evidence/v01/v01k-freeze-live-2026-10-29.txt).
+
+**Regression to close first:** making a zero-length send a deferral removed the
+fail-closed path, so a stalled queue now retries without bound. Worker elapsed
+is 74% of elapsed at ~410 sends/s, versus ~25% at ~816 sends/s in the original
+dense capture. Bound the retries (limit or age, then retire) before anything
+else.
+
+Earlier isolation of the freeze to per-snapshot traffic still holds: the
 destination-OFF test passed (attached, USB1, max LFO speed, no routing: fully
 responsive), so attach alone is harmless and neither the LFO nor CPU is the
-cause. With routing on, the freeze is immediate on connect, survives detaching
-and needs a power cycle; the last healthy counters were small (UI gap34ms,
-batch4ms, guards0). Source defect: the preflight reads the USB queue counters
-unlocked, then `fw_send` masks all interrupts and calls the native sender
-without re-checking, whose busy waits spin on those counters and are drained
-only by the completion interrupt. Unproven as the cause; the RX/ACK ISR path is
-the alternative.
+cause. With routing on it freezes, survives detaching and needs a power cycle.
+The unlocked-preflight/masked-send race was real and is now fixed, but V01K
+shows it was not this hang. The RX/ACK interrupt path is the remaining suspect.
 [Evidence](evidence/v01/2k-attach-freeze.json),
 [live capture](evidence/v01/2k-freeze-live-2026-10-29.txt).
 
@@ -37,12 +46,10 @@ continuous audio, no modelled hang.
 An early index-margin guard I tried stalled traffic (only our sends advance the
 index) and was reverted; the native wrap already covers it.
 
-**Next:** candidate `V01K` is verified and staged (firmware only; Pi kernel
-unchanged) with rollback to I04R or stock. Run the recorded muted 2K attach
-trial: [package](evidence/v01/fix-k-package.json). If the freeze persists, the
-RX/ACK interrupt path is next (make it append-only). The worker-versus-render
-measurement stays deprioritised. DTIM2 external rate, physical memory costs and
-core clock remain unresolved.
+**Next:** bound the deferral and explain the worker-elapsed inflation offline;
+then make the RX/ACK interrupt path append-only. Do not flash again until both
+are resolved. Rollback for normal use remains I04R. DTIM2 external rate,
+physical memory costs and core clock remain unresolved.
 No fitted delays or speculative installs/sweeps. Gates B/C remain open.
 
 The [V01 report](docs/V01-persistence-stress.md) owns the exact next steps,

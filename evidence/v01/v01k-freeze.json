@@ -1,0 +1,100 @@
+{
+  "task": "V01 Gate A",
+  "date_utc": "2026-10-29T19:42:00Z",
+  "status": "V01K insufficient: freeze reproduced; Gate A unaccepted",
+  "hardware_test": true,
+  "gate_a_verdict": "NOT SCORED",
+  "scope": "muted 2K-workload trial of V01K (masked-preflight fix), one live capture of the frozen device",
+  "candidate": {
+    "label": "V01K",
+    "sha256": "bc3a70b6f515a0a8659f770ad028c13948e44383176a5033e88522e089a04543",
+    "package": "private/v01/firmware-V01K/"
+  },
+  "pi": {
+    "build": "Oct 29 2026 12:31:45",
+    "commit": "6cff67b",
+    "kernel_changed": false,
+    "uptime_s": 244,
+    "temp_c": 54,
+    "throttled_now": false,
+    "uv_now": false,
+    "gadget": 0,
+    "streaming": false,
+    "fifo_underruns": 29295
+  },
+  "baseline_before_trial": {
+    "uptime_s": 18,
+    "fifo": "96/96",
+    "fifo_underruns": 0,
+    "throttled_now": false,
+    "note": "clean post-reboot baseline; no startup FIFO0->11 excursion this boot"
+  },
+  "human_report": [
+    "SECS advanced correctly against a stopwatch, so the diagnostic clock was valid for this run.",
+    "Raising LFO speed: at about speed 256/512 it started crashing and lagged extremely.",
+    "Cable pulled, waited 30 s: still completely frozen."
+  ],
+  "capture": {
+    "file": "evidence/v01/v01k-freeze-live-2026-10-29.txt",
+    "identical_across_3_samples": true,
+    "v01remote": {
+      "rx": 114,
+      "bad": 0,
+      "seq": 124,
+      "block": 280166,
+      "timer_ticks": 4165552596,
+      "ui": 1614,
+      "work": 24668,
+      "ugap_ms": 101,
+      "wgap_ms": 33,
+      "batch_ms": 4,
+      "guards": 0
+    },
+    "v01raw": {
+      "sends": 12963,
+      "send_ticks_total": 21643795,
+      "send_ticks_max": 3360,
+      "ui_ticks_max": 13285939,
+      "batch_ticks_max": 518765
+    },
+    "v01total": {
+      "worker_ticks": 3085969277,
+      "render_ticks": 2615619062
+    },
+    "derived_at_assumed_132MHz": {
+      "elapsed_s": 31.6,
+      "ui_max_ms": 100.65,
+      "send_max_us": 25.45,
+      "batch_max_ms": 3.93,
+      "worker_fraction_of_elapsed": 0.741,
+      "worker_us_per_send": 1803.5,
+      "sends_per_s": 410
+    },
+    "pi_engine_line": "fifo min 89 max 89 target 96 under 29295 | blocks 0 | cpu c1/c2/c3 0.0% | sysex 13166 | to-host sent 263195 B 10977 msgs fail 1"
+  },
+  "findings": {
+    "masked_preflight_race_is_not_the_cause": "With the authoritative in-mask preflight shipped, the device still freezes and stays frozen after the cable is pulled. The race was a real defect worth fixing, but it is not what produces this hang.",
+    "freeze_occurs_at_lower_speed": "The freeze occurred at about speed 256/512 rather than only at 2K, i.e. still above the 64/48 slow-but-responsive band, so the trigger scales with update rate as before.",
+    "all_device_counters_stop_together": "rx/seq/block/timer/sends identical across three samples 30 s apart, so this is a stop, not gradual saturation; the remote emitter dies with the device.",
+    "worker_elapsed_badly_inflated": "Worker elapsed is 74% of elapsed time at only ~410 sends/s, versus ~25% at ~816 sends/s in the original G dense capture (~160-340 us/send). Per-send worker time here is roughly 1.8 ms. Unexplained, and worse than the pre-fix image, so it must be resolved before another flash.",
+    "deferral_semantics_risk": "This change made a zero-length send a deferral rather than a fault. A native queue that stops draining now yields unbounded retries instead of a fail-closed retire. That is a behaviour change introduced by this fix and is a plausible contributor to the inflated worker elapsed; it needs a bounded retry/retire rule.",
+    "no_hardware_fault": "Pi stayed alive, 54 C, no throttling or undervoltage; the frozen device is simply no longer sending."
+  },
+  "not_established": [
+    "Which native wait, if any, is entered",
+    "Whether the RX/ACK interrupt path participates",
+    "Whether the deferral change interacts with the freeze"
+  ],
+  "next": [
+    "Bound the deferral: after a bounded number of consecutive refusals or a bounded age, treat it as a fault and retire, restoring fail-closed behaviour.",
+    "Then address the RX/ACK interrupt path: the Pi ACKs every snapshot, so the receive handler runs at the same rate and parses frames plus wakes inside interrupt context.",
+    "Do not flash again until the worker-elapsed inflation is explained offline."
+  ],
+  "limits": [
+    "Single trial, no repeat",
+    "No on-device trace of the failing program counter: the remote emitter stops with the device",
+    "Derived milliseconds assume the 132MHz diagnostic timer, which is not proven to be the CPU clock",
+    "Exact LFO numeric settings were stepped by hand to ~256/512, not read back",
+    "Muted trial: says nothing about audible quality"
+  ]
+}

@@ -1,0 +1,21 @@
+# V01 Gate A — V01K (masked-preflight fix) freeze, captured live 2026-10-29
+# Human: max speed reached ~256/512 then crashed + extremely laggy; cable pulled, 30 s, still frozen.
+# Pi 192.168.1.15, build Oct 29 2026 12:31:45 (unchanged kernel), gadget 0 after unplug.
+--- sample 1 19:41:12Z
+00:03:45.07 cores: V01REMOTE rx 114 bad 0 seq 124 block 280166 timer 4165552596 mode 3 ui 1614 work 24668 ugap 101 wgap 33 batch 4 guards 0
+00:03:45.07 cores: V01RAW seq 124 sends 12963 total 21643795 max 3360 ui_max 13285939 batch_max 518765
+00:03:45.07 cores: V01TOTAL seq 124 worker 3085969277 render 2615619062 version 2
+00:03:45.89 engine: engine: fifo min 89 max 89 target 96 under 29295 | blocks 0 max 0 us | cpu c1 0.0 c2 0.0 c3 0.0 % | pass max 137 us | | midi 0 B (lost 0) sysex 13166 notes 0 | to-host sent 263195 B 10977 msgs fail 1 dropped 2621 | peak 0/1000 | 54 C
+uptime 226 temp 54 gadget 0 streaming False underruns 29295
+--- sample 2 19:41:22Z
+00:03:54.29 cores: V01REMOTE rx 114 bad 0 seq 124 block 280166 timer 4165552596 mode 3 ui 1614 work 24668 ugap 101 wgap 33 batch 4 guards 0
+00:03:54.29 cores: V01RAW seq 124 sends 12963 total 21643795 max 3360 ui_max 13285939 batch_max 518765
+00:03:54.29 cores: V01TOTAL seq 124 worker 3085969277 render 2615619062 version 2
+00:03:54.89 engine: engine: fifo min 89 max 89 target 96 under 29295 | blocks 0 max 0 us | cpu c1 0.0 c2 0.0 c3 0.0 % | pass max 137 us | | midi 0 B (lost 0) sysex 13166 notes 0 | to-host sent 263195 B 10977 msgs fail 1 dropped 2647 | peak 0/1000 | 53 C
+uptime 235 temp 54 gadget 0 streaming False underruns 29295
+--- sample 3 19:41:31Z
+00:04:03.54 cores: V01REMOTE rx 114 bad 0 seq 124 block 280166 timer 4165552596 mode 3 ui 1614 work 24668 ugap 101 wgap 33 batch 4 guards 0
+00:04:03.54 cores: V01RAW seq 124 sends 12963 total 21643795 max 3360 ui_max 13285939 batch_max 518765
+00:04:03.54 cores: V01TOTAL seq 124 worker 3085969277 render 2615619062 version 2
+00:04:03.89 engine: engine: fifo min 89 max 89 target 96 under 29295 | blocks 0 max 0 us | cpu c1 0.0 c2 0.0 c3 0.0 % | pass max 137 us | | midi 0 B (lost 0) sysex 13166 notes 0 | to-host sent 263195 B 10977 msgs fail 1 dropped 2673 | peak 0/1000 | 54 C
+uptime 244 temp 54 gadget 0 streaming False underruns 29295

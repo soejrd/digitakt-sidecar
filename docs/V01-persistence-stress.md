@@ -10,20 +10,22 @@ no fix exists. More voices and Teensy remain deferred.
 
 ## Current next work — one muted paired hardware candidate
 
-The masked-preflight fix is in the tracked adapter and passes host tests and the
-component profile ([emulator result](../evidence/v01/masked-preflight-fix-emulator.json)).
-Candidate `V01K` is verified, staged and not flashed:
-[package and trial procedure](../evidence/v01/fix-k-package.json). It changes
-device firmware only, so the installed matching Pi kernel stays paired.
+The masked-preflight fix is in the tracked adapter. **V01K was flashed and the
+device still froze**, at about speed 256/512, and stayed frozen after the cable
+was pulled ([freeze](../evidence/v01/v01k-freeze.json),
+[live capture](../evidence/v01/v01k-freeze-live-2026-10-29.txt)). The race was a
+real defect, but it is not the cause of the hang.
 
-1. Run the recorded trial: one muted 2K attach test. Does the freeze still
-   occur? That is the only question this candidate answers. Rollback is
-   I04R or stock, both in the package.
-2. If the freeze persists, the remaining explanation is the RX/ACK path: the Pi
-   ACKs every snapshot, so `native_rx` runs at the same rate and does frame
-   parsing plus a wake in interrupt context. Make it append-only.
-3. Then resume the original Gate A question (dense modulation responsiveness)
-   and Gates B/C.
+1. Fix the regression this change introduced: a zero-length send is now a
+   deferral, so a stalled native queue retries without bound instead of failing
+   closed. Worker elapsed is 74% of elapsed at only ~410 sends/s, far worse than
+   the ~25% of the original dense capture, so this must be bounded (retry limit
+   or age limit, then retire) and explained offline.
+2. Then the remaining explanation for the freeze: the RX/ACK path. The Pi ACKs
+   every snapshot, so `native_rx` runs at the same rate and does frame parsing
+   plus a wake in interrupt context. Make it append-only.
+3. Do not flash again until 1 and 2 are resolved offline. Then resume Gate A
+   responsiveness and Gates B/C.
 4. Keep DTIM2's external rate unresolved: firmware selects T2IN, but does not
    establish the board signal. Snapshot PLL registers are zero; do not infer a
    hardware core clock from them. Do not invent clock rates or memory delays.
@@ -54,6 +56,7 @@ answer a specific hypothesis with a short procedure and stop condition.
 | [Sender waits](../evidence/i03/transport-anchors-154.json), [send path](mods/usb-midi/usb_midi.c) | Source fact: the preflight reads `0x40610478`/`0x4061047C` unlocked, then `fw_send` masks all interrupts and calls `0x40004990` without re-checking. Its two busy waits spin on that counter, drained only by the completion interrupt. Any queue growth in that window turns a refusal into a permanent hang. The comment claiming the critical section closes this race is wrong. Not yet proven as the cause; RX/ACK ISR work is the alternative. |
 | [Fix + emulator](../evidence/v01/masked-preflight-fix-emulator.json) | `fw_send` now re-runs the full preflight after `irq_save` and refuses instead of entering the sender; a zero return is a deferral, not a fault. Host regression fails on the pre-fix code and passes now. Component profile unchanged otherwise: one session, gate1, drained queue, continuous audio, no modelled hang. Hardware behaviour unproven. |
 | Index guard (reverted) | An early "stay below `0xFFF`" guard stalled traffic: only our own sends advance the staging index, so a refusal band below `0xFBF` never ends. Observed in the emulator as two sessions/gate0/queue200. The native wrap at `0x400049C2` already prevents a single message crossing `0xFFF`; do not add such a band. |
+| [V01K hardware](../evidence/v01/v01k-freeze.json) | Flashed and tried under the formerly failing workload. Freeze reproduced at ~256/512 and survived cable removal for 30 s. Masked-preflight race is not the cause. Worker elapsed 74% of elapsed at ~410 sends/s versus ~25% at ~816 sends/s before, so the deferral change needs a bound. |
 | [G 32/32](../evidence/v01/compact-baseline.json), [64/32](../evidence/v01/compact-speed-result.json), [64/48](../evidence/v01/compact-depth48-result.json) | Short baseline stable; slight sluggishness at 64/32; quite laggy at 64/48 despite Pi fault/guards0 and FIFO11 unchanged. Dense native sends reached ~816/s. |
 | [Lower worker priority](../evidence/v01/phase2-v01p-result.json) | Improved UI but caused late audio/FIFO failures; rejected. |
 | [No-self-wake](../evidence/v01/gate-a-v01c-dense.json) | Did not solve lag. USB removal subsequently restored responsiveness; this changes several workloads together and does not identify the cause. |
