@@ -107,7 +107,11 @@ static int submit(struct dt1_transport *t, const uint8_t *msg, uint32_t n)
         return 0;
     now = t->fw.send(t->fw_ctx, msg, n);
     if (now != n) {
-        ++t->submit_failures;
+        /* Zero means the sender refused without entering a busy wait (the
+         * queue moved between the preflight and the masked call). That is a
+         * deferral: keep the head message and retry. A short count is a real
+         * transport fault: the adapter must never retry a partial message. */
+        if (now != 0) ++t->submit_failures;
         return 0;
     }
     ++t->submitted;

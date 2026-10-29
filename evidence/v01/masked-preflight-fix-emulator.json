@@ -1,0 +1,71 @@
+{
+  "task": "V01 Gate A",
+  "status": "emulator-gap",
+  "hardware_test": false,
+  "gate_a_verdict": "NOT SCORED",
+  "scope": "fixed native adapter (masked authoritative preflight) on the component profile; no hardware",
+  "candidate_sha256": "bc3a70b6f515a0a8659f770ad028c13948e44383176a5033e88522e089a04543",
+  "stock_main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
+  "probe_sha256": "1ab112f1d8d8caf4af0f966b12901638546af2feaaee9b89ef938c02953b2ef3",
+  "emulator_revision": "f57c2f237e84b8ff91bc3adb2a2931bccf9928e9",
+  "emulator_patch_sha256": {
+    "0001-instruction-position-dtim-clock.patch": "a1f24fe156f6e84e6fb5fd3211ec47065518ff3a00267d2a3f85d72de882f5e8"
+  },
+  "profiles": [
+    {
+      "speed": 32,
+      "depth": 32,
+      "effective_changes": 125,
+      "native_submit_calls": 131,
+      "sessions_seen": 1,
+      "allowed": 1,
+      "gate": 1,
+      "source_queue_end": 0,
+      "source_queue_fatal": 0,
+      "audio_in_packets": 3431,
+      "audio_counter_gaps": 0,
+      "panel_max_arrival_to_complete_ms": 7.281,
+      "audio_irq_late": 0,
+      "worker_spans_complete": 138,
+      "worker_spans_invalid": 0,
+      "decode_mismatches": 0,
+      "native_worker_wait_faked": 0
+    },
+    {
+      "speed": 64,
+      "depth": 48,
+      "effective_changes": 373,
+      "native_submit_calls": 369,
+      "sessions_seen": 1,
+      "allowed": 1,
+      "gate": 1,
+      "source_queue_end": 0,
+      "source_queue_fatal": 0,
+      "audio_in_packets": 3431,
+      "audio_counter_gaps": 0,
+      "panel_max_arrival_to_complete_ms": 9.189,
+      "audio_irq_late": 0,
+      "worker_spans_complete": 372,
+      "worker_spans_invalid": 0,
+      "decode_mismatches": 0,
+      "native_worker_wait_faked": 0
+    }
+  ],
+  "limits": [
+    "Model only: no hardware, no DTIM2 external clock, no cache/DDR/USB bus contention, no real Pi scheduling.",
+    "Passing this profile is not Gate A: dispatch-pass completion is not visible-screen latency.",
+    "The candidate also carries the unchanged V01 diagnostic/compact/no-self-wake settings, so it is a test image, not a finished fix."
+  ],
+  "verdict": "no modelled hang and no regression versus the recorded baseline; hardware behaviour unproven",
+  "reproduction": "PYTHONPATH=private/r03-runtime:deps/digiemu deps/digiemu/.venv/bin/python tools/i02_probe.py candidate --root private/v01-fix-k --stock private/i02-fixture/Digitakt_OS1.54.syx --fixture private/i02-fixture --diagnostic --remote-diagnostic --compact-snapshots --no-self-wake --label V01K; then tools/v01_contention_probe.py --candidate private/v01-fix-k --usb-device --usb-peer --usb-periodic --usb-audio --profile-execution --duration-ms 500 --fsys 200000000",
+  "regressions": {
+    "host_native_pre_fix": "fails (asserts the sender is never entered past 0xFFB)",
+    "host_native_post_fix": "passes",
+    "i03_transport": "PASS",
+    "i03_integration": "PASS",
+    "i04": "PASS",
+    "v01_remote": "PASS",
+    "v01_diag": "PASS",
+    "device_build_and_lint": "PASS"
+  }
+}

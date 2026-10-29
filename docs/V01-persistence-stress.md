@@ -8,19 +8,19 @@ per-snapshot traffic, not the LFO or the USB attach itself. A source defect in
 the preflight/send ordering is identified; it is not yet proven as the cause and
 no fix exists. More voices and Teensy remain deferred.
 
-## Current next work — fix the mask/preflight race offline
+## Current next work — one muted paired hardware candidate
 
-1. Do the authoritative preflight inside `fw_send` after `irq_save`, and refuse
-   (`return 0`) instead of calling the native sender while near either limit.
-   Keep `dt1_transport`'s check as an early filter only. Add a host regression
-   that pushes the model to the limit between the early check and the masked
-   call and asserts `0x40004990` is never entered. See the
-   [fix plan](../evidence/v01/2k-attach-freeze.json).
-2. Bound the RX/ACK path so interrupt context only appends bytes; the Pi ACKs
-   every snapshot, so that handler runs at the same rate and is the remaining
-   alternate explanation.
-3. Validate both in host tests and the emulator, then one muted paired
-   candidate on the 2K workload. No hardware test is requested before that.
+The masked-preflight fix is in the tracked adapter and passes host tests and the
+component profile ([emulator result](../evidence/v01/masked-preflight-fix-emulator.json)).
+Candidate `V01K` (SHA256 in that file) is built and booted in the emulator only.
+
+1. Prepare and verify the flashable pair, then one muted 2K attach test: does
+   the freeze still occur? That is the only question this candidate answers.
+2. If the freeze persists, the remaining explanation is the RX/ACK path: the Pi
+   ACKs every snapshot, so `native_rx` runs at the same rate and does frame
+   parsing plus a wake in interrupt context. Make it append-only.
+3. Then resume the original Gate A question (dense modulation responsiveness)
+   and Gates B/C.
 4. Keep DTIM2's external rate unresolved: firmware selects T2IN, but does not
    establish the board signal. Snapshot PLL registers are zero; do not infer a
    hardware core clock from them. Do not invent clock rates or memory delays.
@@ -49,6 +49,8 @@ answer a specific hypothesis with a short procedure and stop condition.
 | [2K attach freeze](../evidence/v01/2k-attach-freeze.json), [live capture](../evidence/v01/2k-freeze-live-2026-10-29.txt) | At maximum LFO speed the Digitakt is fully responsive with USB detached and freezes the instant the cable is attached; the freeze survives detaching and needs a power cycle. Last healthy counters were small (UI gap34ms, batch4ms, guards0) and then all Digitakt counters stopped together, so this is a stop, not saturation. Native 2K LFO cost is therefore excluded. |
 | [Destination-OFF test](../evidence/v01/2k-attach-freeze.json) | USB attached, USB1 selected, LFO at maximum speed with destination NONE: fully responsive. Attach alone is harmless; the trigger is our per-snapshot traffic (snapshot sends plus Pi ACKs). The freeze is immediate on connect. |
 | [Sender waits](../evidence/i03/transport-anchors-154.json), [send path](mods/usb-midi/usb_midi.c) | Source fact: the preflight reads `0x40610478`/`0x4061047C` unlocked, then `fw_send` masks all interrupts and calls `0x40004990` without re-checking. Its two busy waits spin on that counter, drained only by the completion interrupt. Any queue growth in that window turns a refusal into a permanent hang. The comment claiming the critical section closes this race is wrong. Not yet proven as the cause; RX/ACK ISR work is the alternative. |
+| [Fix + emulator](../evidence/v01/masked-preflight-fix-emulator.json) | `fw_send` now re-runs the full preflight after `irq_save` and refuses instead of entering the sender; a zero return is a deferral, not a fault. Host regression fails on the pre-fix code and passes now. Component profile unchanged otherwise: one session, gate1, drained queue, continuous audio, no modelled hang. Hardware behaviour unproven. |
+| Index guard (reverted) | An early "stay below `0xFFF`" guard stalled traffic: only our own sends advance the staging index, so a refusal band below `0xFBF` never ends. Observed in the emulator as two sessions/gate0/queue200. The native wrap at `0x400049C2` already prevents a single message crossing `0xFFF`; do not add such a band. |
 | [G 32/32](../evidence/v01/compact-baseline.json), [64/32](../evidence/v01/compact-speed-result.json), [64/48](../evidence/v01/compact-depth48-result.json) | Short baseline stable; slight sluggishness at 64/32; quite laggy at 64/48 despite Pi fault/guards0 and FIFO11 unchanged. Dense native sends reached ~816/s. |
 | [Lower worker priority](../evidence/v01/phase2-v01p-result.json) | Improved UI but caused late audio/FIFO failures; rejected. |
 | [No-self-wake](../evidence/v01/gate-a-v01c-dense.json) | Did not solve lag. USB removal subsequently restored responsiveness; this changes several workloads together and does not identify the cause. |

@@ -28,12 +28,19 @@ The new native-span observer matches firmware totals without changing prior
 measurements: only2 batches overlap rendering in either model profile; maximum
 non-render batch time stays~94µs.
 
-**Next:** move the authoritative preflight inside the masked section and refuse
-instead of entering the sender; bound the RX/ACK path to append-only; add the
-host regressions; validate offline and in the emulator before one muted paired
-candidate. No hardware test is requested first. The worker-versus-render
-measurement is deprioritised until the freeze is fixed. DTIM2 external rate,
-physical memory costs and core clock remain unresolved.
+**Fix in place, unproven on hardware.** `fw_send` now re-runs the preflight
+after masking and refuses instead of entering the native sender; a zero return
+is a deferral, not a fault. Host regression fails pre-fix and passes now.
+Component profile is unchanged otherwise: one session, gate1, drained queue,
+continuous audio, no modelled hang.
+[Emulator result](evidence/v01/masked-preflight-fix-emulator.json).
+An early index-margin guard I tried stalled traffic (only our sends advance the
+index) and was reverted; the native wrap already covers it.
+
+**Next:** verify and stage candidate `V01K`, then one muted 2K attach test —
+does the freeze still happen? If it does, the RX/ACK interrupt path is next
+(make it append-only). The worker-versus-render measurement stays deprioritised.
+DTIM2 external rate, physical memory costs and core clock remain unresolved.
 No fitted delays or speculative installs/sweeps. Gates B/C remain open.
 
 The [V01 report](docs/V01-persistence-stress.md) owns the exact next steps,

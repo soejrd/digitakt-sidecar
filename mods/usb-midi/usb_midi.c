@@ -31,6 +31,11 @@ static void irq_restore(uint16_t sr)
 #include "dt1_native_io.h"
 #endif
 
+/* 0x400049FE waits while queued + written > 0xFFB, so the whole encoding must
+ * fit below it. That wait spins on a counter only the completion interrupt
+ * lowers; with interrupts masked it would never end. */
+#define USB_TRACK_QUEUE_LIMIT 0xffbu
+
 static struct dt1_transport transport;
 static void (*rx_handler)(void *, const uint8_t *, uint32_t);
 static void *rx_context;
@@ -59,12 +64,23 @@ static int fw_can_send(void *ctx, uint32_t n)
     if (!n || n > DT1_MSG_MAX || !fw_link_up(0) || USB_INDEX > 0xfffu || USB_SYSEX != 0)
         return 0; /* never interleave with a stock sender's partial SysEx */
     /* Native capacity test is queued + locally staged USB bytes, not MIDI
-     * input bytes. Reserve the complete encoding, conservatively below FFB. */
-    if (USB_QUEUED > 0xffbu || encoded > 0xffbu - USB_QUEUED)
+     * input bytes. Reserve the complete encoding below FFB. */
+    if (USB_QUEUED > USB_TRACK_QUEUE_LIMIT ||
+        encoded > USB_TRACK_QUEUE_LIMIT - USB_QUEUED)
         return 0;
+    /* The sender decides the wrap itself at 0x400049C2: for messages over
+     * 0x2F bytes it wraps only when the index is past 0xFBF and the queue has
+     * drained; otherwise it simply writes on and submits a descriptor at
+     * 0x40004C22. Every message this adapter sends is at most DT1_MSG_MAX, so
+     * a single message can cross 0xFFF only when the index is already past
+     * 0xFBF, i.e. exactly when the native code wraps first. Refusing early
+     * here would be wrong: only our own sends advance the index, so a refusal
+     * in that band stalls traffic permanently (observed in the emulator).
+     * The descriptor submission's semaphore retry is bounded (1000 polls at
+     * 0x40005DFC) and needs no interrupt to make progress. */
     if (n > 0x2fu && USB_INDEX > 0xfbfu &&
         USB_QUEUED >= USB_INDEX - 0x3fu)
-        return 0;
+        return 0; /* the sender would spin in the wrap wait */
     return 1;
 }
 
@@ -77,8 +93,14 @@ static uint32_t fw_send(void *ctx, const uint8_t *bytes, uint32_t n)
     uint32_t before, accepted = 0, encoded = 4u * ((n + 2u) / 3u);
     /* One single-core critical section closes the preflight/send race with
      * stock MIDI writers. No task switches, completions or counter changes
-     * can intervene. Native descriptor submission has a bounded 1000-poll
-     * retry; its two unbounded capacity/wrap waits are excluded above. */
+     * can intervene. The preflight must therefore run *inside* this section:
+     * dt1_transport's unlocked can_send() is only an early filter, and the
+     * stock stack can raise USB_QUEUED between that check and the mask.
+     * Entering 0x40004990 past either limit spins on values that only the
+     * completion interrupt lowers (0x400049D0, 0x400049FE) and the device
+     * hangs. Refuse here instead: returning 0 is a deferral, not a fault.
+     * The descriptor submission's own retry (0x40005DBA..0x40005E02, 1000
+     * polls of a controller bit) needs no interrupt, so it is not a hazard. */
     if (fw_can_send(ctx, n)) {
         before = USB_QUEUED;
         USB_SEND(n, bytes); /* native function is void: d0 is not a byte count */

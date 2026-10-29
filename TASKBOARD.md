@@ -6,7 +6,7 @@ Status/ownership live here. Claim READY work with an owner and UTC timestamp; co
 
 | ID | Work | Status | Dependencies / first action | Acceptance |
 | --- | --- | --- | --- | --- |
-| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29T19:15:00Z) | [Current investigation](docs/V01-persistence-stress.md#current-next-work--fix-the-maskpreflight-race-offline): freeze isolated to per-snapshot traffic (destination-OFF is responsive). Fix the unlocked-preflight/masked-send race and bound the RX/ACK path offline, with host regressions, before one muted candidate. No new flash. | [Gates A–C](docs/V01-persistence-stress.md#acceptance-gates): responsive dense modulation, native persistence/edit semantics, recovery/soak and listening acceptance. |
+| V01 | Persistence and stress | IN PROGRESS — Codex (2026-10-29T20:10:00Z) | [Current investigation](docs/V01-persistence-stress.md#current-next-work--one-muted-paired-hardware-candidate): masked-preflight fix passes host tests and the component profile; candidate `V01K` built, emulator only. Next: verify/stage the pair, then one muted 2K attach test. RX/ACK ISR path is the fallback if the freeze persists. | [Gates A–C](docs/V01-persistence-stress.md#acceptance-gates): responsive dense modulation, native persistence/edit semantics, recovery/soak and listening acceptance. |
 
 ## Waiting
 

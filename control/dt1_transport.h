@@ -44,7 +44,11 @@ struct dt1_fw_ops {
      * Mirrors 0x400049B6..0x40004A0C against the live counters. */
     int (*can_send)(void *ctx, uint32_t n);
     /* 0x40004990(byte_count, pointer): queue bytes for the USB IN endpoint.
-     * Only called when can_send() just returned true. Returns bytes queued. */
+     * Only called when can_send() just returned true. Returns bytes queued.
+     * Must return 0 without calling the native sender when the queue is not
+     * provably safe: it re-checks with interrupts masked, because a check
+     * made before the mask can be invalidated by the stock stack. A 0 here
+     * is a deferral (retry on a later tick), not a transport fault. */
     uint32_t (*send)(void *ctx, const uint8_t *msg, uint32_t n);
     /* Replace the receive callback slot 0x4061046C. `handler` is called as
      * handler(handler_ctx, bytes, count); the previous (handler, context) pair
