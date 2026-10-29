@@ -19,10 +19,12 @@ its regression, but it introduced a defect: a refused send is now a deferral,
 so a stalled queue retries without bound and never fails closed. Worker elapsed
 rose to74% of elapsed at~410 sends/s (was~25% at~816 sends/s).
 
-**Next, offline only:** bound the deferral (retry/age limit, then retire), make
-the RX/ACK ISR path append-only, and reproduce or refute that hypothesis in the
-emulator. No flash until then; a new candidate must be argued, not inferred from
-the last wrong guess.
+**Plan change (owner):** the dense-modulation work is **parked** as V01-A and
+does not block the rest. B and C need a stable device, which I04R is within its
+accepted scope, so run them there with slow/shallow LFOs
+([runbook](docs/V01-gate-b-c-runbook.md)). X01a capacity study is desk work and
+also unblocked. Resume V01-A when the RX/ACK hypothesis is settled in the
+emulator and the deferral is bounded; no flash before that.
 
 Still unresolved: DTIM2 external rate, physical memory costs, core clock, and
 boot→active FIFO0→11. Prior support detail: diagnostic clock reads are fixed by a

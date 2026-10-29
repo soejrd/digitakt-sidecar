@@ -5,7 +5,8 @@ Target: Digitakt mk1 OS 1.54 + Pi 4B/Circle, one USB1 voice on track 1.
 Gate A resolves dense-LFO UI lag; Gates B/C qualify persistence and recovery.
 More voices and Teensy remain deferred.
 
-**State:** the device freezes under dense modulation traffic. The trigger is our
+**State:** the device freezes under dense modulation traffic (tracked as V01-A,
+parked). The trigger is our
 per-snapshot traffic (snapshots out, Pi ACKs back), not the LFO and not the USB
 attach. One real source defect was found and fixed, and the hardware test showed
 it was **not** this hang. The RX/ACK interrupt path is the remaining suspect.
