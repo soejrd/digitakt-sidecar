@@ -12,10 +12,13 @@ no fix exists. More voices and Teensy remain deferred.
 
 The masked-preflight fix is in the tracked adapter and passes host tests and the
 component profile ([emulator result](../evidence/v01/masked-preflight-fix-emulator.json)).
-Candidate `V01K` (SHA256 in that file) is built and booted in the emulator only.
+Candidate `V01K` is verified, staged and not flashed:
+[package and trial procedure](../evidence/v01/fix-k-package.json). It changes
+device firmware only, so the installed matching Pi kernel stays paired.
 
-1. Prepare and verify the flashable pair, then one muted 2K attach test: does
-   the freeze still occur? That is the only question this candidate answers.
+1. Run the recorded trial: one muted 2K attach test. Does the freeze still
+   occur? That is the only question this candidate answers. Rollback is
+   I04R or stock, both in the package.
 2. If the freeze persists, the remaining explanation is the RX/ACK path: the Pi
    ACKs every snapshot, so `native_rx` runs at the same rate and does frame
    parsing plus a wake in interrupt context. Make it append-only.

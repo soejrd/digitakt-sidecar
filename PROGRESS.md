@@ -37,10 +37,12 @@ continuous audio, no modelled hang.
 An early index-margin guard I tried stalled traffic (only our sends advance the
 index) and was reverted; the native wrap already covers it.
 
-**Next:** verify and stage candidate `V01K`, then one muted 2K attach test —
-does the freeze still happen? If it does, the RX/ACK interrupt path is next
-(make it append-only). The worker-versus-render measurement stays deprioritised.
-DTIM2 external rate, physical memory costs and core clock remain unresolved.
+**Next:** candidate `V01K` is verified and staged (firmware only; Pi kernel
+unchanged) with rollback to I04R or stock. Run the recorded muted 2K attach
+trial: [package](evidence/v01/fix-k-package.json). If the freeze persists, the
+RX/ACK interrupt path is next (make it append-only). The worker-versus-render
+measurement stays deprioritised. DTIM2 external rate, physical memory costs and
+core clock remain unresolved.
 No fitted delays or speculative installs/sweeps. Gates B/C remain open.
 
 The [V01 report](docs/V01-persistence-stress.md) owns the exact next steps,

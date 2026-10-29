@@ -1,0 +1,105 @@
+{
+  "task": "V01 Gate A",
+  "date_utc": "2026-10-29T20:35:00Z",
+  "status": "verified and staged; not flashed; hardware result unknown",
+  "hardware_test": false,
+  "scope": "flashable V01K package for one muted 2K attach test",
+  "change_summary": "Firmware-only: the native USB-MIDI preflight now runs again after interrupts are masked and refuses instead of entering the sender. The Pi build is unchanged.",
+  "candidate": {
+    "label": "V01K",
+    "sha256": "bc3a70b6f515a0a8659f770ad028c13948e44383176a5033e88522e089a04543",
+    "bytes": 1483936,
+    "messages": 11595,
+    "ele3_version": "V01K",
+    "flash_end": "0x19ddc0",
+    "flash_headroom": 1974848,
+    "main_sha256": "394925a6c592f4c108d709eaa3da8efd910fb94aab88c90b03aed0f945f323aa",
+    "main_staged_to": "0x402f8e00",
+    "stock_sections": {
+      "5": true,
+      "2": true,
+      "3": false,
+      "4": true,
+      "8": true
+    },
+    "compiler_defines": [
+      "USB_TRACK_DIAGNOSTIC",
+      "V01_NO_SELF_WAKE",
+      "V01_REMOTE_DIAGNOSTIC",
+      "V01_COMPACT_SNAPSHOTS"
+    ]
+  },
+  "pi": {
+    "kernel_changed": false,
+    "kernel_sha256": "2b027a172e089af8fc273e4b2351d7fd72a7223b92f8ac6dfc8b20c491e2df5f",
+    "note": "This candidate changes only device firmware, so the currently installed matching Pi kernel stays paired. Re-verify the kernel hash before the trial rather than re-flashing the SD card."
+  },
+  "files": {
+    "Digitakt-H02F-previous.syx": "5acb609a4b409153d2eed7b528becf4ca553d7cce548031f00d4910c4e0ebd33",
+    "Digitakt-I04Q-previous.syx": "75f5b66ae5db95676eb767ece3239ec81a9281a42966fbca7689b22a8b14bb8b",
+    "Digitakt-I04R-previous.syx": "6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b",
+    "Digitakt-OS1.54-stock-recovery.syx": "f78ba80fa7b1da5fb0e1ff61ad61e9e71aafe79f4364fc49679f3651353e3cf6",
+    "Digitakt-V01K-diagnostic.syx": "bc3a70b6f515a0a8659f770ad028c13948e44383176a5033e88522e089a04543",
+    "manifest.json": "abc3771a9acf1300e12da962be34d1a23eb781cd5f90e42529541a72a547e5ec"
+  },
+  "recovery": {
+    "Digitakt-I04R-previous.syx": "6a04ae9dd7791c7b11489af0061ea0012464922d5b6ca6935450f2b712f7fa2b",
+    "Digitakt-I04Q-previous.syx": "75f5b66ae5db95676eb767ece3239ec81a9281a42966fbca7689b22a8b14bb8b",
+    "Digitakt-H02F-previous.syx": "5acb609a4b409153d2eed7b528becf4ca553d7cce548031f00d4910c4e0ebd33",
+    "Digitakt-OS1.54-stock-recovery.syx": "f78ba80fa7b1da5fb0e1ff61ad61e9e71aafe79f4364fc49679f3651353e3cf6"
+  },
+  "verification": {
+    "diagnostic_page": "PASS (evidence/v01/fix-k-diagnostic.json)",
+    "ui_anchors": "PASS (evidence/v01/fix-k-ui.json)",
+    "rtos_runtime": "PASS (evidence/v01/fix-k-runtime.json)",
+    "compiled_exchange": "PASS (evidence/v01/fix-k-exchange.json)",
+    "component_profile": "evidence/v01/masked-preflight-fix-emulator.json",
+    "host_suites": [
+      "test_i03_transport",
+      "test_i03_integration",
+      "test_i04",
+      "test_v01_remote",
+      "test_v01_diag"
+    ]
+  },
+  "pre_flash_checks": [
+    "Candidate and every recovery file re-hashed from the package (done).",
+    "Protected sections 2, 4, 5 and 8 unchanged from stock (done).",
+    "Flash headroom positive: 1974848 bytes (done)."
+  ],
+  "trial": {
+    "setup": [
+      "Speakers/monitors lowered or off",
+      "Pi voice muted, trxtrace off",
+      "Disposable project; note the exact pattern and LFO settings",
+      "Recovery file at hand"
+    ],
+    "steps": [
+      "Record the pre-flash baseline: FIFO underrun count, playout faults, USB gaps/errors, Pi uptime and kernel hash.",
+      "Install Digitakt-V01K-diagnostic.syx with Transfer. Human flash only; do not touch the bootloader or wiring.",
+      "Confirm the reported version reads V01K.",
+      "Set SPD back down before reconnecting. Select USB1 on track 1, confirm the panel responds.",
+      "Raise the TRX-B2 PTCH LFO to maximum speed with depth 5-10. This is the formerly failing workload.",
+      "Watch the panel for 30 s. Stop at the first sign of unresponsiveness.",
+      "If frozen: pull the cable, wait 30 s, note whether the UI recovers, then power-cycle.",
+      "Record the same counters afterwards, plus FIFO/underruns and any new fault."
+    ],
+    "outcome_meaning": {
+      "responsive_30s": "The masked-preflight race was the cause, or the guard avoided it. Still needs repeat runs and Gates B/C.",
+      "frozen_on_attach": "The guard did not remove the trigger. Next suspect is the RX/ACK interrupt path; do not flash again before that analysis.",
+      "frozen_after_delay": "Send-path volume still matters: collect counters before power-cycling, they are evidence."
+    },
+    "stop_conditions": [
+      "Any new Pi fault or FIFO underrun growth",
+      "Audio stop while muted is expected; audio stop when unmuted is not",
+      "UI unresponsive at any step"
+    ]
+  },
+  "rollback": "Install Digitakt-I04R-previous.syx (the accepted prototype), or Digitakt-OS1.54-stock-recovery.syx for stock. Both are in the package and hash-verified.",
+  "limits": [
+    "No hardware result yet.",
+    "Emulator cannot reproduce the physical hang, so the causal link remains a hypothesis.",
+    "The candidate keeps the V01 diagnostic settings (remote telemetry, compact snapshots, no self-wake), so it is a test image."
+  ],
+  "private_package": "private/v01/firmware-V01K/ (ignored storage; not a deliverable)"
+}

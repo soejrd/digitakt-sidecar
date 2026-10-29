@@ -1,0 +1,75 @@
+{
+  "status": "verified",
+  "level": "compiled OS 1.54 + native serializer; USB DMA/PCM modelled",
+  "hardware_test": false,
+  "candidate": {
+    "firmware_label": "V01K",
+    "usb_track_version": "0.5",
+    "syx_sha256": "bc3a70b6f515a0a8659f770ad028c13948e44383176a5033e88522e089a04543",
+    "stock_main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
+    "source_hashes": {
+      "control/device_link.c": "f095e882273183bddc5f369b309bdd3a3f42cb951ca73e178b0543c222997b49",
+      "control/device_link.h": "d52b6a79c6b6b822f2fecdcc58668ef62e5bbc3529944ba5c10c6727a6a84216",
+      "control/dt1_transport.c": "7660dd4f8bea7580029e297c0bb31f0f533526e76857586e8829ee5cab6fb6e2",
+      "control/dt1_transport.h": "c2e42ea943c3ba06a94f44dad5b3111838dab69839022694a63c03f5355532ab",
+      "control/link.c": "a77605f80a299c502c7a39d36db2287682f133210bf924ab3567b64933294f43",
+      "control/link.h": "cc551384d65e30b2d7799a623ff163c31a3aa76958ed499f18ab6167ad5e2d08",
+      "control/sc_memory.h": "f45d7f79fe37f563581f751f9330709b35d912d9ddc68a42a7453dbbb2ed5ca1",
+      "control/sysex_split.c": "edfcffa64dea00fd50be0f909f27ce8d1a843eceb1888b2fe98a712751b425d4",
+      "control/sysex_split.h": "bdc3f393187f792419b955514e56c6704811ea4e0e64332dab4916276f09580d",
+      "control/usbmidi.c": "1e8d69223b593ca5c6293e5931d617aa2c46806b0a2ff1fcb0b10fb03fbdd93b",
+      "control/usbmidi.h": "1d7479908f0bf4ac186fc37978a758bebf18bc5f16e4296d017ed1973830e82d",
+      "control/v01_diag.h": "56b196d7683d4f1697a38f949d8c9055c369194aa861697fd52a54411c6bea6d",
+      "mods/usb-midi/mod.json": "42237ba9db973bb9de4aafcb426b0effd881800a39e611c13a0a8ab6a835ea1c",
+      "mods/usb-midi/usb_midi.c": "d2779f21c9e70edbdacdc0aaff18549bed940214f62566eee30a9a692e01c84f",
+      "mods/usb-midi/usb_midi.h": "12db1c576ba6802319589615bae93c4a2a1ef473938cef30e118bc7187709e8f",
+      "mods/usb-track/core_candidate_clock.h": "98b51b1ac481a58b00985efb10575707475d742954ba76e8a9e72139bc023fe4",
+      "mods/usb-track/core_candidate_rtos.h": "60714763f69eb908aa63b360729182176a0f96c3a9b0cc087f19026ccb27a7bd",
+      "mods/usb-track/core_candidate_rtos.s": "a85a8ed629996aa4ef674ef7ac278d5fcd8fc2e0dace20d3f5e9bc6e590c9e65",
+      "mods/usb-track/mod.json": "c3674d72e22e18c74ab6f5b33fa218145e3c87f8e9fb6cc2740cf555e3044f6e",
+      "mods/usb-track/src_queue.c": "2de5d0209e05151065d6f9a4af09967b904b95c6b13e9ab7427eb90f5d7a79ab",
+      "mods/usb-track/src_queue.h": "577dbad5a473c637234ce3874b57669e3005b654a353c78ddc64481303e007cf",
+      "mods/usb-track/task_worker.c": "3dc91a68c8615b69489240cfa3e074df06978bd2aecc9b032dc02572792eb6f7",
+      "mods/usb-track/usb_track.c": "ee2d997e7aeffffbe9f91d5ecadac4e88dab1604b302a73d820e8ff7f8d90791",
+      "mods/usb-track/usb_track.h": "2f42d53a93197f86878b5b97fbc586316483e1aa7e2e4a5cbfe60e0dd55c5e8a",
+      "mods/usb-track/worker.c": "82a1e6ce7d0d7eca8cfc0419b8fa0e2c5ffdf682826109927e0153d6a9ac2b81"
+    }
+  },
+  "checks": [
+    "native serializer and two-argument compiled RX bridge",
+    "silence before ACTIVATE; fresh PCM after stale-half flush",
+    "panel SRC reaches host final 8.8 value",
+    "repeated native starts reach host",
+    "ACK loss closes gate; fresh session recovers",
+    "link loss/reconnect recovers",
+    "preflight and sender run in one native critical section",
+    "sustained every-block modulation with completion progress",
+    "stalled native completions close gate; fresh session recovers"
+  ],
+  "counters": {
+    "up": true,
+    "drop": false,
+    "tx": 3361,
+    "rx": 3135,
+    "silent": 2514,
+    "audible": 14476,
+    "sends_masked": true,
+    "stall": false,
+    "dense": false,
+    "native_event_task": true,
+    "task_context_entries": 4748,
+    "signal_interrupt_levels": {
+      "0": 392,
+      "5": 4405,
+      "7": 15
+    },
+    "native_stack_used_bytes": 1368,
+    "artificial_worker_waits": 0,
+    "remote_snapshots": 12,
+    "remote_malformed": 0
+  },
+  "limits": [
+    "No physical USB/DMA, Circle scheduling or hardware timing measured.",
+    "USB descriptor submission/completion and already-decoded PCM are modelled."
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "main_sha256": "5c58bf9e3949ef09977c5fc007a61e8d026931f67f1621238379dfb8ee4d31a2",
+  "level": "static instruction anchors only",
+  "anchors": {
+    "callback_registration": "0x400045aa",
+    "endpoint_1_control": "0x400045ca",
+    "receive_callback_load": "0x400047fa",
+    "receive_callback_call": "0x40004808",
+    "send_wrap_wait": "0x400049d8",
+    "send_capacity_wait": "0x40004a0c"
+  },
+  "candidate_raw_midi_sender": "0x40004990",
+  "candidate_receive_callback_slot": "0x4061046c",
+  "transport_qualified": false,
+  "qualification_scope": "anchors/UI only; compiled exchange is evidence/i03/integrated-154.json",
+  "missing": [
+    "physical USB DMA/completion cadence, disconnect detection and hardware timing"
+  ],
+  "ui_emulator": {
+    "candidate_sha256": "bc3a70b6f515a0a8659f770ad028c13948e44383176a5033e88522e089a04543",
+    "level": "compiled OS 1.54 emulator; no physical USB",
+    "booted": true,
+    "labels_ranges_defaults": true,
+    "panel_knobs_changed": [
+      "PTCH",
+      "DEC",
+      "RAMP",
+      "HOLD",
+      "TICK",
+      "NOIS",
+      "DIRT",
+      "DIST"
+    ],
+    "final_8_8_before_after": [
+      [
+        15360,
+        16640
+      ],
+      [
+        16640,
+        20480
+      ],
+      [
+        10496,
+        13056
+      ],
+      [
+        15872,
+        18432
+      ],
+      [
+        23296,
+        24576
+      ],
+      [
+        11264,
+        16384
+      ],
+      [
+        14336,
+        16896
+      ],
+      [
+        14848,
+        17408
+      ]
+    ],
+    "native_defaults_applied": true,
+    "src_page_count": 2,
+    "transport_qualified": false
+  }
+}
