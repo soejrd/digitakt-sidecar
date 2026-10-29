@@ -340,6 +340,8 @@ def run_profile(candidate, snapshot_path, speed, depth, fsys, duration,
         if profile_execution:
             from v01_execution_profile import ExecutionProfile
             s.execution_profile = ExecutionProfile(s, symbols)
+            from v01_worker_spans import WorkerSpans
+            s.worker_spans = WorkerSpans(s, symbols)
         uc = s.m.uc
         # Verified native LFO call site 0x40077ea2 loads this tempo word;
         # OS uses BPM*120. Set the disposable project to 120 BPM before run.
@@ -468,8 +470,11 @@ def run_profile(candidate, snapshot_path, speed, depth, fsys, duration,
             'fractions': {name: (diagnostic_delta[name] / (132000000 * source_seconds)
                                   if source_seconds else None)
                           for name in diagnostic_names if name.endswith('_ticks')},
+            'counter_read_clock': ('instruction-position' if any(
+                callable(getattr(t, 'counter_clock', None)) for t in s.pits.sources)
+                else 'step-boundary'),
             'suitable_for_hardware_cost_calibration': False,
-            'limits': 'DTIM0 is stale within steps; raw brackets are not calibrated costs. '
+            'limits': 'Model brackets depend on assumed clocks and zero-wait costs. '
                       'Worker/render overlap: never add as CPU. Bus assumed132MHz.'}
         state['effective_changes_per_s'] = round(
             state['effective_changes'] * 1000 / s.now_ms(), 3)
@@ -525,6 +530,7 @@ def run_profile(candidate, snapshot_path, speed, depth, fsys, duration,
             'panel_irq_delivery_cycles': s.panel_source.deliveries,
             'counters': state, 'cycle_model': clock,
             'execution_profile': s.execution_profile.report() if s.execution_profile else None,
+            'worker_spans': s.worker_spans.report() if s.execution_profile else None,
             'usb_status': usb,
             'audio_irq_deadlines': deadline_report(s.clock, 191, fsys * 32 / 48000),
             'artificial_waits_by_sem': {'0x%08x' % k: v for k, v in
@@ -624,6 +630,9 @@ def main():
                     set(r['counters'].get('native_rx_interrupt_levels', {})) == {'0'}))
                 and (not args.usb_audio or (
                     audio_stream_valid(r['counters'])))
+                and (not args.profile_execution or (
+                    r['worker_spans']['complete_batches'] > 0 and
+                    r['worker_spans']['invalid_spans'] == 0))
                 for r in reports)
     report = {
         'task': 'V01 Gate A', 'status': 'emulator-gap' if valid else 'invalid-preflight',
@@ -641,9 +650,12 @@ def main():
         'probe_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         'helper_source_sha256': {name: hashlib.sha256((Path(__file__).parent / name).read_bytes()).hexdigest()
                                  for name in ['v01_usb_device_model.py', 'v01_usb_peer.py',
-                                              'v01_execution_profile.py'] if args.usb_device or args.profile_execution},
+                                              'v01_execution_profile.py', 'v01_worker_spans.py'] if args.usb_device or args.profile_execution},
         'emulator_revision': subprocess.check_output(
             ['git', '-C', str(r03_probe.EMU), 'rev-parse', 'HEAD'], text=True).strip(),
+        'emulator_patch_sha256': {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+                                  for p in sorted((Path(__file__).resolve().parents[1] /
+                                                   'patches/digiemu').glob('*.patch'))},
         'profiles': reports,
         'limits': [
             ('Experimental native audio DMA with silent credit-based returns; external DTIM2 clock is absent and audio validity must pass before latency attribution.' if args.usb_audio else

@@ -1,0 +1,149 @@
+{
+  "task": "V01 Gate A",
+  "hardware_test": false,
+  "gate_a_verdict": "NOT SCORED",
+  "finding": "Diagnostic timer reads now advance within one native basic block; physical lag still not reproduced.",
+  "regression": {
+    "before_delta": 0,
+    "after_delta": 97,
+    "expected_model_cycles": 97,
+    "native_code": "two DTCN0 loads separated by16 NOPs; no timer step/service between reads",
+    "also_checked": "200/250MHz ratios, programmed prescaler, legacy timer reads, cycle accounting and checkpoint state"
+  },
+  "dependency_base": "f57c2f237e84b8ff91bc3adb2a2931bccf9928e9",
+  "patch_sha256": "a1f24fe156f6e84e6fb5fd3211ec47065518ff3a00267d2a3f85d72de882f5e8",
+  "raw_report_sha256": "26b0275c5c8ebabb01c75d4222b7aebc63f4dc9941e146b93a74c4c2bc105e76",
+  "model": [
+    {
+      "speed": 32,
+      "depth": 32,
+      "core_assumption_mhz": 200,
+      "counter_read_clock": "instruction-position",
+      "native_send_calls": 131,
+      "native_sends_per_s": 262.0,
+      "masked_send_mean_us": 8.620981,
+      "worker_elapsed_fraction": 0.012501,
+      "render_elapsed_fraction": 0.792335,
+      "worker_elapsed_normalized_per_send_us": 47.714492,
+      "worker_exclusive_model_fraction": 0.010726,
+      "panel_max_ms": 7.280465,
+      "audio_packets": 3431,
+      "audio_counter_gaps": 0,
+      "model_errors": [],
+      "worker_spans": {
+        "complete_batches": 138,
+        "invalid_spans": 0,
+        "unfinished": false,
+        "batches_with_render_overlap": 2,
+        "elapsed_us_total": 6250.598485,
+        "render_overlap_us_total": 1059.969697,
+        "nonrender_us_total": 5190.628788,
+        "elapsed_us_max": 625.219697,
+        "nonrender_us_max": 94.265152,
+        "end_timer_pc": "0x47bc6a94",
+        "limits": "Assumed132MHz timer. Non-render includes other IRQ/task preemption; not pure CPU."
+      }
+    },
+    {
+      "speed": 64,
+      "depth": 48,
+      "core_assumption_mhz": 200,
+      "counter_read_clock": "instruction-position",
+      "native_send_calls": 365,
+      "native_sends_per_s": 730.0,
+      "masked_send_mean_us": 8.778165,
+      "worker_elapsed_fraction": 0.031863,
+      "render_elapsed_fraction": 0.794029,
+      "worker_elapsed_normalized_per_send_us": 43.648049,
+      "worker_exclusive_model_fraction": 0.030573,
+      "panel_max_ms": 8.656965,
+      "audio_packets": 3431,
+      "audio_counter_gaps": 0,
+      "model_errors": [],
+      "worker_spans": {
+        "complete_batches": 372,
+        "invalid_spans": 0,
+        "unfinished": false,
+        "batches_with_render_overlap": 2,
+        "elapsed_us_total": 15931.537879,
+        "render_overlap_us_total": 1063.280303,
+        "nonrender_us_total": 14868.257576,
+        "elapsed_us_max": 626.363636,
+        "nonrender_us_max": 94.19697,
+        "end_timer_pc": "0x47bc6a94",
+        "limits": "Assumed132MHz timer. Non-render includes other IRQ/task preemption; not pure CPU."
+      }
+    }
+  ],
+  "existing_physical": {
+    "baseline": {
+      "evidence": "compact-baseline.json",
+      "intervals": 6,
+      "native_sends_per_s": [
+        284.0,
+        284.5
+      ],
+      "masked_send_mean_us": [
+        14.857485,
+        14.902249
+      ],
+      "worker_elapsed_fraction": [
+        0.034345,
+        0.036766
+      ],
+      "render_elapsed_fraction": [
+        0.828766,
+        0.829079
+      ],
+      "worker_elapsed_normalized_per_send_us": [
+        120.721208,
+        129.230185
+      ]
+    },
+    "dense": {
+      "evidence": "compact-depth48-result.json",
+      "intervals": 9,
+      "native_sends_per_s": [
+        814.457029,
+        816.727757
+      ],
+      "masked_send_mean_us": [
+        15.030306,
+        15.084363
+      ],
+      "worker_elapsed_fraction": [
+        0.248286,
+        0.280441
+      ],
+      "render_elapsed_fraction": [
+        0.846295,
+        0.848285
+      ],
+      "worker_elapsed_normalized_per_send_us": [
+        304.27247,
+        343.626289
+      ]
+    }
+  },
+  "interpretation": "Hardware masked-send cost stays about15us as density rises, while normalized worker elapsed time grows substantially. The modeled masked section is faster and worker elapsed growth is absent. This directs investigation outside the masked send section, including preemption; it does not establish CPU saturation.",
+  "remaining_gap": "DTIM2 external input and physical memory/bus timing remain unmodeled. Native PAR_TIMER selects T2IN; the firmware image does not establish board wiring or external pulse rate.",
+  "limits": [
+    "Worker/render elapsed brackets overlap and cannot be added as CPU utilization. Normalized per-send elapsed is an aggregate, not a measured individual batch duration.",
+    "Model and hardware project state/event rates differ; core200MHz and bus132MHz are declared model assumptions.",
+    "Snapshot PLL registers are zero; they cannot validate the hardware core clock.",
+    "All prior per-profile measurements match the repeated observer run exactly. Only patch documentation was added after that capture."
+  ],
+  "capture_patch_sha256": "dd7fc3989a1b53a35334901590868997c64e9eac3b960981e84bc5d1601cae38",
+  "checks": {
+    "dependency_clock_checkpoint": 28,
+    "v01_usb_panel_helpers": 23,
+    "patch_replay": "PASS"
+  },
+  "observer_validation": "All prior per-profile measurements exactly match the preceding fixed200MHz run; span elapsed totals match native firmware counters. Counter-wrap and post-end-read preemption regressions pass.",
+  "next_measurement": {
+    "question": "Does frequent render preemption explain physical worker wall-time growth?",
+    "quantity": "Per-batch elapsed and nested native-render time; aggregate total/max and overlap count. Non-render time remains an upper bound, not pure worker CPU.",
+    "prediction": "If render preemption dominates the growth, subtracting nested render time removes most of the excess. Otherwise focus on worker execution or other preemption.",
+    "procedure": "Validate bounded aggregate instrumentation offline, then one short muted capture at the failing fixed profile; stop on new faults/FIFO growth or sufficient lag evidence. Retrieve after timing stops; no knob sweep or full trace dump. No candidate is staged yet."
+  }
+}

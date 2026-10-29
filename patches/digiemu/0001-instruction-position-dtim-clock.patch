@@ -1,0 +1,169 @@
+diff --git a/docs/FINDINGS.md b/docs/FINDINGS.md
+index 9d5bde2..6e747a7 100644
+--- a/docs/FINDINGS.md
++++ b/docs/FINDINGS.md
+@@ -4190,3 +4190,11 @@ What these sessions did not exercise:
+ Since the render is fixed-cost, their effect would be on the tasks, which
+ use 1-2% here. Tasks created after the boot's TASK_CREATE capture have no
+ recorded stack size and are not in the table.
++
++## Cycle-timed DMA timer reads
++
++**[C]** Cycle Sessions now timestamp DTCN reads at the current instruction,
++subtracting the unexecuted suffix of the precharged block. Two native loads
++separated by16 NOPs advance97 modeled cycles without timer service (previously0).
++`test_dtim_counter` covers clock ratios, prescalers and mapped-code boundaries.
++Legacy stepping/deadlines are unchanged; external DTIM2 pulses remain unmodeled.
+diff --git a/emu/cftiming.py b/emu/cftiming.py
+index d274d81..36c09b3 100644
+--- a/emu/cftiming.py
++++ b/emu/cftiming.py
+@@ -380,6 +380,8 @@ class CycleClock:
+         self.left = None            # cycle budget, None = unbounded
+         # (flags, addr, op) of every flagged instruction in decoded code.
+         self.flagged = collections.Counter()
++        self._read_block = None
++        self._read_offsets = {}     # lazily decoded only for MMIO-read blocks
+         self.on_new_block = None    # optional callable(Block), for strict mode
+         self._orig_raise = m.raise_vector
+         m.raise_vector = self._raise_vector
+@@ -451,12 +453,53 @@ class CycleClock:
+             misses = self.icache.touch(addr, size)
+             cost += misses * self.miss_penalty
+         self.cycles += cost
++        self._read_block = b
+         self.instructions += b.n
+         if addr in self.idle_addrs:
+             self.idle_cycles += cost
+         if left is not None:
+             self.left = left - cost
+ 
++    def read_cycles(self):
++        """Estimated instruction-start time for a native MMIO read.
++
++        `cycles` precharges the complete entered block. Remove its unexecuted
++        suffix here; changing that accounting would change stepping/profiling.
++        Previous-flow, incoming stalls and optional cache-fill costs remain at
++        block entry. This is model time, not hardware memory-access timing.
++        """
++        from unicorn.m68k_const import UC_M68K_REG_PC
++        b = self._read_block
++        if b is None:
++            return self.cycles
++        pc = self.m.uc.reg_read(UC_M68K_REG_PC)
++        if not b.addr <= pc < b.fallthrough:
++            return self.cycles
++        offsets = self._read_offsets.get(b)
++        if offsets is None:
++            raw = bytes(self.m.uc.mem_read(b.addr, b.size)) + bytes(6)
++            read = cfisa.reader(raw, b.addr)
++            offsets = {}
++            at, static, stalls = b.addr, 0, 0
++            prev_w, prev_emac = -1, False
++            while at < b.fallthrough:
++                ins = cfisa.decode(read(at), at)
++                offsets[at] = (static, stalls)
++                cost = static_cost(ins, self.accel_max)
++                if prev_emac and ins.op in ('from_acc', 'from_emac'):
++                    cost = max(cost, EMAC_STORE_EXPOSED)
++                if at != b.addr:
++                    stalls += stall(prev_w, ins)
++                static += cost
++                prev_w, prev_emac = ins.writes, bool(ins.flags & EMAC_OP)
++                at += ins.length
++            self._read_offsets[b] = offsets
++        prefix = offsets.get(pc)
++        if prefix is None:
++            return self.cycles
++        return (self.cycles - b.static + prefix[0] -
++                (b.stalls - prefix[1] if self.use_stalls else 0))
++
+     def _resolve(self, b, nxt):
+         """Charge the flow instruction ending block `b` now that execution
+         is known to continue at `nxt`."""
+diff --git a/emu/dtim.py b/emu/dtim.py
+index 63976f8..f093828 100644
+--- a/emu/dtim.py
++++ b/emu/dtim.py
+@@ -152,6 +152,7 @@ class Dtims:
+ 
+         # The instruction count at the last step or service: guest time.
+         self.clock = 0
++        self.counter_clock = None  # optional instruction-position clock for reads
+         for ch in range(4):
+             m.uc.hook_add(UC_HOOK_MEM_READ,
+                           (lambda c: lambda uc, t, a, s, v, d: self._serve_count(c))(ch),
+@@ -172,8 +173,10 @@ class Dtims:
+         firmware did program counts at its own prescaler and clock, and
+         restarts at DTRR when FRR is set.
+ 
+-        Resolution is a step boundary (see ARM_STEP), which is fine for
+-        timing events milliseconds apart.
++        Legacy instruction stepping resolves reads at step boundaries. Cycle
++        sessions bind counter_clock to instruction-position time, so short
++        firmware diagnostic brackets advance within a step and basic block.
++        Interrupt deadlines still use the step/service clock.
+         """
+         raw = mem_reader(self.m)(BASES[ch] + DTMR, 8)
+         dtmr, _dtxmr, _dter, dtrr = struct.unpack('>HBBI', raw)
+@@ -186,7 +189,8 @@ class Dtims:
+             div = 1                           # as the boot ROM leaves it
+         else:
+             return
+-        count = int(self.clock / self.ips * F_BUS / div)
++        now = self.counter_clock() if self.counter_clock is not None else self.clock
++        count = int(now * F_BUS // (self.ips * div))
+         if dtmr & RST and dtmr & FRR:
+             count %= dtrr + 1
+         self.m.uc.mem_write(BASES[ch] + DTCN,
+diff --git a/emu/session.py b/emu/session.py
+index e5f70ec..db83ee2 100644
+--- a/emu/session.py
++++ b/emu/session.py
+@@ -172,6 +172,10 @@ class Session:
+             self.sources[0].ips = self.ips
+             self.sources[0].align(pits.now)
+         self._t0 = pits.now
++        if self.clock is not None:
++            for source in pits.sources:
++                if isinstance(source, Dtims):
++                    source.counter_clock = lambda: self._t0 + self.clock.read_cycles()
+ 
+         # Frames, latched where emu/panel.py says [FRONT] is complete.
+         self._latched = None
+diff --git a/tests/test_dtim_counter.py b/tests/test_dtim_counter.py
+index 0855b14..3f216c9 100644
+--- a/tests/test_dtim_counter.py
++++ b/tests/test_dtim_counter.py
+@@ -46,6 +46,31 @@ class DtimCounterTest(unittest.TestCase):
+                          int(1_320_000 / 64_000_000 * pit.F_BUS)
+                          - int(1_000_000 / 64_000_000 * pit.F_BUS))
+ 
++    def test_two_reads_in_one_native_block_advance_without_timer_service(self):
++        from emu.cftiming import CycleClock
++        from unicorn.m68k_const import UC_M68K_REG_D1
++        for fsys, mode, div, code_at in (
++                (pit.F_BUS, 0, 1, CODE), (200_000_000, 3, 1, CODE),
++                (250_000_000, 0x305, 64, CODE),
++                (pit.F_BUS, 0, 1, 0x40100000 - 44)):
++            with self.subTest(fsys=fsys, mode=mode, code_at=code_at):
++                m, timers = _machine(mode)
++                clock = CycleClock(m, fsys=fsys)
++                timers.ips = clock.fsys
++                timers.clock = 1000
++                timers.counter_clock = lambda: 1000 + clock.read_cycles()
++                code = READ_DTCN0 + bytes.fromhex('4e71') * 16
++                code += struct.pack('>HI', 0x2239, dtim.BASES[0] + dtim.DTCN)
++                m.uc.mem_write(code_at, code)
++                m.uc.emu_start(code_at, code_at + len(code))
++                first = m.uc.reg_read(UC_M68K_REG_D0)
++                second = m.uc.reg_read(UC_M68K_REG_D1)
++                self.assertEqual(first, 1000 * pit.F_BUS // (fsys * div))
++                self.assertEqual(second, (1000 + 1 + 16 * 6) * pit.F_BUS // (fsys * div))
++                self.assertEqual(timers.clock, 1000)  # no step/service between reads
++                self.assertEqual(clock.decode_mismatches, 0)
++                clock.close()
++
+     def test_a_programmed_timer_uses_its_prescaler(self):
+         dtmr = dtim.RST | (2 << 1) | (3 << 8)       # bus / 16, PS = 3 (/4)
+         m, timers = _machine(dtmr)

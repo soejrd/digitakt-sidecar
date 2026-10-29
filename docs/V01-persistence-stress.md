@@ -7,20 +7,17 @@ No proven root cause or firmware fix. More voices and Teensy remain deferred.
 
 ## Current next work — emulator reproduction and causal isolation
 
-1. Fix diagnostic clock fidelity: `emu/dtim.py` updates DTCN0's time only at
-   `step/service` boundaries. Make reads coherent with CycleClock and add a
-   regression with two reads inside one execution step. Until then, emulator
-   firmware timing brackets cannot calibrate hardware execution costs.
-2. Establish DTIM2's external input from source/pin configuration. Native render
-   entry (`0x40076c4c`) timestamps it; USB ISR209 (`0x4000606c`) uses its phase.
-   The emulator leaves it at zero. If its rate cannot be established offline,
-   one targeted measurement may buffer DTCN2/FRINDEX pairs at consecutive
-   32-frame render entries and retrieve them after timing stops. The question
-   is ticks per audio sample, not another modulation sweep.
-3. Compare hardware/model costs, then isolate scheduling, ACK/native USB work
-   and UI backlog using fixed inputs. A fix requires a demonstrated mechanism
-   and regression; otherwise record the evidenced model gap and the single
-   measurement needed to resolve it.
+1. Prepare one bounded diagnostic measurement: does render preemption explain
+   the physical worker wall-time growth? Capture per-batch elapsed and nested
+   render time, summarized as totals/maxima and overlap count. If subtracting
+   render time removes most excess, investigate scheduling; otherwise investigate
+   worker execution/other preemption. Validate firmware instrumentation offline
+   before any flash, then use one short muted fixed-profile capture, stopping
+   on new faults/FIFO growth or sufficient lag evidence. Retrieve after timing
+   stops; no sweep/full trace dump. No candidate is staged yet.
+2. Keep DTIM2's external rate unresolved: firmware selects T2IN, but does not
+   establish the board signal. Snapshot PLL registers are zero; do not infer a
+   hardware core clock from them. Do not invent clock rates or memory delays.
 
 Investigate in software first. Do not fit synthetic delays, repeatedly install
 speculative firmware, or request broad knob sweeps. Another hardware test must
@@ -66,13 +63,28 @@ Fixed500ms audio+periodic+MIDI profiles, eight panel edges each:
 | --- | --- | --- | --- | --- |
 | 250MHz |32/32|119|3432|3.237ms|
 | 250MHz |~64/48|354|3432|3.775ms|
-| 200MHz |32/32|119|3431|7.281ms|
-| 200MHz |~64/48|353|3431|9.195ms|
+| 200MHz |32/32|119|3431|7.280ms|
+| 200MHz |~64/48|353|3431|8.657ms|
 
 All have750 render blocks, continuous audio counters, matching return credits,
 gate1/session1, no decoder mismatch, artificial worker wait or modeled render
-overrun. 21 focused tests pass. Periodic-only dense panel maximum was3.240ms.
-Detailed execution attribution and raw-report hashes are in the linked evidence.
+overrun. 23 focused V01 tests pass. Periodic-only dense panel maximum was3.240ms.
+Diagnostic DTCN0 reads now use instruction-position time within precharged
+blocks: the regression changed from0 to the expected97 cycles between two
+native reads. The [replayable patch](../patches/digiemu/README.md) passes28
+clock/checkpoint tests and leaves legacy stepping unchanged. The corrected
+200MHz run still has no physical lag reproduction.
+[Cost comparison](../evidence/v01/clock-cost-comparison.json): masked native sends
+average8.6–8.8µs in the model versus14.9–15.1µs in existing hardware captures.
+The native worker-span observer matches firmware elapsed totals exactly and
+leaves all prior per-profile measurements unchanged. Baseline/dense runs have
+138/372 complete batches; only2 overlap rendering in each. Maximum non-render
+time stays94.3/94.2µs, versus~626µs maximum elapsed including rendering.
+Non-render time still includes other preemption and is an upper bound on CPU.
+Counter-wrap and post-end-read preemption tests pass (23 V01 checks total).
+Hardware's normalized worker elapsed rises121–129→304–344µs/send while masked
+send cost remains~15µs. This discrepancy motivates the single measurement
+above; it does not prove the physical culprit or CPU saturation.
 
 ```sh
 PYTHONPATH=private/r03-runtime:deps/digiemu \
