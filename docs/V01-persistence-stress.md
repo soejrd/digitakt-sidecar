@@ -255,6 +255,24 @@ and first active capture; startup behavior remains unresolved. Native sends
 human responsiveness or audible G acceptance yet. Next step changes only SPD
 to64 while DEP stays32, with remote capture and early stop on lag/new faults.
 
+### V01G dense result — compact messages insufficient
+
+[SPD64/DEP32](../evidence/v01/compact-speed-result.json): slight sluggishness,
+fault0/FIFO11 stable. [SPD64/DEP48](../evidence/v01/compact-depth48-result.json):
+human reports quite laggy. G therefore fails Gate A despite no new Pi faults,
+underruns or guard errors in this capture. UI tick maximum93 ms is not input
+latency. At ~816 native sends/s, worker elapsed ~25–28%, native render
+~84.6–84.8%, masked send ~1.23%; elapsed brackets overlap. Shorter snapshots
+alone do not resolve the failure. Profiles differ from F, so no exact speedup
+or worsening is established. Capture stopped; no further density increase.
+USB unplug requested; recovery confirmation pending.
+
+Next work is offline compiled per-update profiling to distinguish task dispatch,
+ACK decode/handling and serialization costs. Do not prepare another hardware
+variant solely from byte-count estimates. Periodic UI ticks cannot establish
+panel-event service latency. ACK cadence changes require an explicit protocol
+contract and deadline/reconnect tests; no dropping/throttling events is implied.
+
 ## Gate B — native persistence and musical edit semantics
 
 Source/emulator mapping may proceed while Gate A awaits hardware. Establish

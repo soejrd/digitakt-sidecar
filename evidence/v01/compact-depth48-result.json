@@ -1,0 +1,224 @@
+{
+  "task": "V01",
+  "date_utc": "2026-10-29T12:46:01.553160+00:00",
+  "scope": "G muted SPD64/DEP48 physical responsiveness failure",
+  "human_report": "got really laggy, not immense but quite laggy",
+  "settings": {
+    "speed": 64,
+    "depth": 48,
+    "basis": "controlled instructions followed; no direct panel readback"
+  },
+  "sample_count": 28,
+  "capture_errors": [],
+  "observations": {
+    "faults_max": 0,
+    "fifo_start": 11,
+    "fifo_end": 11,
+    "guards_max": 0,
+    "muted": true,
+    "ui_gap_ms_max": 93,
+    "native_send_max_us": 24.166666666666668,
+    "worker_batch_max_us": 1365.469696969697
+  },
+  "source_intervals": [
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 542.5,
+      "worker_elapsed_fraction": 0.09066178078903656,
+      "native_render_elapsed_fraction": 0.837693250406621,
+      "masked_send_fraction": 0.008220281114977671
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 542.0,
+      "worker_elapsed_fraction": 0.08288772304934976,
+      "native_render_elapsed_fraction": 0.837014331166733,
+      "masked_send_fraction": 0.008210415086891937
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 540.5,
+      "worker_elapsed_fraction": 0.08635286938298749,
+      "native_render_elapsed_fraction": 0.8373646608796965,
+      "masked_send_fraction": 0.008190135346544572
+    },
+    {
+      "source_elapsed_s": 3.001333333333333,
+      "native_sends_per_s": 541.4260328742781,
+      "worker_elapsed_fraction": 0.0861536818729731,
+      "native_render_elapsed_fraction": 0.8375748348180655,
+      "masked_send_fraction": 0.008202384891110784
+    },
+    {
+      "source_elapsed_s": 2.001333333333333,
+      "native_sends_per_s": 541.1392405063292,
+      "worker_elapsed_fraction": 0.08978677452553009,
+      "native_render_elapsed_fraction": 0.8377177814755159,
+      "masked_send_fraction": 0.008204083652560198
+    },
+    {
+      "source_elapsed_s": 2.001333333333333,
+      "native_sends_per_s": 542.1385742838108,
+      "worker_elapsed_fraction": 0.08675996449268192,
+      "native_render_elapsed_fraction": 0.8376057102190048,
+      "masked_send_fraction": 0.008215373269019569
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 542.5,
+      "worker_elapsed_fraction": 0.0908447272951912,
+      "native_render_elapsed_fraction": 0.8375525941631925,
+      "masked_send_fraction": 0.008223928071219001
+    },
+    {
+      "source_elapsed_s": 2.001333333333333,
+      "native_sends_per_s": 540.1399067288474,
+      "worker_elapsed_fraction": 0.08866287475976439,
+      "native_render_elapsed_fraction": 0.8371626706046107,
+      "masked_send_fraction": 0.008194799866609573
+    },
+    {
+      "source_elapsed_s": 3.0006666666666666,
+      "native_sends_per_s": 541.5463230393246,
+      "worker_elapsed_fraction": 0.08954427375059859,
+      "native_render_elapsed_fraction": 0.8377971370498816,
+      "masked_send_fraction": 0.008211993529100329
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 540.0,
+      "worker_elapsed_fraction": 0.08364388576759324,
+      "native_render_elapsed_fraction": 0.8371825494220787,
+      "masked_send_fraction": 0.008190457723606815
+    },
+    {
+      "source_elapsed_s": 2.0006666666666666,
+      "native_sends_per_s": 542.3192269243585,
+      "worker_elapsed_fraction": 0.0866447394580969,
+      "native_render_elapsed_fraction": 0.8375362250171435,
+      "masked_send_fraction": 0.008217434161565843
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 542.5,
+      "worker_elapsed_fraction": 0.08782422004465655,
+      "native_render_elapsed_fraction": 0.8374656875679228,
+      "masked_send_fraction": 0.00821499883443091
+    },
+    {
+      "source_elapsed_s": 3.0006666666666666,
+      "native_sends_per_s": 540.546545212175,
+      "worker_elapsed_fraction": 0.08675247128302724,
+      "native_render_elapsed_fraction": 0.8375199588578146,
+      "masked_send_fraction": 0.008198976595711376
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 541.5,
+      "worker_elapsed_fraction": 0.08783579991584427,
+      "native_render_elapsed_fraction": 0.8375623104567083,
+      "masked_send_fraction": 0.008201880754754923
+    },
+    {
+      "source_elapsed_s": 2.0006666666666666,
+      "native_sends_per_s": 539.8200599800067,
+      "worker_elapsed_fraction": 0.09873222909550518,
+      "native_render_elapsed_fraction": 0.8389936536760956,
+      "masked_send_fraction": 0.008187340050854279
+    },
+    {
+      "source_elapsed_s": 2.002,
+      "native_sends_per_s": 541.4585414585415,
+      "worker_elapsed_fraction": 0.09862276875389772,
+      "native_render_elapsed_fraction": 0.8392504305985558,
+      "masked_send_fraction": 0.00821390668999639
+    },
+    {
+      "source_elapsed_s": 3.0006666666666666,
+      "native_sends_per_s": 687.5138858031548,
+      "worker_elapsed_fraction": 0.21717494429996273,
+      "native_render_elapsed_fraction": 0.8477692043075613,
+      "masked_send_fraction": 0.010431387426872182
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 786.5,
+      "worker_elapsed_fraction": 0.26587895486441804,
+      "native_render_elapsed_fraction": 0.8488902681320811,
+      "masked_send_fraction": 0.011872911914083528
+    },
+    {
+      "source_elapsed_s": 2.001333333333333,
+      "native_sends_per_s": 814.4570286475683,
+      "worker_elapsed_fraction": 0.2751452740832189,
+      "native_render_elapsed_fraction": 0.848285463780776,
+      "masked_send_fraction": 0.012263317633529173
+    },
+    {
+      "source_elapsed_s": 2.001333333333333,
+      "native_sends_per_s": 815.9560293137909,
+      "worker_elapsed_fraction": 0.2741014641769657,
+      "native_render_elapsed_fraction": 0.8477610205133222,
+      "masked_send_fraction": 0.012303240417758132
+    },
+    {
+      "source_elapsed_s": 3.002,
+      "native_sends_per_s": 816.1225849433712,
+      "worker_elapsed_fraction": 0.2804411749976437,
+      "native_render_elapsed_fraction": 0.8481579578651075,
+      "masked_send_fraction": 0.012266572061977898
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 816.5,
+      "worker_elapsed_fraction": 0.26028580609635615,
+      "native_render_elapsed_fraction": 0.8468751637429616,
+      "masked_send_fraction": 0.01231297071301509
+    },
+    {
+      "source_elapsed_s": 2.0006666666666666,
+      "native_sends_per_s": 816.7277574141953,
+      "worker_elapsed_fraction": 0.2522122891545316,
+      "native_render_elapsed_fraction": 0.8463332724659822,
+      "masked_send_fraction": 0.012318315425175159
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 815.5,
+      "worker_elapsed_fraction": 0.254431319868842,
+      "native_render_elapsed_fraction": 0.8464847087038699,
+      "masked_send_fraction": 0.012301298091369383
+    },
+    {
+      "source_elapsed_s": 3.001333333333333,
+      "native_sends_per_s": 816.3038649489116,
+      "worker_elapsed_fraction": 0.2544518421196724,
+      "native_render_elapsed_fraction": 0.8465508516672393,
+      "masked_send_fraction": 0.012298781989841221
+    },
+    {
+      "source_elapsed_s": 2.0006666666666666,
+      "native_sends_per_s": 816.2279240253249,
+      "worker_elapsed_fraction": 0.24977660392204246,
+      "native_render_elapsed_fraction": 0.8462945544187606,
+      "masked_send_fraction": 0.012287778269858917
+    },
+    {
+      "source_elapsed_s": 2.0,
+      "native_sends_per_s": 816.0,
+      "worker_elapsed_fraction": 0.2482863355407963,
+      "native_render_elapsed_fraction": 0.8464727876626575,
+      "masked_send_fraction": 0.012299641552400747
+    }
+  ],
+  "raw_sha256": "a3b84c903641ae3ab7889929b8b63ded320d0a3acf3117e414ce3ac384c8f6fa",
+  "verdict": "G does not resolve dense UI lag; Gate A fails; no further density increase",
+  "recovery": "Human instructed to unplug USB; recovery confirmation pending",
+  "limits": [
+    "Elapsed worker/render brackets overlap and cannot be added as CPU",
+    "Profile differs from prior F onset ramp; no precise comparative speedup established",
+    "No audible qualification; no new Pi fault/FIFO growth during capture does not make UI acceptable",
+    "Boot-to-active FIFO0\u219211 still open"
+  ],
+  "next": "Offline compiled per-update path profiling to distinguish scheduling/ACK handling from serializer cost; no next hardware candidate yet"
+}

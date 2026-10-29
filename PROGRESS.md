@@ -51,11 +51,20 @@ human says maybe slightly sluggish, not super laggy. Fault/guards0 and FIFO11
 stable across 31 samples. Settled sends ~540–543/s, worker elapsed ~8–9%, render
 ~83.7–83.9%, masked ~0.82% (elapsed brackets overlap). No clear improvement yet.
 
-**Next:** recorder started for SPD64/DEP48 only; human leaves other settings
-unchanged, reports after ~10 seconds and unplugs promptly if severe lag.
-`private/v01/live-gate-a/v01g-depth48.json`, stop marker `v01g-depth48.stop`,
-watcher max300s or first new fault/FIFO. Do not advance beyond48 before assessing.
-Startup/reconnect issue and Gates B persistence/C reconnect-soak remain open.
+**G SPD64/DEP48 fails:** [physical result](evidence/v01/compact-depth48-result.json),
+human reports quite laggy. Fault/guards0, FIFO11 stable; UI tick max93 ms.
+Settled sends ~816/s, worker elapsed ~25–28%, native render ~84.6–84.8%,
+masked send ~1.23% (overlapping brackets, not pure CPU). G shorter messages do
+not resolve lag. No numeric G-vs-F speedup established because profiles differ.
+Capture stopped at 28 samples; no further density increase. Human instructed
+to unplug USB; recovery confirmation pending. Installed pair remains G, muted.
+
+**Next:** offline compiled per-update path profiling: separate native task
+wake/dispatch, ACK decode/handling and serializer work; then choose a measured
+intervention. No next hardware candidate prepared, no more depth sweep. Native
+UI input backlog is not measured by periodic UI ticks. Preserve every event,
+deadline and fail-closed behavior; any ACK cadence change needs its own contract
+and tests. Startup/reconnect issue and Gates B/C remain open.
 
 ## Hardware / recovery
 
