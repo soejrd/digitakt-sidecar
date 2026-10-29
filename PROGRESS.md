@@ -26,6 +26,15 @@ accepted scope, so run them there with slow/shallow LFOs
 also unblocked. Resume V01-A when the RX/ACK hypothesis is settled in the
 emulator and the deferral is bounded; no flash before that.
 
+**Gate B emulator status:** SRC values are sound slots 46-52 in a version-4
+160-byte record, so B is part-automatable, but the save->change->load round-trip
+is **not yet proven** — three call attempts returned 0. Known-good pattern to
+port is `deps/elekloader/tests/probe_digitakt_src.py`.
+[Findings](evidence/v01/gate-b-emulator-feasibility.json). Emulator-only
+candidate `private/gateb-emu` (`B01E`) exists for this; it is not a hardware
+candidate. Awaiting the owner's decision between porting the harness and running
+B on I04R by hand.
+
 Still unresolved: DTIM2 external rate, physical memory costs, core clock, and
 boot→active FIFO0→11. Prior support detail: diagnostic clock reads are fixed by a
 replayable patch (28 dependency/23 V01 tests), corrected200MHz dense panel

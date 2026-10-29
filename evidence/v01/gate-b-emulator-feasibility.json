@@ -1,0 +1,62 @@
+{
+  "task": "V01-B (Gate B)",
+  "date_utc": "2026-10-29T22:30:00Z",
+  "status": "feasibility partly established; round-trip NOT yet proven; no Gate B result claimed",
+  "hardware_test": false,
+  "gate_b_verdict": "NOT STARTED (no case has an evidenced pass)",
+  "scope": "Can Gate B be exercised in the emulator, and what does the SRC persistence path actually look like?",
+  "candidate": {
+    "label": "B01E",
+    "path": "private/gateb-emu",
+    "sha256": "5812716bb537b7ee32f422d0033223041b7f5c1d802cc412b86be316f1b5730f",
+    "usb_track_version": "0.5",
+    "compiler_defines": ["USB_TRACK_DIAGNOSTIC", "V01_NO_SELF_WAKE", "V01_REMOTE_DIAGNOSTIC", "V01_COMPACT_SNAPSHOTS"],
+    "why_rebuilt": "The I04R fixture (private/i04-event-worker-final) predates this session's source edits and refuses to load (source_hashes mismatch in 11 files). A current-tree, emulator-only candidate was built instead. It is not a hardware candidate."
+  },
+  "established": [
+    "SRC values live in sound slots 46-52, parameter ids 164-170 (deps/elekloader/mods/machine-pages/src.h, mod.json resources soundslot:46..52).",
+    "A sound is saved as version 4 of the 160-byte record, and only machine-pages reads that version (machine-pages README).",
+    "mp_sound_save packs the stock slots 1-45, then the 7 extras, then slot 0; mp_sound_load restores them (mods/machine-pages/src.c, mp_sound_save/mp_sound_load).",
+    "In the booted emulator the values are readable and writable at kit + KIT_SOUND + 162*track + 20 + 2*slot; the eight controls round-trip in RAM.",
+    "The emulator's SD card is file-backed and flushed (emu/esdhc.py Card.flush), so card persistence is emulatable in principle."
+  ],
+  "not_established": [
+    "That save -> change -> load round-trips the extras. Not demonstrated.",
+    "Whether project save/reload, copy-paste, undo, sound locks or machine switching are reachable from the emulator panel at all."
+  ],
+  "failed_attempts": [
+    {
+      "attempt": "FUNC+YES to trigger save-sound, watched SOUND_SAVE_ON/LOAD_ON hooks",
+      "result": "0 hook hits while values were unchanged; the gesture is not save-sound on this firmware. Do not assume a menu gesture."
+    },
+    {
+      "attempt": "call() into machine-pages:mp_sound_save (address 0x47bc21be) with a0/a1/d0 in registers",
+      "result": "returned 0, buffer untouched. ColdFire passes arguments on the stack; register setup is wrong."
+    },
+    {
+      "attempt": "call() into the same symbol with stacked args on a buffer in mapped RAM",
+      "result": "returned 0, buffer untouched. A booted OS has already applied the mod's patch prologues, so calling the mod entry is not equivalent to the upstream probe's unpatched-machine call."
+    },
+    {
+      "attempt": "sequence mp_src_init -> mp_sound_init_s -> mp_sound_save on the booted image",
+      "result": "mp_src_init did not return to the sentinel (stopped at 0x47bc202a): these entries assume the unpatched routine bodies the mod replaces."
+    }
+  ],
+  "known-good_reference": {
+    "file": "deps/elekloader/tests/probe_digitakt_src.py",
+    "what_it_does": "Builds an UNPATCHED Machine from the stock image, calls MAP_INIT, SLOT_ID, PARAM_SLOT, SOUND_INIT, then SOUND_SAVE=0x4007A5A0 / SOUND_LOAD=0x4007A236 with stacked args and a 0xDEADBEE0 sentinel, and asserts a real round-trip plus that a stock saver does NOT preserve candidate slots.",
+    "why_it_works": "Unpatched routine bodies, correct native entries, and MAP_INIT/SOUND_INIT run first.",
+    "next_step": "Port that call pattern into tools/gateb_probe.py over the B01E image: assert extras round-trip and that the record reports version 4 and machine 121."
+  },
+  "plan_consequence": [
+    "B1/B3 (sound save/load) look automatable once the harness above exists; it also gives a reusable regression for future candidates.",
+    "B2/B4/B5/B6/B7/B8/B9/B10 depend on real UI flows (project save, clipboard, undo, mutes, sound locks, machine switch, Pi detached). No emulator hook exists; assume hardware with I04R unless one is found.",
+    "B9 (persistence without the Pi) is hardware by definition for a physical claim."
+  ],
+  "limits": [
+    "No Gate B case has passed; nothing here is acceptance evidence.",
+    "B01E carries the V01 diagnostic defines, so it is a test image, not a shippable build.",
+    "The emulator models the card, not a real Digitakt's storage timing or battery-backed state.",
+    "Panel gestures in this file are observations of this firmware, not a documented manual."
+  ]
+}

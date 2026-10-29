@@ -22,6 +22,15 @@ already accepted ("slow/shallow PTCH LFO plus brief PTCH/DEC edits").
 
 ## Gate B — persistence and edit semantics
 
+**Emulator status (2026-10-29):** B is mechanism-testable — SRC values are sound
+slots 46-52 saved in a version-4 160-byte record — but no round-trip is proven
+yet, so no case below has an emulator pass.
+[Feasibility and failed attempts](../evidence/v01/gate-b-emulator-feasibility.json).
+Resume by porting the call pattern from
+`deps/elekloader/tests/probe_digitakt_src.py` (unpatched machine, `MAP_INIT` and
+`SOUND_INIT` first, native `SOUND_SAVE=0x4007A5A0`, `SOUND_LOAD=0x4007A236`).
+B2/B4/B5/B6/B7/B8/B9/B10 have no emulator hook; plan those on hardware.
+
 For each case record: tiden values before, the action, the value after, the
 restored state, output (muted or audible), and any unintended dirty flag.
 
