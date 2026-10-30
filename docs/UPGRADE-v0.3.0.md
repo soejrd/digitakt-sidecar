@@ -16,6 +16,19 @@ evidence](../evidence/upgrades/v0.3.0-x01.json) record their scope. The Pi 4
 kernel cross-build was not run in this session because the Docker daemon was
 unavailable; no build or hardware result is claimed.
 
+The cross-build and private candidate helpers are ready:
+
+```sh
+python3 scripts/v030_build_pi.py --output /tmp/dtsc-v030-pi-build
+python3 scripts/v030_prepare_candidate.py
+```
+
+The first command requires `rytm-circle` and Docker access (it writes only a
+throwaway tree and `evidence/upgrades/v0.3.0-pi-build.json`). The second stages
+`private/u01/v030-default/` with the built kernel, installed I04R-era v0.2
+kernel as rollback, and hashes; it never writes an SD card. A human must review
+the manifest and perform any card install.
+
 Verified targets:
 
 | Repository | v0.3.0 commit | Role here |

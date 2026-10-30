@@ -27,3 +27,14 @@ python3 scripts/test_x01_host.py --v030
 A desktop replay is not a Pi kernel build, hardware qualification, recovery
 candidate or V01 fix. The v0.3.0 Output restart/playback counters remain a
 diagnostic, not evidence that the captured late frame or dense freeze is fixed.
+
+Pi handoff:
+
+```sh
+python3 scripts/v030_build_pi.py --output /tmp/dtsc-v030-pi-build
+python3 scripts/v030_prepare_candidate.py
+```
+
+The build helper needs Docker and the cached `rytm-circle` image; the staging
+helper writes only `private/u01/` with a rollback. Neither writes an SD card or
+touches hardware.
