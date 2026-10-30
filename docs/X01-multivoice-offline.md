@@ -133,8 +133,9 @@ Implementation baseline `873fd89`, 2026-10-29. The experimental path now include
   Render and RX callbacks do no protocol/USB servicing. RX only appends bytes
   and posts a wake; ACK interpretation is task-level. Native send deferral is
   bounded by a worker TX-progress timeout, independently of received liveness.
-- [Actual Circle glue](../host/x01_dt_link.cpp) plus an isolated
-  [Output patch](../patches/sidecar-firmware/experimental/0001-x01-stereo-return.patch).
+- [Actual Circle glue](../host/x01_dt_link.cpp) plus an isolated Output patch.
+  The historical v0.2 patch is [here](../patches/sidecar-firmware/experimental/0001-x01-stereo-return.patch);
+  the current v0.3.0 port is [here](../patches/sidecar-firmware-v0.3.0/experimental/0001-x01-stereo-return.patch).
   The output stage preserves two separate MAIN L/R lanes instead of summing
   voices. Consumer epochs reject stale FIFO data on asynchronous loss.
   Each new session starts muted and requires `:trx=on`; both lanes retain fade,
@@ -142,10 +143,12 @@ Implementation baseline `873fd89`, 2026-10-29. The experimental path now include
   unavailable in this experimental glue; remote V01 diagnostics remain isolated.
 
 The default dependency checkout, mod manifest, one-voice worker, and V01 source
-are unchanged. The experimental host tree is reproduced from the pinned base
-plus the twelve normal patches and the nested X01 Output patch in a disposable
-directory. It copies only portable protocol/engine sources, never the native
-firmware adapter. The X01 snapshot codec's fixed stack copy is now freestanding.
+are unchanged. The historical experimental host tree is reproduced from the
+v0.2 base plus the twelve normal patches and the nested X01 Output patch in a
+disposable directory; the current v0.3.0 tree is reproduced with
+`python3 scripts/prepare_v030_source.py --output <new-directory> --x01`.
+Both copy only portable protocol/engine sources, never the native firmware
+adapter. The X01 snapshot codec's fixed stack copy is now freestanding.
 
 ### New evidence
 

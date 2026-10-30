@@ -123,8 +123,10 @@ compiling both C and C++, and the suite passes. Desktop benchmark is not a Pi
 worst-case timing guarantee. I04Q build/lint/boot/protected-section/native encoder/
 compiled exchange checks also pass; unchanged firmware since those checks.
 
-Host changes replay as patches0001–0010 at sidecar-firmware
+Host changes replay as patches 0001–0010 at sidecar-firmware
 `6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457`, plus the tracked I04 overlay.
+That is the historical v0.2.0 base; the current v0.3.0 port and replay command
+are in [UPGRADE-v0.3.0.md](UPGRADE-v0.3.0.md).
 mdkit source remains unchanged; NOTICE retains licences. R05 is historical.
 
 ```sh

@@ -46,12 +46,13 @@ additional tracks require a protocol revision. A reconnect uses a fresh nonzero
 session. Physical detection latency remains unmeasured.
 
 The replayable Circle integration is
-`patches/sidecar-firmware/0003-dtsc-control-link.patch`, after patches 0001 and
-0002 at the pinned base. `scripts/i03_prepare_circle.sh` overlays the portable
-protocol sources. The real `dt_link.cpp`, MIDI reply queue and Output gate are
-executed by a host harness. Integrated mode installs control state and outputs
-silence until I04 supplies synthesis; control-link completion is not an
-external-voice/audio claim.
+`patches/sidecar-firmware/0003-dtsc-control-link.patch` in the historical v0.2.0
+series, after patches 0001 and 0002 at that base. The current v0.3.0 port is in
+[UPGRADE-v0.3.0.md](UPGRADE-v0.3.0.md); do not mix the two patch sets.
+`scripts/i03_prepare_circle.sh` overlays the portable protocol sources. The real
+`dt_link.cpp`, MIDI reply queue and Output gate are executed by a host harness.
+Integrated mode installs control state and outputs silence until I04 supplies
+synthesis; control-link completion is not an external-voice/audio claim.
 
 ## Acceptance evidence
 

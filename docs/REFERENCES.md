@@ -6,7 +6,7 @@ These references are retained for the whole project. Consult them when the match
 
 | Reference | When to consult | Evidence status |
 | --- | --- | --- |
-| [Sidecar firmware](https://github.com/trigcondition/sidecar-firmware) | I01/H01: host USB streaming, buffering, external synthesis and Pi implementation | Pinned locally in sources.json; baseline and directional-layout evidence recorded |
+| [Sidecar firmware](https://github.com/trigcondition/sidecar-firmware) | I01/H01: host USB streaming, buffering, external synthesis and Pi implementation; U01: v0.3.0 source migration | Active v0.2.0 pin plus a separately replayed v0.3.0 upgrade target in sources.json; see [UPGRADE-v0.3.0](UPGRADE-v0.3.0.md) |
 | [Sidecar Rytm mods](https://github.com/trigcondition/sidecar-mods) | R01/R04/I02/I03: reference architecture for semantic events, remote pages and per-voice returns | Pinned reference; Rytm behavior does not establish Digitakt behavior |
 | [Creator's Digitakt guide](https://github.com/trigcondition/sidecar-expander/blob/main/src/content/docs/developers/digitakt.md) | Host setup and stock-firmware transport experiments | Reviewed upstream guide; explicitly excludes our deeper firmware integration |
 | [Overwitch](https://github.com/dagargo/overwitch) | USB framing, channel direction and device-layout research | Device table reviewed; R02 physically captured endpoint capacities; live stream semantics still need validation |

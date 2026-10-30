@@ -68,6 +68,10 @@ limitation, not an I01 failure.
 
 ## Reproduction
 
+> **Patch base note:** this reproduction uses the historical v0.2.0 series.
+> The current v0.3.0 port and clean replay command are in
+> [UPGRADE-v0.3.0.md](UPGRADE-v0.3.0.md).
+
 ```sh
 ./scripts/test_i01.sh
 git -C deps/sidecar-firmware apply --check \
