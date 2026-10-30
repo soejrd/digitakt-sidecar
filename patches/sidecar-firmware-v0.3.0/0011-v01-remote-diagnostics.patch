@@ -1,0 +1,65 @@
+diff --git a/pi/engine/cores.cpp b/pi/engine/cores.cpp
+index 8da756d..0a2e20a 100644
+--- a/pi/engine/cores.cpp
++++ b/pi/engine/cores.cpp
+@@ -498,7 +498,15 @@ void CEngineCores::Control (void)
+ void CEngineCores::Command (const char *p)
+ {
+ 	CLogger *L = CLogger::Get ();
+-	if (strcmp(p, "trxstatus") == 0)
++	if (strcmp(p, "v01status") == 0)
++	{
++		unsigned d[17]; dt_link::RemoteStatus(d);
++		L->Write(From,LogNotice,"V01REMOTE rx %u bad %u seq %u block %u timer %u mode %u ui %u work %u ugap %u wgap %u batch %u guards %u",
++		         d[0],d[1],d[2],d[3],d[4],d[5],d[6],d[7],d[8],d[9],d[10],d[16]);
++		L->Write(From,LogNotice,"V01RAW seq %u sends %u total %u max %u ui_max %u batch_max %u",
++		         d[2],d[11],d[12],d[13],d[14],d[15]);
++	}
++	else if (strcmp(p, "trxstatus") == 0)
+ 	{
+ 		unsigned st[8]; dt_link::VoiceStatus(st);
+ 		L->Write(From, LogNotice, "I04 arm %u queue %u peak %u faults %u applied %u starts %u consumed %u frame %u",
+diff --git a/pi/engine/dt_link.cpp b/pi/engine/dt_link.cpp
+index 26d43bf..a723eeb 100644
+--- a/pi/engine/dt_link.cpp
++++ b/pi/engine/dt_link.cpp
+@@ -1,11 +1,17 @@
+ // DTSC session plumbing and one native-rate TRX-B2 voice (I04 prototype).
+ #include "dt_link.h"
++#include "dt_control/v01_diag.h"
+ #include "dt_control/circle_link_adapter.h"
+ #include "dt_control/h02_test_tone.h"
+ #include "shared.h"
+ #include "dt_control/playout.h"
+ #include <circle/util.h>
+ namespace dt_link {
++static uint32_t diag_values[V01_FIELDS],diag_received,diag_bad;
++void RemoteStatus(unsigned out[17]) {
++  out[0]=diag_received; out[1]=diag_bad;
++  for(unsigned i=0;i<V01_FIELDS;++i) out[i+2]=diag_values[i];
++}
+ static sc_circle_link link;
+ static H02TestTone test_tone;
+ static sc_playout playout;
+@@ -69,6 +75,11 @@ static void Init() {
+   }
+ }
+ bool SysEx(const uint8_t *p, unsigned n) {
++  if(v01_message(p,n)) {
++    if(v01_decode(diag_values,p,n)) ++diag_received;
++    else ++diag_bad;
++    return true; // isolated diagnostic channel; never enters session/engine
++  }
+   if (!Selected() || !sc_is_dtsc(p,n)) return false;
+   Init();
+   for (unsigned i = 0; i < n; ++i) sc_circle_midi_byte(&link,p[i]);
+diff --git a/pi/engine/dt_link.h b/pi/engine/dt_link.h
+index e65e5ee..8416899 100644
+--- a/pi/engine/dt_link.h
++++ b/pi/engine/dt_link.h
+@@ -38,3 +38,5 @@ unsigned TraceCount();
+ bool TraceFrozen();
+ bool TraceRead(unsigned index, TraceRecord *out); // oldest retained record first
+ }
++
++namespace dt_link { void RemoteStatus(unsigned out[17]); } // core 3, no device query or logging

@@ -1,8 +1,20 @@
 # Upstream v0.3.0 migration
 
-Status: compatibility audit complete; integration port required. No dependency
-pin, working checkout, installed Digitakt firmware, Pi kernel or SD changed.
-Only upstream refs/tags were fetched. Existing private recoveries remain valid.
+Status: desktop source port complete; Pi cross-build, reviewed candidate and
+physical requalification remain open. The active dependency stays pinned to
+v0.2.0 (`sources.json` `revision`); v0.3.0 is a separate `upgrade` target.
+No installed Digitakt firmware, Pi kernel or SD changed. Existing private
+recoveries remain valid.
+
+The new-base series is [patches/sidecar-firmware-v0.3.0](../patches/sidecar-firmware-v0.3.0/README.md).
+`python3 scripts/prepare_v030_source.py --output <new-directory>` stages clean
+v0.3.0 source and replays 0001-0012 plus the portable overlay. `--x01` adds
+the independent two-lane adapter. `python3 scripts/test_v030_replay.py` and
+`python3 scripts/test_x01_host.py --v030` pass on desktop; [replay
+evidence](../evidence/upgrades/v0.3.0-replay.json) and [X01
+evidence](../evidence/upgrades/v0.3.0-x01.json) record their scope. The Pi 4
+kernel cross-build was not run in this session because the Docker daemon was
+unavailable; no build or hardware result is claimed.
 
 Verified targets:
 
@@ -15,10 +27,10 @@ Verified targets:
 `python3 scripts/audit_upstream_upgrade.py` stages fetched release source in a
 throwaway directory and tries our root patch stack in order. The first patch,
 `0001-directional-overbridge-layout.patch`, fails at pi/engine/ob_usb.cpp.
-The remaining11 root patches and X01 experimental patch have not been qualified
-on the new base. The firmware change spans863 files; core Pi integration files
-Makefile, build.sh, cores.cpp, ob_usb.cpp and Output changed. This is a source
-migration, not replacing VERSION or installing the generic upstream SD image.
+The original v0.2 stack was ported into a separate v0.3.0 series; the firmware
+change spans 863 files, including Makefile, build.sh, cores.cpp, ob_usb.cpp and
+Output. This is a source migration, not replacing VERSION or installing the
+generic upstream SD image.
 
 Upstream Output now carries stereo planes, mixer/route state, a different Push/
 Pull interface, and separate playback/restart underflow diagnostics. The latter

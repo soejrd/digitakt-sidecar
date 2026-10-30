@@ -1,0 +1,47 @@
+{
+  "scope": "clean v0.3.0 archive replay plus portable DTSC/Output tests; no Pi or USB hardware",
+  "dependency_base": "047873e630cade798f6b605ca0a46b5f86df5fb3",
+  "command": "python3 scripts/test_v030_replay.py",
+  "patches": [
+    "patches/sidecar-firmware-v0.3.0/0001-directional-overbridge-layout.patch",
+    "patches/sidecar-firmware-v0.3.0/0002-static-capture-marker.patch",
+    "patches/sidecar-firmware-v0.3.0/0003-dtsc-control-link.patch",
+    "patches/sidecar-firmware-v0.3.0/0004-h02-gated-test-tone.patch",
+    "patches/sidecar-firmware-v0.3.0/0005-monotonic-control-clock.patch",
+    "patches/sidecar-firmware-v0.3.0/0006-i04-trx-voice.patch",
+    "patches/sidecar-firmware-v0.3.0/0007-i04-scheduled-playout.patch",
+    "patches/sidecar-firmware-v0.3.0/0008-i04-playout-fault-reason.patch",
+    "patches/sidecar-firmware-v0.3.0/0009-i04-bounded-timing-trace.patch",
+    "patches/sidecar-firmware-v0.3.0/0010-i04-event-worker-playout.patch",
+    "patches/sidecar-firmware-v0.3.0/0011-v01-remote-diagnostics.patch",
+    "patches/sidecar-firmware-v0.3.0/0012-v01-duty-counters.patch"
+  ],
+  "source_sha256": {
+    "patches/sidecar-firmware-v0.3.0/0001-directional-overbridge-layout.patch": "ed875fdf53e49a12985275be7f960a3b54446db57522b6eb85ef6661d05e55b6",
+    "patches/sidecar-firmware-v0.3.0/0002-static-capture-marker.patch": "57f95d547f115816e8e446196666182545d0ae430c3f73d0676986e0898e4e74",
+    "patches/sidecar-firmware-v0.3.0/0003-dtsc-control-link.patch": "dd3bcc043536d3562d223f320d41f795e489641f02fdc277651f6ac1dd673045",
+    "patches/sidecar-firmware-v0.3.0/0004-h02-gated-test-tone.patch": "11a3d43dda0b6d2f218bd02ef713822f18f6bfb3bed2c56cc432a02707e9d18e",
+    "patches/sidecar-firmware-v0.3.0/0005-monotonic-control-clock.patch": "c5dde302d556f7b65aafc8f4f0a0cbf4b45d86d82fe9b63e88fa0f46d04a8a32",
+    "patches/sidecar-firmware-v0.3.0/0006-i04-trx-voice.patch": "27c74d02da4a08659ce52ab50c29a6c5d0165bb8315c8901ea31741640812b64",
+    "patches/sidecar-firmware-v0.3.0/0007-i04-scheduled-playout.patch": "966ddd27fde4d7831f9a2749bef91b187fa00d1e7d047f00e4091962bfa1accf",
+    "patches/sidecar-firmware-v0.3.0/0008-i04-playout-fault-reason.patch": "bdd5f0f9d8144bbd5f88424590a7f2e9cfc97e027d45a02778072608f8190cc6",
+    "patches/sidecar-firmware-v0.3.0/0009-i04-bounded-timing-trace.patch": "6faabfe9a13de68c5c0c2fa051f8b0e5469e755dcbd0ea5e30f0c9722131cafe",
+    "patches/sidecar-firmware-v0.3.0/0010-i04-event-worker-playout.patch": "565af7c6ba8cac6f0917aa32b8268cfb9ecc225b09a3f03764a6d2ef91b0d8b5",
+    "patches/sidecar-firmware-v0.3.0/0011-v01-remote-diagnostics.patch": "9fefb29fa14e61b1b616816a7dba584c2ccd327cc3219c83d736d1f18a628d58",
+    "patches/sidecar-firmware-v0.3.0/0012-v01-duty-counters.patch": "042a2f03f2d28c7e7e5c832bf3f2b5760c6688b4c6385c9473466db8bfe7c5dd"
+  },
+  "checks": [
+    "clean v0.3.0 archive contains the target upgrade revision",
+    "0001-0012 replay without the historical v0.2 stack",
+    "actual Circle dt_link handshake/state/loss/reconnect/ACK congestion/H02 tone",
+    "v0.3.0 Output counter and stereo/mixer tests"
+  ],
+  "cross_build": {
+    "status": "not-run",
+    "required": "Pi 4 AArch64 kernel cross-build and memory/stack inspection"
+  },
+  "pass": true,
+  "limits": [
+    "Desktop-only replay; no Pi kernel or hardware qualification."
+  ]
+}

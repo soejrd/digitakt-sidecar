@@ -2,11 +2,12 @@
 
 Read AGENTS.md, TASKBOARD.md and PLAN.md. No complete V01 gate has passed.
 
-**Next work / highest priority: U01 (P0).** User prioritizes the Sidecar v0.3.0
-migration ahead of further V01/X01 work. Follow the
-[migration plan](docs/UPGRADE-v0.3.0.md): stage the new base, port the patches,
-then run host checks and the Pi4 cross-build before preparing a hardware
-candidate. Existing qualification gates and installed hardware state remain.
+**Next work / highest priority: U01 (P0).** Desktop source migration is ported
+to the v0.3.0 base in [patches/sidecar-firmware-v0.3.0](patches/sidecar-firmware-v0.3.0/README.md).
+Clean replay, Output tests and X01 host tests pass; the Pi4 cross-build could
+not run because Docker was unavailable. Next: run the cross-build and inspect
+memory/stack, then prepare a reviewed recovery and repeat physical baseline/V01.
+The active v0.2 pin and installed hardware state remain unchanged.
 
 **Installed hardware:** user restored I04R on2026-10-30. Pi still runs the
 Oct29 12:31:45 kernel. Current project is disposable; only track1 is USB1,
@@ -75,10 +76,10 @@ emulator-only; hardware expansion waits for V01-A, measured X01a margin and
 reviewed recovery. Full track/pattern copy, runtime stack/CPU margin and
 physical two-return timing remain open. Eight independent returns unproven.
 
-**Upstream upgrade requested:** v0.3.0 tags fetched/verified for sidecar-firmware
-(047873e) and sidecar-mods(71efeae). First routing patch fails on new ob_usb.cpp;
-Output/mixer/interfaces changed substantially. Active pins, dirty dependency
-checkouts and hardware unchanged. U01 is an audited migration, not complete.
-[Plan](docs/UPGRADE-v0.3.0.md), [audit](evidence/upgrades/v0.3.0-audit.json).
-Upstream restart/playback counter split is useful but does not fix V01 by proof.
-Do not install the Rytm release module on the Digitakt.
+**Upstream v0.3.0:** new-base patches 0001-0012 plus opt-in X01 are replayable;
+the source port keeps the v0.3.0 mixer and adds DTSC epochs/gating, TRX-B2
+scheduling and diagnostics. Desktop evidence: [replay](evidence/upgrades/v0.3.0-replay.json),
+[X01](evidence/upgrades/v0.3.0-x01.json). [Plan](docs/UPGRADE-v0.3.0.md). Pi4
+cross-build/memory-stack inspection is still open; no candidate or hardware
+claim. Historical v0.2 pins and evidence remain valid. Do not install the Rytm
+release module on the Digitakt.

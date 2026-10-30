@@ -1,0 +1,485 @@
+diff --git a/pi/circle/spike2/circle-usbdevicefactory.patch b/pi/circle/spike2/circle-usbdevicefactory.patch
+index 9a3958f..936102d 100644
+--- a/pi/circle/spike2/circle-usbdevicefactory.patch
++++ b/pi/circle/spike2/circle-usbdevicefactory.patch
+@@ -4,18 +4,21 @@
+  #include <circle/usb/usbserialft231x.h>
+  #include <circle/usb/usbtouchscreen.h>
+  
+-+// rytm-pi hook: the application may define this to claim the Analog Rytm MKII (1935:0b48)
+++// rytm-pi hook: the application may define this to claim an Elektron Overbridge device
+ +extern CUSBFunction *RytmObDeviceCreate (CUSBFunction *pParent) __attribute__ ((weak));
+ +
+  CUSBFunction *CUSBDeviceFactory::GetDevice (CUSBFunction *pParent, CString *pName)
+  {
+  	assert (pParent != 0);
+-@@ -73,7 +76,11 @@
++@@ -73,7 +76,14 @@
+  
+  	CUSBFunction *pResult = 0;
+  
+ -	if (   pName->Compare ("int9-0-0") == 0
+-+	if (RytmObDeviceCreate != 0 && pName->Compare ("ven1935-b48") == 0)
+++	// Rytm MKII 0x0b48 and Digitakt mk1 0x0b2c share the Overbridge layout
+++	// family; the function driver validates the actual endpoints.
+++	if (RytmObDeviceCreate != 0
+++	    && (pName->Compare ("ven1935-b48") == 0 || pName->Compare ("ven1935-b2c") == 0))
+ +	{
+ +		pResult = RytmObDeviceCreate (pParent);
+ +	}
+diff --git a/pi/engine/ob_usb.cpp b/pi/engine/ob_usb.cpp
+index 5f7d623..9a48ffb 100644
+--- a/pi/engine/ob_usb.cpp
++++ b/pi/engine/ob_usb.cpp
+@@ -21,7 +21,8 @@
+ //
+ // Circle (build/circle, tag Step51.1.1, USE_XHCI_INTERNAL on RASPPI=4) needs two patches,
+ // both applied by build.sh:
+-//   * circle-usbdevicefactory.patch: the factory hook for "ven1935-b48" (RytmObDeviceCreate);
++//   * circle-usbdevicefactory.patch: the factory hook for "ven1935-b48" and
++//     "ven1935-b2c" (RytmObDeviceCreate);
+ //   * circle-xhci-urbqueue.patch: CXHCIEndpoint keeps up to 16 URBs per endpoint (stock: 2, the
+ //     second asserted empty), holds its lock from the URB FIFO slot to the doorbell, a barrier
+ //     before a TRB's cycle bit, GetEPState() and the transfer-event hook used here.
+@@ -59,11 +60,16 @@
+ #include "bridge.h"
+ #include "fx/out_measure.h"		// stereo=measure's read-back (MAIN L/R)
+ #include "shared.h"
++#include "dt_link.h"
+ 
+ static const char From[] = "rytmob";
+ 
+-static const unsigned kBlk = ob::block_bytes (ob::kChannels);			// 368
+-static const unsigned kBufSize = (CObUsb::MaxBlocks * kBlk + 63) & ~63u;	// 2944
++// The two directions have independent packet sizes. The Rytm MKII uses 368 B
++// both ways; the Digitakt mk1's captured alt-3 layout is 368 B in and 88 B out.
++// Buffers are allocated for the largest block this host supports (368 B, 12
++// channels); the configured endpoint's descriptor sets the length submitted.
++static const unsigned kMaxBlk = ob::block_bytes (ob::kChannels);			// 368
++static const unsigned kBufSize = (CObUsb::MaxBlocks * kMaxBlk + 63) & ~63u;	// 2944
+ 
+ static_assert (CObUsb::MaxURBs <= XHCI_EP_MAX_URBS, "Circle's per-endpoint URB FIFO");
+ 
+@@ -144,7 +150,7 @@ boolean CObUsb::CaptureStart (boolean bSelfTest)
+ // IRQ (the MIDI completion): a note-on arrived; marks the next IN frame of the capture
+ void CObUsb::CaptureMarkMIDI (void)
+ {
+-	if (s_bCapOn && s_pCapBuf != 0 && s_nCapVoiceCh >= (unsigned) ob::kChannels && s_nCapPos < CaptureFrames)
++	if (s_bCapOn && s_pCapBuf != 0 && s_nCapVoiceCh >= (unsigned) m_nInChannels && s_nCapPos < CaptureFrames)
+ 	{
+ 		s_pCapBuf[s_nCapPos * CaptureChannels + 3] |= CaptureMarkerMIDI;
+ 	}
+@@ -177,7 +183,8 @@ void CObUsb::CaptureFeed (const s32 *pOutL, unsigned nFrames)
+ 
+ CObUsb::TEvStats CObUsb::s_EvIn, CObUsb::s_EvOut;
+ 
+-// The hook the patched CUSBDeviceFactory calls for "ven1935-b48" (weak reference there).
++// The hook the patched CUSBDeviceFactory calls for an Overbridge device
++// (Rytm MKII "ven1935-b48" or Digitakt mk1 "ven1935-b2c"; weak reference there).
+ CUSBFunction *RytmObDeviceCreate (CUSBFunction *pParent)
+ {
+ 	return new CObUsb (pParent);
+@@ -286,7 +293,9 @@ boolean CObUsb::ScanDescriptors (void)
+ 						(unsigned) e->wMaxPacketSize, (unsigned) e->bInterval);
+ 
+ 			bool intr = (e->bmAttributes & 3) == 3;
+-			if (alt == ob::kAlt && intr && (e->wMaxPacketSize & 0x7FF) == kBlk)
++			const unsigned mps = e->wMaxPacketSize & 0x7FF;
++			// A whole block in either direction; the two sizes need not match.
++			if (alt == ob::kAlt && intr && ob::channels_for (mps) > 0)
+ 			{
+ 				if (iface == ob::kInIface && e->bEndpointAddress == ob::kInEp) m_pInDesc = e;
+ 				if (iface == ob::kOutIface && e->bEndpointAddress == ob::kOutEp) m_pOutDesc = e;
+@@ -302,14 +311,26 @@ boolean CObUsb::Configure (void)
+ {
+ 	AllocBufs ();
+ 
+-	CLogger::Get ()->Write (From, LogNotice, "Analog Rytm MKII (1935:0b48) claimed");
++	CLogger::Get ()->Write (From, LogNotice, "Elektron Overbridge device claimed");
+ 
+ 	if (!ScanDescriptors ())
+ 	{
+-		CLogger::Get ()->Write (From, LogError, "no interrupt endpoints 0x83/0x03 (368 B) at alt 3: "
++		CLogger::Get ()->Write (From, LogError, "no interrupt block endpoints 0x83/0x03 at alt 3: "
+ 					"not in OVERBRIDGE mode?");
+ 		return FALSE;
+ 	}
++	m_nInChannels = ob::channels_for (m_pInDesc->wMaxPacketSize & 0x7FF);
++	m_nOutChannels = ob::channels_for (m_pOutDesc->wMaxPacketSize & 0x7FF);
++	m_nInBlk = ob::block_bytes (m_nInChannels);
++	m_nOutBlk = ob::block_bytes (m_nOutChannels);
++	if (m_nInBlk == 0 || m_nOutBlk == 0 || m_nInBlk > kMaxBlk || m_nOutBlk > kMaxBlk)
++	{
++		CLogger::Get ()->Write (From, LogError, "invalid block layout: IN %d ch/%u B, OUT %d ch/%u B (max %u B)",
++					m_nInChannels, m_nInBlk, m_nOutChannels, m_nOutBlk, kMaxBlk);
++		return FALSE;
++	}
++	CLogger::Get ()->Write (From, LogNotice, "block layout: IN %d ch/%u B, OUT %d ch/%u B",
++				m_nInChannels, m_nInBlk, m_nOutChannels, m_nOutBlk);
+ 
+ 	// SET_INTERFACE 1 and 2 alt 0 first (stream off), then alt 3 (same order as RytmHost.cpp).
+ 	// spike3, 2026-10-14: after a host crashed mid-stream the Rytm kept answering alt 3 with
+@@ -340,19 +361,21 @@ boolean CObUsb::Configure (void)
+ 	m_pIn = new CUSBEndpoint (GetDevice (), m_pInDesc);
+ 	m_pOut = new CUSBEndpoint (GetDevice (), m_pOutDesc);
+ 
+-	const unsigned nLen = m_nBlocks * kBlk;
++	const unsigned nInLen = m_nBlocks * m_nInBlk;
++	const unsigned nOutLen = m_nBlocks * m_nOutBlk;
+ 	for (unsigned i = 0; i < m_nURBs; i++)
+ 	{
+-		m_pInURB[i] = new CUSBRequest (m_pIn, s_InBuf[i], nLen);
++		m_pInURB[i] = new CUSBRequest (m_pIn, s_InBuf[i], nInLen);
+ 		m_pInURB[i]->SetCompletionRoutine (InStub, (void *) (uintptr) i, this);
+-		m_pOutURB[i] = new CUSBRequest (m_pOut, s_OutBuf[i], nLen);
++		m_pOutURB[i] = new CUSBRequest (m_pOut, s_OutBuf[i], nOutLen);
+ 		m_pOutURB[i]->SetCompletionRoutine (OutStub, (void *) (uintptr) i, this);
+ 	}
+ 
+ 	static const char *Modes[] = {"paced by IN", "free-running", "off"};
+-	CLogger::Get ()->Write (From, LogNotice, "alt 3 selected: %u URBs x %u blocks (%u B) per endpoint, "
+-				"OUT %s (delay %u blk), OUT counter from %s", m_nURBs, m_nBlocks, nLen,
+-				Modes[m_OutMode], m_nOutDelay, m_bCounterFromIn ? "IN" : "0");
++	CLogger::Get ()->Write (From, LogNotice, "alt 3 selected: %u URBs x %u blocks "
++				"(IN %u B, OUT %u B), OUT %s (delay %u blk), OUT counter from %s",
++				m_nURBs, m_nBlocks, nInLen, nOutLen, Modes[m_OutMode], m_nOutDelay,
++				m_bCounterFromIn ? "IN" : "0");
+ 
+ 	// the completions run in the xHCI IRQ: start everything with it held off, so the
+ 	// TRB order on each ring is the submit order and the counters stay consistent
+@@ -384,14 +407,15 @@ boolean CObUsb::Configure (void)
+ 	return TRUE;
+ }
+ 
+-// host -> device blocks: header (0x07FF, counter +7 per block) + 7 frames x 12 channels from the output stage
+-// (output.h: the voices mapped, faded in, limited; silence when its FIFO is empty). Capture channel 2: OUT MAIN L
+-// as sent. The control core is woken to refill the FIFO (sev).
++// host -> device blocks: header (0x07FF, counter +7 per block) + 7 frames x
++// the endpoint's OUT channels from the output stage (output.h: the voices
++// mapped, faded in, limited; silence when its FIFO is empty). Capture
++// channel 2: OUT MAIN L as sent. The control core is woken to refill the FIFO (sev).
+ void CObUsb::FillOut (u8 *pBuf, unsigned nBlocks)
+ {
+ 	for (unsigned b = 0; b < nBlocks; b++)
+ 	{
+-		u8 *pBlock = pBuf + b * kBlk;
++		u8 *pBlock = pBuf + b * m_nOutBlk;
+ 		ob::write_header (pBlock, m_nOutCounter);
+ 		m_nOutCounter += ob::kFramesPerBlock;
+ 
+@@ -424,10 +448,12 @@ void CObUsb::FillOut (u8 *pBuf, unsigned nBlocks)
+ 		}
+ 		if (g_Rec.wants_side ()) g_Rec.out_block (V, X, ob::kFramesPerBlock, LR, PR);	// the voices as rendered, the FX, the pairs
+ 		if (bridge::samp_wants_voices ()) bridge::samp_voices (V, ob::kFramesPerBlock, LR, X);	// the sampler's Sidecar voice (X: its FX, CHOP)
++		// A device with fewer OUT channels (Digitakt mk1: two) receives only
++		// those; the remaining engine channels stay on the host side.
+ 		for (int f = 0; f < ob::kFramesPerBlock; f++)
+ 		{
+-			u8 *fr = pBlock + ob::kHeaderBytes + 4 * ob::kChannels * f;
+-			for (int c = 0; c < ob::kChannels; c++) ob::put_be32 (fr + 4 * c, F[f][c]);
++			u8 *fr = pBlock + ob::kHeaderBytes + 4 * m_nOutChannels * f;
++			for (int c = 0; c < m_nOutChannels; c++) ob::put_be32 (fr + 4 * c, F[f][c]);
+ 		}
+ 
+ 		if (s_bCapOn)
+@@ -510,10 +536,10 @@ void CObUsb::InDone (unsigned i, CUSBRequest *pURB)
+ 	if (!ok) m_nInErrors++;
+ 	else
+ 	{
+-		if (len % kBlk != 0) m_nInShort++;
+-		for (unsigned b = 0; b < len / kBlk; b++)
++		if (len % m_nInBlk != 0) m_nInShort++;
++		for (unsigned b = 0; b < len / m_nInBlk; b++)
+ 		{
+-			const u8 *pBlk = pBuf + b * kBlk;
++			const u8 *pBlk = pBuf + b * m_nInBlk;
+ 			if (!ob::block_from_device (pBlk)) { m_nInBadMagic++; continue; }
+ 
+ 			u16 c = ob::block_counter (pBlk);
+@@ -540,56 +566,58 @@ void CObUsb::InDone (unsigned i, CUSBRequest *pURB)
+ 			m_nExpectIn = c + ob::kFramesPerBlock;
+ 			m_nInBlocks++;
+ 			good++;
+-			if (CSidecarGadget::Get () != 0) CSidecarGadget::Get ()->FromRytmBlock (pBlk);	// UAC2 IN 1-12
++			if (CSidecarGadget::Get () != 0) CSidecarGadget::Get ()->FromRytmBlock (pBlk, m_nInChannels);	// UAC2 IN 1-12 (0 when absent)
+ 			boolean bRecIn = g_Rec.wants_in (), bSampIn = bridge::samp_wants_in ();
+ 			if (bRecIn || bSampIn)		// the recorder: the selected channels into its ring (rec_pi.h); the sampler's (core/samp)
+ 			{
+-				s32 I[ob::kFramesPerBlock][ob::kChannels];
++				s32 I[ob::kFramesPerBlock][ob::kChannels] = {};
+ 				for (int f = 0; f < ob::kFramesPerBlock; f++)
+-					for (int c = 0; c < ob::kChannels; c++) I[f][c] = ob::block_sample (pBlk, ob::kChannels, f, c);
++					for (int c = 0; c < m_nInChannels; c++) I[f][c] = ob::block_sample (pBlk, m_nInChannels, f, c);
+ 				if (bRecIn) g_Rec.in_block (I, ob::kFramesPerBlock);
+ 				if (bSampIn) bridge::samp_in (&I[0][0], ob::kFramesPerBlock, ob::kChannels);
+ 			}
+ 			if (bridge::tap_on ())		// the remote UI's SCOPE / meters (core/ui/extra.h): compares and stores only
+ 			{
+-				s32 T[ob::kFramesPerBlock][ob::kChannels];
++				s32 T[ob::kFramesPerBlock][ob::kChannels] = {};
+ 				for (int f = 0; f < ob::kFramesPerBlock; f++)
+-					for (int c = 0; c < ob::kChannels; c++) T[f][c] = ob::block_sample (pBlk, ob::kChannels, f, c);
++					for (int c = 0; c < m_nInChannels; c++) T[f][c] = ob::block_sample (pBlk, m_nInChannels, f, c);
+ 				bridge::tap_in (&T[0][0], ob::kFramesPerBlock, ob::kChannels);
+ 			}
+ 			if (bridge::gr_live_on ())	// GRANULAR's live sources (core/granular/granular.h): into its capture ring
+ 			{
+-				s32 G[ob::kFramesPerBlock][ob::kChannels];
++				s32 G[ob::kFramesPerBlock][ob::kChannels] = {};
+ 				for (int f = 0; f < ob::kFramesPerBlock; f++)
+-					for (int c = 0; c < ob::kChannels; c++) G[f][c] = ob::block_sample (pBlk, ob::kChannels, f, c);
++					for (int c = 0; c < m_nInChannels; c++) G[f][c] = ob::block_sample (pBlk, m_nInChannels, f, c);
+ 				bridge::gr_live_in (&G[0][0], ob::kFramesPerBlock, ob::kChannels);
+ 			}
+ 			if (bridge::livein_on ())	// LIVE IN's AUDIO IN (core/livein/livein.h): into its ring, as it comes
+ 			{
+-				s32 L[ob::kFramesPerBlock][ob::kChannels];
++				s32 L[ob::kFramesPerBlock][ob::kChannels] = {};
+ 				for (int f = 0; f < ob::kFramesPerBlock; f++)
+-					for (int c = 0; c < ob::kChannels; c++) L[f][c] = ob::block_sample (pBlk, ob::kChannels, f, c);
++					for (int c = 0; c < m_nInChannels; c++) L[f][c] = ob::block_sample (pBlk, m_nInChannels, f, c);
+ 				bridge::livein_in (&L[0][0], ob::kFramesPerBlock, ob::kChannels);
+ 			}
+ 			if (core::out::meas::active ())	// stereo=measure: MAIN L/R read back (core/fx/out_measure.h)
+ 				for (int f = 0; f < ob::kFramesPerBlock; f++)
+-					core::out::meas::in_frame (ob::block_sample (pBlk, ob::kChannels, f, 0), ob::block_sample (pBlk, ob::kChannels, f, 1));
++					core::out::meas::in_frame (ob::block_sample (pBlk, m_nInChannels, f, 0),
++						(m_nInChannels > 1) ? ob::block_sample (pBlk, m_nInChannels, f, 1) : 0);
+ 			if (bridge::cal_on ())		// the sequencer's latency click on its way back (core/seq/seq.h cal_audio)
+ 			{
+-				s32 C[ob::kFramesPerBlock][ob::kChannels];
++				s32 C[ob::kFramesPerBlock][ob::kChannels] = {};
+ 				for (int f = 0; f < ob::kFramesPerBlock; f++)
+-					for (int c = 0; c < ob::kChannels; c++) C[f][c] = ob::block_sample (pBlk, ob::kChannels, f, c);
++					for (int c = 0; c < m_nInChannels; c++) C[f][c] = ob::block_sample (pBlk, m_nInChannels, f, c);
+ 				bridge::cal_in (&C[0][0], ob::kFramesPerBlock, ob::kChannels);
+ 			}
+ 			if (sendfx_pi::On ())		// the voice stems (IN 2..9) into the send FX
+ 			{
+-				s32 S[ob::kFramesPerBlock][8];
++				s32 S[ob::kFramesPerBlock][8] = {};
+ 				for (int f = 0; f < ob::kFramesPerBlock; f++)
+-					for (int v = 0; v < 8; v++) S[f][v] = ob::block_sample (pBlk, ob::kChannels, f, 2 + v);
++					for (int v = 0; v < 8; v++) S[f][v] = (2 + v < m_nInChannels)
++						? ob::block_sample (pBlk, m_nInChannels, f, 2 + v) : 0;
+ 				sendfx_pi::FromRytm (S, ob::kFramesPerBlock);
+ 			}
+ 
+-			int32_t s = ob::block_sample (pBlk, ob::kChannels, 0, 0) >> 8;
++			int32_t s = ob::block_sample (pBlk, m_nInChannels, 0, 0) >> 8;
+ 			if (s < 0) s = -s;
+ 			if (s > m_nInPeak) m_nInPeak = s;
+ 
+@@ -601,11 +629,11 @@ void CObUsb::InDone (unsigned i, CUSBRequest *pURB)
+ 				s32 *pOut = s_pCapBuf + pos * CaptureChannels;
+ 				for (int f = 0; f < ob::kFramesPerBlock && pos < CaptureFrames; f++, pos++)
+ 				{
+-					pOut[0] = ob::block_sample (pBlk, ob::kChannels, f, 0);
+-					pOut[1] = ob::block_sample (pBlk, ob::kChannels, f, 1);
+-					if (s_nCapVoiceCh < (unsigned) ob::kChannels)
++					pOut[0] = ob::block_sample (pBlk, m_nInChannels, f, 0);
++					pOut[1] = (m_nInChannels > 1) ? ob::block_sample (pBlk, m_nInChannels, f, 1) : 0;
++					if (s_nCapVoiceCh < (unsigned) m_nInChannels)
+ 					{
+-						pOut[3] = ob::block_sample (pBlk, ob::kChannels, f, s_nCapVoiceCh);
++						pOut[3] = ob::block_sample (pBlk, m_nInChannels, f, s_nCapVoiceCh);
+ 					}
+ 					pOut += CaptureChannels;
+ 				}
+@@ -639,7 +667,7 @@ void CObUsb::OutDone (unsigned i, CUSBRequest *pURB)
+ 
+ 	if (pURB->GetStatus () != 0)
+ 	{
+-		m_nOutBlocks += pURB->GetResultLength () / kBlk;
++		m_nOutBlocks += pURB->GetResultLength () / m_nOutBlk;
+ 		if (m_nOut16Us == 0 && m_nOutBlocks >= 16) m_nOut16Us = now - m_nStartUs + 1;
+ 	}
+ 	else
+@@ -825,6 +853,8 @@ void CObUsbTransport::Poll (void)
+ 	TCircleIo Io;
+ 	Io.pMIDI = m_pMIDI;
+ 	Io.pSidecar = CSidecarGadget::Get ();
++	const bool bWasFailed = m_Merge.failed ();
+ 	m_Merge.poll (Io, m_pMIDI != 0, m_bSend, midibridge_pi::Queue (), midibridge_pi::Pace (), CTimer::GetClockTicks ());
+ 	midibridge_pi::SetRytmFail (m_Merge.bridge_failed ());
++	if (!bWasFailed && m_Merge.failed ()) dt_link::Lost ();	// a send failure ends this control session
+ }
+diff --git a/pi/engine/ob_usb.h b/pi/engine/ob_usb.h
+index 147d7ae..617cd50 100644
+--- a/pi/engine/ob_usb.h
++++ b/pi/engine/ob_usb.h
+@@ -1,6 +1,7 @@
+ //
+-// ob_usb.h - Circle USB function driver for the Analog Rytm MKII in OVERBRIDGE mode
+-// (VID 0x1935, PID 0x0b48): alt 3, interrupt IN 0x83 / OUT 0x03, 368-byte blocks.
++// ob_usb.h - Circle USB function driver for Elektron Overbridge devices
++// (Analog Rytm MKII 1935:0b48; Digitakt mk1 1935:0b2c): alt 3, interrupt
++// IN 0x83 / OUT 0x03, blocks sized per direction from the descriptors.
+ //
+ // Run-time options (cmdline.txt on the SD card, one line, space separated; all optional):
+ //   oburbs=N       URBs in flight per endpoint, 1..16 (default 8; stock Circle allowed 2)
+@@ -114,6 +115,8 @@ private:
+ 	volatile unsigned m_nInPending, m_nOutPending;
+ 	volatile boolean m_bStreaming;
+ 
++	int m_nInChannels, m_nOutChannels;	// from the descriptors (Rytm 12/12, Digitakt 12/2)
++	unsigned m_nInBlk, m_nOutBlk;		// bytes per packet, derived from those channels
+ 	u16 m_nOutCounter;
+ 	boolean m_bOutCounterSet;
+ 	u16 m_nExpectIn;
+diff --git a/pi/engine/sidecar_gadget.cpp b/pi/engine/sidecar_gadget.cpp
+index eca1629..fc066e5 100644
+--- a/pi/engine/sidecar_gadget.cpp
++++ b/pi/engine/sidecar_gadget.cpp
+@@ -384,12 +384,13 @@ void CSidecarGadget::InPush (const s32 *pFrame)
+ 	m_nInHead++;
+ }
+ 
+-void CSidecarGadget::FromRytmBlock (const u8 *pBlock)
++void CSidecarGadget::FromRytmBlock (const u8 *pBlock, int nChannels)
+ {
++	if (nChannels <= 0 || nChannels > 12) return;
+ 	for (int f = 0; f < ob::kFramesPerBlock; f++)
+ 	{
+-		s32 Frame[12];
+-		for (int c = 0; c < 12; c++) Frame[c] = ob::block_sample (pBlock, ob::kChannels, f, c) >> 8;	// 24-bit
++		s32 Frame[12] = {};
++		for (int c = 0; c < nChannels; c++) Frame[c] = ob::block_sample (pBlock, nChannels, f, c) >> 8;	// 24-bit
+ 		InPush (Frame);
+ 	}
+ 	m_nSrcFrames += ob::kFramesPerBlock;
+diff --git a/pi/engine/sidecar_gadget.h b/pi/engine/sidecar_gadget.h
+index 8fced3c..cd51de1 100644
+--- a/pi/engine/sidecar_gadget.h
++++ b/pi/engine/sidecar_gadget.h
+@@ -46,7 +46,7 @@ public:
+ 	void LogStats (CLogger *)			{}
+ 	boolean MacOn (void) const			{ return FALSE; }
+ 	boolean Command (const char *)			{ return FALSE; }
+-	void FromRytmBlock (const u8 *)			{}
++	void FromRytmBlock (const u8 *, int = 12)		{}
+ 	void FromEngine (const s32 (*)[12], unsigned)	{}
+ 	void ToRytm (s32 (*)[12], const s16 (*)[8], unsigned, boolean) {}
+ 	void FromRytmMIDI (const u8 *)			{}
+@@ -137,7 +137,7 @@ public:
+ 	boolean Command (const char *pCmd);		// a console command for the Sidecar (TRUE: it was one)
+ 
+ 	// the engine's side (core 0)
+-	void FromRytmBlock (const u8 *pBlock);		// xHCI IRQ: one Overbridge IN block (7 frames x 12 ch)
++	void FromRytmBlock (const u8 *pBlock, int nChannels = 12);	// xHCI IRQ: one Overbridge IN block (7 frames x nChannels)
+ 	void FromEngine (const s32 (*pFrames)[12], unsigned nFrames);	// task: the self-test's output as the stand-in IN
+ 	void ToRytm (s32 (*pFrames)[12], const s16 (*pVoices)[8], unsigned nFrames, boolean bTask);
+ 	void FromRytmMIDI (const u8 *pPacket);		// xHCI IRQ: one event packet from the Rytm
+diff --git a/teensy/libraries/RytmHost/extras/ob_block_test.cpp b/teensy/libraries/RytmHost/extras/ob_block_test.cpp
+index 8915c8c..f01d9f7 100644
+--- a/teensy/libraries/RytmHost/extras/ob_block_test.cpp
++++ b/teensy/libraries/RytmHost/extras/ob_block_test.cpp
+@@ -46,12 +46,47 @@ int main() {
+   CHECK(ob::find_layout(kRytmConfig, sizeof kRytmConfig, ob::kAlt, &l));
+   CHECK(l.in.mps == 368 && l.out.mps == 368 && l.in.interval == 1 && l.out.interval == 1);
+   CHECK(l.in_channels == 12 && l.out_channels == 12);
++  CHECK(l.in_bytes == 368 && l.out_bytes == 368);
+   CHECK(l.midi_iface == 5);
+   CHECK(l.interfaces == 6);
+   const uint8_t* if1 = kRytmConfig + 26;
+   CHECK(if1[1] == 4 && if1[2] == 1 && if1[3] == 0);
+   CHECK(ob::find_layout(if1, sizeof kRytmConfig - 26, ob::kAlt, &l) && l.in_channels == 12);
+   CHECK(ob::find_layout(kRytmConfig, sizeof kRytmConfig, 2, &l) && l.in_channels == 2);   // alt 2: 88 B
++  CHECK(l.in_bytes == 88 && l.out_bytes == 88);
++
++  // Digitakt mk1 OS 1.54 layout from R02's physical capture: alt 3 is 368 B
++  // device -> host (12 channels) and 88 B host -> device (2 channels). This
++  // fixture is the same 263-byte descriptor recorded in the project evidence;
++  // one block codec, two independent directions.
++  static const uint8_t kDigitaktConfig[263] = {
++      0x09, 0x02, 0x07, 0x01, 0x06, 0x01, 0x00, 0xc0, 0x00, 0x08, 0x0b, 0x00, 0x04, 0xff, 0x00, 0x00, 0x00, 0x09,
++      0x04, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x09, 0x04, 0x01, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x09,
++      0x04, 0x01, 0x01, 0x01, 0xff, 0x00, 0x00, 0x00, 0x07, 0x05, 0x83, 0x03, 0x20, 0x00, 0x01, 0x09, 0x04, 0x01,
++      0x02, 0x01, 0xff, 0x00, 0x00, 0x00, 0x07, 0x05, 0x83, 0x03, 0x58, 0x00, 0x01, 0x09, 0x04, 0x01, 0x03, 0x01,
++      0xff, 0x00, 0x00, 0x00, 0x07, 0x05, 0x83, 0x03, 0x70, 0x01, 0x01, 0x09, 0x04, 0x02, 0x00, 0x00, 0xff, 0x00,
++      0x00, 0x00, 0x09, 0x04, 0x02, 0x01, 0x01, 0xff, 0x00, 0x00, 0x00, 0x07, 0x05, 0x03, 0x03, 0x20, 0x00, 0x01,
++      0x09, 0x04, 0x02, 0x02, 0x01, 0xff, 0x00, 0x00, 0x00, 0x07, 0x05, 0x03, 0x03, 0x58, 0x00, 0x01, 0x09, 0x04,
++      0x02, 0x03, 0x01, 0xff, 0x00, 0x00, 0x00, 0x07, 0x05, 0x03, 0x03, 0x58, 0x00, 0x01, 0x09, 0x04, 0x03, 0x00,
++      0x02, 0xff, 0x00, 0x00, 0x00, 0x07, 0x05, 0x02, 0x02, 0x00, 0x02, 0x00, 0x07, 0x05, 0x82, 0x03, 0x40, 0x00,
++      0x01, 0x08, 0x0b, 0x04, 0x02, 0x01, 0x01, 0x00, 0x00, 0x09, 0x04, 0x04, 0x00, 0x00, 0x01, 0x01, 0x00, 0x00,
++      0x09, 0x24, 0x01, 0x00, 0x01, 0x09, 0x00, 0x01, 0x05, 0x09, 0x04, 0x05, 0x00, 0x02, 0x01, 0x03, 0x00, 0x00,
++      0x07, 0x24, 0x01, 0x00, 0x01, 0x41, 0x00, 0x06, 0x24, 0x02, 0x01, 0x01, 0x00, 0x06, 0x24, 0x02, 0x02, 0x02,
++      0x00, 0x09, 0x24, 0x03, 0x01, 0x03, 0x01, 0x02, 0x01, 0x00, 0x09, 0x24, 0x03, 0x02, 0x04, 0x01, 0x01, 0x01,
++      0x00, 0x09, 0x05, 0x01, 0x02, 0x00, 0x02, 0x00, 0x00, 0x00, 0x05, 0x25, 0x01, 0x01, 0x01, 0x09, 0x05, 0x81,
++      0x02, 0x00, 0x02, 0x00, 0x00, 0x00, 0x05, 0x25, 0x01, 0x01, 0x03,
++  };
++  CHECK(sizeof kDigitaktConfig == 263);
++  CHECK(ob::find_layout(kDigitaktConfig, sizeof kDigitaktConfig, ob::kAlt, &l));
++  CHECK(l.in.mps == 368 && l.out.mps == 88);
++  CHECK(l.in_channels == 12 && l.out_channels == 2 && l.in_bytes == 368 && l.out_bytes == 88);
++  CHECK(ob::channels_for(368) == 12 && ob::channels_for(88) == 2);
++  // An OUT block is sized by its own two channels; a 12-channel read of it
++  // would overrun the packet.
++  uint8_t out2[88];
++  const int16_t two[8] = {1, 200, -300, 400, 500, 600, 700, 800};
++  ob::put_voice_frame(out2, l.out_channels, 6, two, ob::kVoiceToRytm, -1);
++  CHECK(ob::block_sample(out2, 2, 6, 0) == 0 && ob::block_sample(out2, 2, 6, 1) == 0);
+   CHECK(!ob::find_layout(kRytmConfig, sizeof kRytmConfig, 4, &l));
+   CHECK(ob::channels_for(32) == 0 && ob::channels_for(60) == 1 && ob::channels_for(367) == 0);
+ 
+diff --git a/teensy/libraries/RytmHost/ob_block.h b/teensy/libraries/RytmHost/ob_block.h
+index 8013bfd..dc463b3 100644
+--- a/teensy/libraries/RytmHost/ob_block.h
++++ b/teensy/libraries/RytmHost/ob_block.h
+@@ -48,6 +48,7 @@ constexpr uint8_t kVoiceToNone[kVoices] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0
+ 
+ constexpr int block_bytes(int channels) { return kHeaderBytes + kFramesPerBlock * channels * 4; }
+ static_assert(block_bytes(kChannels) == 368, "Rytm MKII block");
++static_assert(block_bytes(2) == 88, "Digitakt two-channel block");
+ 
+ // Channels a block of wMaxPacketSize `mps` carries, 0 if it is not a block.
+ inline int channels_for(int mps) {
+@@ -55,6 +56,21 @@ inline int channels_for(int mps) {
+   return (d >= kFramesPerBlock * 4 && d % (kFramesPerBlock * 4) == 0) ? d / (kFramesPerBlock * 4) : 0;
+ }
+ 
++// The two directions are independent. The Rytm MKII happens to use 12
++// channels both ways; the Digitakt mk1's captured alt-3 descriptors are 12
++// channels device->host (368 B) and 2 channels host->device (88 B). Keep the
++// sizes derived from the descriptors rather than a single kChannels.
++struct Direction {
++  int channels;              // 0: no block in this direction
++  int bytes;                 // one packet: header + 7 frames x channels x 4
++  bool valid() const { return channels > 0 && bytes == block_bytes(channels); }
++};
++inline Direction direction_for(int mps) {
++  Direction d = {channels_for(mps & 0x7FF), 0};
++  d.bytes = d.channels ? block_bytes(d.channels) : 0;
++  return d;
++}
++
+ inline void put_be32(uint8_t* b, int32_t v) {
+   uint32_t u = (uint32_t)v;
+   b[0] = u >> 24;
+@@ -108,6 +124,7 @@ struct Endpoint {
+ struct Layout {
+   Endpoint in, out;          // 0x83 in (kInIface, alt), 0x03 in (kOutIface, alt)
+   int in_channels, out_channels;
++  int in_bytes, out_bytes;   // one packet each, from that endpoint's wMaxPacketSize
+   int midi_iface;            // the MIDIStreaming interface (class 1/3), -1 none
+   int interfaces;            // interface descriptors with alt 0
+ };
+@@ -133,10 +150,14 @@ inline bool find_layout(const uint8_t* p, uint32_t len, uint8_t alt, Layout* l)
+     }
+     p += p[0];
+   }
+-  l->in_channels = l->in.found ? channels_for(l->in.mps & 0x7FF) : 0;
+-  l->out_channels = l->out.found ? channels_for(l->out.mps & 0x7FF) : 0;
+-  return l->in.found && l->out.found && (l->in.attr & 3) == 3 && (l->out.attr & 3) == 3 && l->in_channels > 0 &&
+-         l->out_channels > 0 && (l->in.mps >> 11) == 0 && (l->out.mps >> 11) == 0;
++  const Direction in = direction_for(l->in.found ? l->in.mps : 0);
++  const Direction out = direction_for(l->out.found ? l->out.mps : 0);
++  l->in_channels = in.channels;
++  l->out_channels = out.channels;
++  l->in_bytes = in.bytes;
++  l->out_bytes = out.bytes;
++  return l->in.found && l->out.found && (l->in.attr & 3) == 3 && (l->out.attr & 3) == 3 && in.valid() &&
++         out.valid() && (l->in.mps >> 11) == 0 && (l->out.mps >> 11) == 0;
+ }
+ 
+ }  // namespace ob

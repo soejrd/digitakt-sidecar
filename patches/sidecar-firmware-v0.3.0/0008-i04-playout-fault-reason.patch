@@ -1,0 +1,66 @@
+diff --git a/pi/engine/cores.cpp b/pi/engine/cores.cpp
+index 004de1b..7f4eb71 100644
+--- a/pi/engine/cores.cpp
++++ b/pi/engine/cores.cpp
+@@ -503,6 +503,9 @@ void CEngineCores::Command (const char *p)
+ 		unsigned st[8]; dt_link::VoiceStatus(st);
+ 		L->Write(From, LogNotice, "I04 arm %u queue %u peak %u faults %u applied %u starts %u consumed %u frame %u",
+ 		         st[0],st[1],st[2],st[3],st[4],st[5],st[6],st[7]);
++		unsigned ft[6]; dt_link::VoiceFault(ft);
++		L->Write(From, LogNotice, "I04 fault code %u block %u flags %u delta %u now %u due %u",
++		         ft[0],ft[1],ft[2],ft[3],ft[4],ft[5]);
+ 	}
+ 	else if (strcmp(p, "trx=on") == 0 || strcmp(p, "trx=off") == 0)
+ 	{
+diff --git a/pi/engine/dt_link.cpp b/pi/engine/dt_link.cpp
+index d878e03..692590f 100644
+--- a/pi/engine/dt_link.cpp
++++ b/pi/engine/dt_link.cpp
+@@ -9,6 +9,7 @@ namespace dt_link {
+ static sc_circle_link link;
+ static H02TestTone test_tone;
+ static sc_playout playout;
++static sc_playout_failure last_failure;
+ static uint32_t armed_session, faded, playout_faults;
+ static sc_frame snapshot;
+ static uint32_t selected, losses, seen_loss;
+@@ -33,7 +34,7 @@ static int Send(void *, const uint8_t *p, uint32_t n) {
+   return 1; // complete record is owned by core 0's existing USB sender
+ }
+ static int Install(void *, const sc_frame *f) {
+-  if (!sc_playout_enqueue(&playout, f)) { ++playout_faults; return 0; }
++  if (!sc_playout_enqueue(&playout, f)) { ++playout_faults; last_failure=playout.failure; return 0; }
+   snapshot = *f; installed = true; return 1;
+ }
+ static void Clear(void *) {
+@@ -100,7 +101,7 @@ void RenderVoice(int16_t (*out)[8], unsigned frames) {
+   sc_frame f;
+   if (!State(&f)) { memset(out, 0, frames * sizeof *out); return; }
+   if (!sc_playout_render(&playout, out, frames)) {
+-    ++playout_faults;
++    ++playout_faults; last_failure=playout.failure;
+     armed_session = faded = 0;
+     sc_circle_transport_lost(&link, SC_REASON_SEQUENCE);
+     g_Output.ControlClose();
+@@ -135,3 +136,11 @@ void VoiceStatus(unsigned out[8]) {
+   out[6]=(unsigned)playout.voice.consumed_starts; out[7]=(unsigned)playout.clock;
+ }
+ }
++
++namespace dt_link {
++void VoiceFault(unsigned out[6]) {
++  out[0]=last_failure.code; out[1]=last_failure.block;
++  out[2]=last_failure.flags; out[3]=last_failure.delta;
++  out[4]=(unsigned)last_failure.clock; out[5]=(unsigned)last_failure.due;
++}
++}
+diff --git a/pi/engine/dt_link.h b/pi/engine/dt_link.h
+index 5655ca1..157426e 100644
+--- a/pi/engine/dt_link.h
++++ b/pi/engine/dt_link.h
+@@ -24,3 +24,5 @@ namespace dt_link { void RenderVoice(int16_t (*out)[8], unsigned frames); }
+ namespace dt_link { bool VoiceCommand(bool on); } // core 3: explicit session-bound arm
+ 
+ namespace dt_link { void VoiceStatus(unsigned out[8]); } // core 3: bounded diagnostics
++
++namespace dt_link { void VoiceFault(unsigned out[6]); } // last fault survives session reset

@@ -1,0 +1,34 @@
+diff --git a/pi/engine/output.cpp b/pi/engine/output.cpp
+index afe09ec..f663fa4 100644
+--- a/pi/engine/output.cpp
++++ b/pi/engine/output.cpp
+@@ -98,6 +98,16 @@ void Output::Pull(int32_t (*out)[kChannels], uint32_t n, int16_t (*voices)[kVoic
+     }
+     if (taps && taps->lr) memcpy(taps->lr[i], f.v, sizeof f.v), memcpy(taps->lr[i] + kVoices, f.r, sizeof f.r);
+     float g = main_.Gain();
++    if (mode_ == kStereoReturn) {
++      // X01: two independent mono lanes, never summed or sent to Rytm slots.
++      for (unsigned lane = 0; lane < 2; ++lane) {
++        float x = Limit(f.v[lane] / 32768.0f * core::MainOut::kGain * g);
++        float a = x < 0 ? -x : x;
++        if (a > peak_) peak_ = a;
++        out[i][lane] = To32(x);
++      }
++      continue;
++    }
+     if (!test && mix_->AllTrk(c)) {   // every voice on TRK: the old path, bit for bit
+       if (voices) memcpy(voices[i], f.v, sizeof f.v);
+       if (mode_ == kMain) {
+diff --git a/pi/engine/output.h b/pi/engine/output.h
+index 37a6e04..3d7db5f 100644
+--- a/pi/engine/output.h
++++ b/pi/engine/output.h
+@@ -23,7 +23,7 @@ class Mixer;
+ 
+ class Output {
+  public:
+-  enum Mode { kMain = 0, kTracks = 1 };
++  enum Mode { kMain = 0, kTracks = 1, kStereoReturn = 2 };
+   static const int kVoices = 8, kChannels = 12;
+   static const uint32_t kFifo = 2048;                   // frames
+   static constexpr float kLimit = core::MainOut::kLimit;            // -12 dBFS

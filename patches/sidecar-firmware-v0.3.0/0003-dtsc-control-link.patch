@@ -1,0 +1,299 @@
+diff --git a/.gitignore b/.gitignore
+index 386a84c..db8c438 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -65,3 +65,6 @@ wpa_supplicant.conf
+ .omc/
+ .claude/
+ .vscode/
++
++# Generated local integrated-machine protocol sources
++/pi/engine/dt_control/
+diff --git a/pi/engine/Makefile b/pi/engine/Makefile
+index 34fbfc9..6c666aa 100644
+--- a/pi/engine/Makefile
++++ b/pi/engine/Makefile
+@@ -12,7 +12,7 @@ include $(CORE)/engines/engines.mk
+ # MULTISAMPLE (core/msamp): the Circle side's platform_pi.cpp defines its arena (core/platform.h)
+ DEFINE += -DCORE_MSAMP=1
+ # Circle-side objects: Circle's flags and headers (Rules.mk's %.o: %.cpp)
+-OBJS = main.o kernel.o platform_pi.o shared.o ob_usb.o cores.o console.o selftest.o guard.o tcp_link.o $(GADGET_OBJS) web.o sdfiles.o um_pi.o wifi.o rec_pi.o
++OBJS = main.o kernel.o platform_pi.o shared.o ob_usb.o cores.o console.o selftest.o dt_link.o guard.o tcp_link.o $(GADGET_OBJS) web.o sdfiles.o um_pi.o wifi.o rec_pi.o
+ OBJS += paircode_pi.o          # the pairing code's Pi side (paircode_pi.h; the portable paircode.cpp is in PORT_SRC)
+ OBJS += midibridge_pi.o        # the Rytm MIDI bridge (midibridge_pi.h; the portable part is the header midibridge.h)
+ # the volumes besides the card and the storage bench (docs/STORAGE.md): Circle's side; the logic is hosted (PORT_SRC)
+@@ -69,7 +69,7 @@ CORE_SRC += $(CORE)/msamp/cardq.cpp $(wildcard $(CORE)/samp/*.cpp)   # the card
+ # messages, the slot map), hosted: user machines on the Pi (core/user/um.cpp, docs/user-machines-pi.md)
+ RMPSRC := ../../teensy/libraries/RytmPlugins/src
+ RMP_SRC := rmp_loader.cpp rmp_manifest.cpp rmp_meta.cpp rmp_proto.cpp rmp_resolve.cpp rmp_slots.cpp rmp_presets.cpp rmp_pool.cpp
+-PORT_SRC := output.cpp midi_in.cpp bridge.cpp emu_proto.cpp tones.cpp sendfx_pi.cpp fsweb.cpp bundleweb.cpp poolweb.cpp bundle_pi.cpp recorder.cpp rec_play.cpp wifi_conf.cpp paircode.cpp power_state.cpp wgview_pi.cpp chopview_pi.cpp voice_pi.cpp insfx_pi.cpp song_pi.cpp \
++PORT_SRC := dt_control/link.c dt_control/host_link.c dt_control/circle_link_adapter.c output.cpp midi_in.cpp bridge.cpp emu_proto.cpp tones.cpp sendfx_pi.cpp fsweb.cpp bundleweb.cpp poolweb.cpp bundle_pi.cpp recorder.cpp rec_play.cpp wifi_conf.cpp paircode.cpp power_state.cpp wgview_pi.cpp chopview_pi.cpp voice_pi.cpp insfx_pi.cpp song_pi.cpp \
+             scope_pi.cpp status_pi.cpp stor_vol.cpp stor_bench.cpp lib_pi.cpp
+ # the SEQ page's engine side (seqed_pi.cpp, ../ui/seq_touch.cpp): only with the sequencer's engine in the tree
+ # (core/seq/seq.cpp, the seq-mvp branch); without it the page says there is no sequencer
+diff --git a/pi/engine/cores.cpp b/pi/engine/cores.cpp
+index d4912fc..b1d4cf9 100644
+--- a/pi/engine/cores.cpp
++++ b/pi/engine/cores.cpp
+@@ -9,6 +9,7 @@
+ #include <circle/util.h>
+ 
+ #include "bridge.h"
++#include "dt_link.h"
+ #include "guard.h"
+ #include "midi_in.h"
+ #include "notes.h"
+@@ -99,6 +100,7 @@ static core::NoteAdapter s_Notes (ToCore);
+ static volatile boolean s_bModded = FALSE;
+ static void FromRytm (const u8 *pData, int nLength)
+ {
++	if (dt_link::SysEx (pData, (unsigned) nLength)) return;	// DTSC is ours; never the Rytm bridge's
+ 	if (nLength >= 5 && pData[1] == 0x7D && pData[2] == 0x52 && pData[3] == 0x54) s_bModded = TRUE;
+ 	ToCore (pData, nLength);
+ }
+@@ -107,7 +109,7 @@ static void OnChannel (u8 s, u8 a, u8 b)
+ 	if ((s & 0xF0) == 0x90 && b) { s_nNotes++; s_nNoteChans |= 1u << (s & 0x0F); }
+ 	bridge::lfo_midi (s, a, b);		// the LFOs: a Rytm track's trig (an FX target's TRIG, core/lfo.h)
+ 	bridge::poly_midi (s, a, b);		// poly FM: the pads' notes, live chords (core/poly.h)
+-	if (s_bNotes && !s_bModded) s_Notes.Channel (s, a, b);
++	if (s_bNotes && !s_bModded && !dt_link::Selected ()) s_Notes.Channel (s, a, b);
+ 	else if ((s & 0xF0) == 0xB0 && a == 120) sendfx_pi::AllSoundOff ();	// the send FX hear it with the notes off too
+ }
+ static MidiIn s_Midi (FromRytm, OnChannel, rec_pi::Transport);
+@@ -324,8 +326,13 @@ void CEngineCores::RenderBlock (void)
+ 			for (;;) asm volatile ("wfe");		// core 0 stops the stream and reboots
+ 		}
+ 	}
++	// Integrated return is session-gated TRX-B2 (I04 prototype).
++	// Never leak unrelated stock-engine voices onto it.
++	if (dt_link::Selected ()) dt_link::RenderVoice (s_Block, bridge::kBlock);
+ 	unsigned nUs = (unsigned) ((Ticks () - t0) * 1000000 / TickRate ());
+ 	if (nUs > s_nMaxBlock) s_nMaxBlock = nUs;
++	dt_link::AdvanceFrames (bridge::kBlock);
++	dt_link::Poll ();
+ 	u8 nSt = 0;
+ 	for (unsigned v = 0; v < bridge::kVoices; v++) nSt |= s_St[v] ? 1u << v : 0;
+ 	g_Output.Push (s_Block, bridge::kBlock, s_BlockR, nSt);
+diff --git a/pi/engine/dt_link.cpp b/pi/engine/dt_link.cpp
+new file mode 100644
+index 0000000..1c446ea
+--- /dev/null
++++ b/pi/engine/dt_link.cpp
+@@ -0,0 +1,70 @@
++// DTSC session plumbing. Synthesis is I04; until an engine consumes State(),
++// the integrated mode produces silence while still acknowledging controls.
++#include "dt_link.h"
++#include "dt_control/circle_link_adapter.h"
++#include "shared.h"
++#include <circle/util.h>
++namespace dt_link {
++static sc_circle_link link;
++static sc_frame snapshot;
++static uint32_t selected, losses, seen_loss;
++static bool initialized, installed;
++static uint32_t clock_block;
++
++void Select() {
++  __atomic_add_fetch(&losses, 1u, __ATOMIC_RELEASE);
++  g_Output.ControlClose();
++  __atomic_store_n(&selected, 1u, __ATOMIC_RELEASE);
++}
++bool Selected() { return __atomic_load_n(&selected, __ATOMIC_ACQUIRE) != 0; }
++void Lost() {
++  if (!Selected()) return;
++  __atomic_add_fetch(&losses, 1u, __ATOMIC_RELEASE);
++  g_Output.ControlClose();
++}
++static int Send(void *, const uint8_t *p, uint32_t n) {
++  if (n + 2u > kMidiOutBytes - g_MidiOut.size()) return 0;
++  g_MidiOut.push(n & 255u); g_MidiOut.push(n >> 8);
++  for (uint32_t i = 0; i < n; ++i) g_MidiOut.push(p[i]);
++  return 1; // complete record is owned by core 0's existing USB sender
++}
++static int Install(void *, const sc_frame *f) {
++  snapshot = *f; installed = true; return 1;
++}
++static void Clear(void *) {
++  installed = false; memset(&snapshot, 0, sizeof snapshot);
++  g_Output.ControlClose();
++}
++static void Init() {
++  if (!initialized) {
++    sc_circle_init(&link, Install, Send, Clear, 0, 750u);
++    initialized = true;
++  }
++}
++bool SysEx(const uint8_t *p, unsigned n) {
++  if (!Selected() || !sc_is_dtsc(p,n)) return false;
++  Init();
++  for (unsigned i = 0; i < n; ++i) sc_circle_midi_byte(&link,p[i]);
++  sc_circle_process(&link, 1u);
++  return true;
++}
++void Poll(uint32_t block) {
++  uint32_t token, lost;
++  if (!Selected()) return;
++  Init(); clock_block = block;
++  token = g_Output.ControlToken();
++  sc_circle_advance_block(&link,clock_block);
++  lost = __atomic_load_n(&losses, __ATOMIC_ACQUIRE);
++  if (lost != seen_loss) {
++    seen_loss = lost;
++    sc_circle_transport_lost(&link, SC_REASON_TRANSPORT);
++  }
++  sc_circle_process(&link, 128u);
++  g_Output.ControlSet(token, sc_circle_audio_allowed(&link) &&
++                            lost == __atomic_load_n(&losses, __ATOMIC_ACQUIRE));
++}
++bool State(sc_frame *out) {
++  if (!installed || !sc_circle_audio_allowed(&link)) return false;
++  *out = snapshot; return true;
++}
++}
+diff --git a/pi/engine/dt_link.h b/pi/engine/dt_link.h
+new file mode 100644
+index 0000000..6ee0467
+--- /dev/null
++++ b/pi/engine/dt_link.h
+@@ -0,0 +1,12 @@
++// Portable DTSC control protocol; no device-firmware addresses or code.
++#pragma once
++#include <stdint.h>
++#include "dt_control/link.h"
++namespace dt_link {
++void Select();                    // core 0: descriptor-matched integrated device
++bool Selected();
++void Lost();                      // core 0: transport removal/receive loss
++bool SysEx(const uint8_t *, unsigned); // core 3: consumes DTSC only
++void Poll(uint32_t block);         // core 3: bounded protocol work + output gate
++bool State(sc_frame *out);         // core 3: I04 engine's preallocated input
++}
+diff --git a/pi/engine/kernel.cpp b/pi/engine/kernel.cpp
+index 48e27f7..aa0c448 100644
+--- a/pi/engine/kernel.cpp
++++ b/pi/engine/kernel.cpp
+@@ -46,6 +46,7 @@ static int s_nRytmPatIndex = -1;
+ #include <fatfs/ff.h>
+ 
+ #include "bridge.h"
++#include "dt_link.h"
+ #include "shared.h"
+ #include "sendfx_pi.h"
+ #include "paircode_pi.h"	// the pairing code that gates the network (paircode.h)
+@@ -1119,13 +1120,14 @@ void CKernel::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLength)
+ 	if (!CObUsb::Active ()) return;	// the TCP link is the host: a real Rytm's MIDI is not the engine's
+ 	if (nLength >= 3 && (pPacket[0] & 0xF0) == 0x90 && pPacket[2] != 0) CObUsb::CaptureMarkMIDI ();
+ 	for (unsigned i = 0; i < nLength; i++)
+-		if (!g_MidiIn.push (pPacket[i])) s_nMidiInLost++;	// a full queue: counted, as the TCP link's
++		if (!g_MidiIn.push (pPacket[i])) { s_nMidiInLost++; dt_link::Lost (); }	// a full queue: counted, as the TCP link's
+ 	asm volatile ("dsb sy; sev");
+ }
+ 
+ void CKernel::MIDIRemoved (CDevice *pDevice, void *pContext)
+ {
+ 	((CKernel *) pContext)->m_pMIDI = 0;
++	dt_link::Lost ();
+ }
+ 
+ // The Pi's own keyboards (core/keys.h): every other USB MIDI device in the USB-A ports, up to four, as sources 0..3 (in
+diff --git a/pi/engine/output.cpp b/pi/engine/output.cpp
+index 3682886..afe09ec 100644
+--- a/pi/engine/output.cpp
++++ b/pi/engine/output.cpp
+@@ -13,6 +13,17 @@ const uint8_t Output::kVoiceToChannel[Output::kVoices] = {
+     core::out::kRytmMk2.voice[0], core::out::kRytmMk2.voice[1], core::out::kRytmMk2.voice[2], core::out::kRytmMk2.voice[3],
+     core::out::kRytmMk2.voice[4], core::out::kRytmMk2.voice[5], core::out::kRytmMk2.voice[6], core::out::kRytmMk2.voice[7]};
+ 
++void Output::ControlClose() {
++  uint32_t old = ControlToken();
++  while (!__atomic_compare_exchange_n(&control_, &old, (old + 2u) & ~1u,
++                                      false, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE)) {}
++}
++void Output::ControlSet(uint32_t token, bool allowed) {
++  if ((token & 1u) == unsigned(allowed)) return;
++  __atomic_compare_exchange_n(&control_, &token, ((token + 2u) & ~1u) | unsigned(allowed),
++                              false, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE);
++}
++
+ Output::Output() {
+   static_assert(sizeof(core::out::Mixer) <= sizeof mix_mem_, "Output: the OUT mixer's room");
+   mix_ = new (mix_mem_) core::out::Mixer();
+@@ -35,6 +46,7 @@ uint32_t Output::Push(const int16_t (*frames)[kVoices], uint32_t n, const int16_
+   uint32_t k = 0;
+   for (; k < n; ++k) {
+     Frame f;
++    f.epoch = ControlToken();
+     memcpy(f.v, frames[k], sizeof f.v);
+     memcpy(f.r, r ? r[k] : frames[k], sizeof f.r);
+     f.st = st;
+@@ -44,6 +56,9 @@ uint32_t Output::Push(const int16_t (*frames)[kVoices], uint32_t n, const int16_
+ }
+ 
+ void Output::Pull(int32_t (*out)[kChannels], uint32_t n, int16_t (*voices)[kVoices], const Taps* taps) {
++  uint32_t policy = ControlToken();
++  if (policy != consumed_control_) { Reset(); consumed_control_ = policy; }
++  __atomic_store_n(&requested_, RequestedFrames() + n, __ATOMIC_RELAXED);
+   const core::out::Control& c = *ctl_;
+   bool block_set = false;
+   const uint32_t base = d_.since_reset;
+@@ -75,6 +90,12 @@ void Output::Pull(int32_t (*out)[kChannels], uint32_t n, int16_t (*voices)[kVoic
+       if (taps && taps->lr) memset(taps->lr[i], 0, sizeof taps->lr[i]);
+       continue;
+     }
++    policy = ControlToken();
++    if (!(policy & 1u) || f.epoch != policy) {
++      if (voices) memset(voices[i], 0, sizeof voices[i]);
++      if (taps && taps->lr) memset(taps->lr[i], 0, sizeof taps->lr[i]);
++      continue;
++    }
+     if (taps && taps->lr) memcpy(taps->lr[i], f.v, sizeof f.v), memcpy(taps->lr[i] + kVoices, f.r, sizeof f.r);
+     float g = main_.Gain();
+     if (!test && mix_->AllTrk(c)) {   // every voice on TRK: the old path, bit for bit
+diff --git a/pi/engine/output.h b/pi/engine/output.h
+index edd5479..37a6e04 100644
+--- a/pi/engine/output.h
++++ b/pi/engine/output.h
+@@ -33,12 +33,19 @@ class Output {
+ 
+   void SetMode(Mode m) { mode_ = m; }
+   Mode GetMode() const { return mode_; }
++  // Session policy: control publishes a token; transport removal closes it.
++  // Open uses a single CAS against the token sampled before processing MIDI,
++  // so an asynchronous loss can never be overwritten by a stale ACK.
++  uint32_t ControlToken() const { return __atomic_load_n(&control_, __ATOMIC_ACQUIRE); }
++  void ControlClose();
++  void ControlSet(uint32_t token, bool allowed);
+   // The OUT settings the output stage follows (core::out::control; the kernel sets it). Unset: its own defaults (every
+   // voice TRK: the Mac tests of the output stage alone).
+   void SetOutControl(const core::out::Control* c) { ctl_ = c ? c : &own_; }
+   core::out::Control& OwnControl() { return own_; }   // tests: the default control's settings
+   void Reset();                                         // transport (consumer) side only: a new stream drops the
+                                                         // frames left from the last one and fades in again
++  uint32_t RequestedFrames() const { return __atomic_load_n(&requested_, __ATOMIC_RELAXED); }
+   uint32_t Level() const { return fifo_.size(); }
+   // control core: frames taken (FIFO room). r (optional): the R plane (null: R = L, every voice mono); st: the voices
+   // whose pair is a real stereo pair in this block (render_voices' bits)
+@@ -100,6 +107,7 @@ class Output {
+   struct Frame {
+     int16_t v[kVoices], r[kVoices];
+     uint8_t st;
++    uint32_t epoch;
+   };
+   static float Limit(float x) { return x > kLimit ? kLimit : x < -kLimit ? -kLimit : x; }
+   static int32_t To32(float x) { return (int32_t)(x * 2147483648.0f); }
+@@ -108,6 +116,7 @@ class Output {
+     return s > 2147483647 ? 2147483647 : s < -2147483647 - 1 ? -2147483647 - 1 : (int32_t)s;
+   }
+   Spsc<Frame, kFifo> fifo_;
++  uint32_t control_ = 1, consumed_control_ = 1;
+   Mode mode_ = kMain;
+   core::MainOut main_;                                  // the fade (both modes), MAIN's sum and limit
+   core::out::Control own_ = [] { core::out::Control c; core::out::defaults(c); return c; }();
+@@ -116,6 +125,7 @@ class Output {
+   alignas(16) unsigned char mix_mem_[1024];
+   core::out::Mixer* mix_;
+   uint32_t under_ = 0, restart_under_ = 0, streams_ = 0, target_ = 0;
++  uint32_t requested_ = 0; // transport frame clock, includes silence/underflows
+   Diag d_ = {0, 0, kNone, kNone, 0, kNone, kNone, kNone, kNone, 0};
+   bool armed_ = false;                                  // the FIFO reached its target since the last Reset
+   float peak_ = 0.0f;

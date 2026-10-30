@@ -1,6 +1,7 @@
 # sidecar-firmware patches
 
-Base: `6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457` (pinned in `sources.json`).
+Base: `6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457` (historical v0.2.0 pin).
+The v0.3.0 port is a separate series: [sidecar-firmware-v0.3.0](../sidecar-firmware-v0.3.0/README.md).
 
 ## Experimental X01 (opt-in, no normal overlay change)
 

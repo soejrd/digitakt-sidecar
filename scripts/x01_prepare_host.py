@@ -10,14 +10,20 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def target_revision():
+    pins = json.loads((ROOT/'sources.json').read_text())['repositories']
+    return next(r for r in pins if r['name'] == 'sidecar-firmware')
+
+
 def prepare(output):
     pins = {r['name']: r['revision'] for r in json.loads((ROOT/'sources.json').read_text())['repositories']}
+    target = target_revision()
     assert subprocess.check_output(['git', '-C', str(ROOT/'deps/mdkit'), 'rev-parse', 'HEAD'], text=True).strip() == pins['mdkit']
     subprocess.run(['git', '-C', str(ROOT/'deps/mdkit'), 'diff', '--quiet', '--',
                     'include/mdkit.h', 'include/mdkit_voice.h',
                     'src/trx/b2/mdkit_trx_b2.c', 'src/trx/b2/mdkit_trx_b2.h'], check=True)
     output.mkdir(parents=True, exist_ok=False)
-    archive = subprocess.Popen(['git', '-C', str(ROOT/'deps/sidecar-firmware'), 'archive', pins['sidecar-firmware']], stdout=subprocess.PIPE)
+    archive = subprocess.Popen(['git', '-C', str(ROOT/'deps/sidecar-firmware'), 'archive', target['revision']], stdout=subprocess.PIPE)
     subprocess.run(['tar', '-xf', '-', '-C', str(output)], stdin=archive.stdout, check=True)
     archive.stdout.close()
     assert archive.wait() == 0
