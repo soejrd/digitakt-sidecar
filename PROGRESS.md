@@ -118,3 +118,18 @@ SRC values restore with Pi disconnected
 ([evidence](evidence/v01/gate-b-i04r-sound-load.json)). No audio/note/velocity
 qualification. Next: reconnect/restart Pi for a fresh muted baseline and
 isolate project-reload timing; B1 fault and underrun growth remain unresolved.
+
+Muted reload isolation after fresh Pi restart: initial under8/faults0, then
+177.6s of sampled stability. At reload-associated sample (uptime304s), under
+jumped8→30 and applied/frame reset; faults were still0. Monitor stopped there.
+Later uptime363/368/373s under53 stable, faults2 with code3 SC_PF_LATE
+(now154548, due149632). User reports normal UI. User clarified: exactly one reload followed by control edits; action timing
+relative to counters was not marked, so this was not reload-only. Voice stays muted, no further trials or firmware changes.
+[Isolation](evidence/v01/gate-b-i04r-reload-isolation.json). Root cause unknown;
+next feedback loop must retain the delayed-fault window after the first under.
+
+Clarification: user regards UI behavior as fine, but post-reload control edits
+confound the attempted isolation. Do not attribute the observed late faults or
+underrun growth to project reload alone. State-restoration observations remain
+valid; playback timing is unqualified. Do not require another reload repeat
+without a sharper action-marked feedback loop. Pi last left muted.

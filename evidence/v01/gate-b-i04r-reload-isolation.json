@@ -1,0 +1,88 @@
+{
+  "scope": "physical I04R muted project-reload isolation, HTTP status and incremental log capture; no firmware/kernel change",
+  "date": "2026-10-30",
+  "action_requested": "Load saved disposable project once, with no save, SRC edits, taps or playback.",
+  "human_result": "User confirms exactly one project reload, then control changes afterward; UI felt normal/fine.",
+  "pi_build": "Oct 29 2026 12:31:45",
+  "voice_armed": false,
+  "trace": "off",
+  "capture": {
+    "command": "python3 private/v01/i04r-reload-watch.py",
+    "samples": 88,
+    "first": {
+      "elapsed_s": 0.08,
+      "uptime_s": 125,
+      "underruns": 8,
+      "streaming": true,
+      "armed": 0,
+      "queue": 0,
+      "peak": 1,
+      "faults": 0,
+      "applied": 2852,
+      "starts": 1,
+      "consumed": 1,
+      "frame": 5840484,
+      "fault_line": "00:02:05.15 cores: I04 fault code 0 block 0 flags 0 delta 0 now 0 due 0"
+    },
+    "last_stable": {
+      "elapsed_s": 177.568,
+      "uptime_s": 302,
+      "underruns": 8,
+      "streaming": true,
+      "armed": 0,
+      "queue": 0,
+      "peak": 1,
+      "faults": 0,
+      "applied": 7013,
+      "starts": 1,
+      "consumed": 1,
+      "frame": 14360748,
+      "fault_line": "00:05:02.66 cores: I04 fault code 0 block 0 flags 0 delta 0 now 0 due 0"
+    },
+    "first_changed": {
+      "elapsed_s": 179.644,
+      "uptime_s": 304,
+      "underruns": 30,
+      "streaming": true,
+      "armed": 0,
+      "queue": 0,
+      "peak": 1,
+      "faults": 0,
+      "applied": 5,
+      "starts": 1,
+      "consumed": 1,
+      "frame": 9792,
+      "fault_line": "00:05:04.73 cores: I04 fault code 0 block 0 flags 0 delta 0 now 0 due 0"
+    },
+    "stop_reason": "Stopped at first new underrun; voice kept muted."
+  },
+  "later_check": {
+    "uptime_s": [
+      363,
+      368,
+      373
+    ],
+    "underruns": [
+      53,
+      53,
+      53
+    ],
+    "trx_faults": 2,
+    "fault": {
+      "code": 3,
+      "name": "SC_PF_LATE",
+      "block": 2797087,
+      "flags": 0,
+      "delta_blocks": 64,
+      "clock_frames": 154548,
+      "due_frames": 149632
+    }
+  },
+  "result": "Not an isolated reload-only trial: control edits followed reload. UI/state checks stand; underrun growth and late faults observed, trigger not isolated.",
+  "limits": [
+    "Counter reset in applied/frame fields shows a playback reset occurred; session identity was not captured.",
+    "Second underrun growth and fault onset were not continuously sampled after the stop.",
+    "Control changes occurred after reload; their timing relative to underrun/fault onset was not marked. No root-cause claim.",
+    "UI timing human-reported, not quantitatively measured."
+  ]
+}

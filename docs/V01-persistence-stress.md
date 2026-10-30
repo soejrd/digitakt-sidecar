@@ -233,3 +233,11 @@ and all eight SRC values restored
 ([evidence](../evidence/v01/gate-b-i04r-sound-load.json)). Native displayed-state
 persistence now has project, Pi-independent, cold-boot and Sound observations;
 post-load audio and the B1 timing failure remain unqualified.
+
+Muted reload-only isolation after Pi restart captured88 samples: under8/faults0
+remained stable through177.6s, then under8→30 and playback counters reset near
+the reload. At that first changed sample faults were0; a later check found
+under53 and two late-playback faults. The user reported normal UI. The user subsequently clarified that one reload was followed by control
+edits. Their timing was not marked, so this is not an isolated reload-only
+result; neither the later faults' trigger nor their root cause is established. Voice remains muted, no further hardware
+change ([evidence](../evidence/v01/gate-b-i04r-reload-isolation.json)).
