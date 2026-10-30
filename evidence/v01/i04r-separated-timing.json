@@ -1,0 +1,239 @@
+{
+  "scope": "physical I04R/Circle muted bounded timing captures, human-separated idle/slow-edit/reload phases; no firmware/kernel change",
+  "date": "2026-10-30",
+  "pi_build": "Oct 29 2026 12:31:45",
+  "playout_delay_frames": 128,
+  "phases": [
+    {
+      "phase": "timing-idle-20261030",
+      "human_action": "untouched, stopped; no edits",
+      "measurement_s": 97.609,
+      "samples": 79,
+      "reason": "operator stop",
+      "collection_error": null,
+      "first": {
+        "uptime_s": 3699,
+        "underrun_frames": 62,
+        "faults": 2,
+        "armed": 0,
+        "streaming": true,
+        "applied": 937,
+        "frame": 1918956
+      },
+      "last": {
+        "uptime_s": 3795,
+        "underrun_frames": 62,
+        "faults": 2,
+        "armed": 0,
+        "streaming": true,
+        "applied": 3208,
+        "frame": 6568728
+      },
+      "trace_rows": 128,
+      "trace_frozen": 0,
+      "minimum_slack_frames": 124,
+      "last_timing_rows": [
+        {
+          "effective_engine_change": false,
+          "index": 125,
+          "accepted": 1,
+          "reason": 0,
+          "slack_frames": 132,
+          "fifo_frames": 95,
+          "queued_events": 0,
+          "sender_frames": 2048,
+          "rendered_frames": 2052,
+          "requested_frames": 2044
+        },
+        {
+          "effective_engine_change": false,
+          "index": 126,
+          "accepted": 1,
+          "reason": 0,
+          "slack_frames": 128,
+          "fifo_frames": 89,
+          "queued_events": 0,
+          "sender_frames": 2048,
+          "rendered_frames": 2052,
+          "requested_frames": 2058
+        },
+        {
+          "effective_engine_change": false,
+          "index": 127,
+          "accepted": 1,
+          "reason": 0,
+          "slack_frames": 136,
+          "fifo_frames": 92,
+          "queued_events": 0,
+          "sender_frames": 2048,
+          "rendered_frames": 2040,
+          "requested_frames": 2037
+        }
+      ],
+      "raw_capture_sha256": "48f2f9082830b8475c9965d3721fc97ec6b57a912387e5e8d949f0f250f0d0b6"
+    },
+    {
+      "phase": "timing-edit-20261030",
+      "human_action": "only slow PTCH60\u219272, human confirmed; then hands off",
+      "measurement_s": 180.572,
+      "samples": 150,
+      "reason": "timeout",
+      "collection_error": null,
+      "first": {
+        "uptime_s": 3894,
+        "underrun_frames": 111,
+        "faults": 2,
+        "armed": 0,
+        "streaming": true,
+        "applied": 5541,
+        "frame": 11346240
+      },
+      "last": {
+        "uptime_s": 4075,
+        "underrun_frames": 111,
+        "faults": 2,
+        "armed": 0,
+        "streaming": true,
+        "applied": 9770,
+        "frame": 19994928
+      },
+      "trace_rows": 128,
+      "trace_frozen": 0,
+      "minimum_slack_frames": 164,
+      "last_timing_rows": [
+        {
+          "effective_engine_change": false,
+          "index": 125,
+          "accepted": 1,
+          "reason": 0,
+          "slack_frames": 192,
+          "fifo_frames": 85,
+          "queued_events": 0,
+          "sender_frames": 2048,
+          "rendered_frames": 2028,
+          "requested_frames": 2037
+        },
+        {
+          "effective_engine_change": false,
+          "index": 126,
+          "accepted": 1,
+          "reason": 0,
+          "slack_frames": 176,
+          "fifo_frames": 91,
+          "queued_events": 0,
+          "sender_frames": 2048,
+          "rendered_frames": 2064,
+          "requested_frames": 2058
+        },
+        {
+          "effective_engine_change": false,
+          "index": 127,
+          "accepted": 1,
+          "reason": 0,
+          "slack_frames": 184,
+          "fifo_frames": 87,
+          "queued_events": 0,
+          "sender_frames": 2048,
+          "rendered_frames": 2040,
+          "requested_frames": 2044
+        }
+      ],
+      "raw_capture_sha256": "4b8c3c20c9b1c5510a8c0cf6e178c061cf9e311b17ea2b81bd35d3c8d479875e"
+    },
+    {
+      "phase": "timing-reload-only-20261030",
+      "human_action": "one saved-project reload, human confirmed normal UI and no further inputs",
+      "measurement_s": 51.107,
+      "samples": 42,
+      "reason": "new playback fault",
+      "collection_error": null,
+      "first": {
+        "uptime_s": 4161,
+        "underrun_frames": 158,
+        "faults": 2,
+        "armed": 0,
+        "streaming": true,
+        "applied": 11784,
+        "frame": 24118488
+      },
+      "last": {
+        "uptime_s": 4211,
+        "underrun_frames": 172,
+        "faults": 3,
+        "armed": 0,
+        "streaming": true,
+        "applied": 10,
+        "frame": 19140
+      },
+      "trace_rows": 128,
+      "trace_frozen": 1,
+      "minimum_slack_frames": -4988,
+      "last_timing_rows": [
+        {
+          "effective_engine_change": false,
+          "index": 125,
+          "accepted": 1,
+          "reason": 0,
+          "slack_frames": 36,
+          "fifo_frames": 95,
+          "queued_events": 0,
+          "sender_frames": 2048,
+          "rendered_frames": 2052,
+          "requested_frames": 2044
+        },
+        {
+          "effective_engine_change": false,
+          "index": 126,
+          "accepted": 1,
+          "reason": 0,
+          "slack_frames": 44,
+          "fifo_frames": 91,
+          "queued_events": 0,
+          "sender_frames": 2048,
+          "rendered_frames": 2040,
+          "requested_frames": 2044
+        },
+        {
+          "effective_engine_change": false,
+          "index": 127,
+          "accepted": 0,
+          "reason": 3,
+          "slack_frames": -4988,
+          "fifo_frames": 94,
+          "queued_events": 0,
+          "sender_frames": 2048,
+          "rendered_frames": 7080,
+          "requested_frames": 7077
+        }
+      ],
+      "raw_capture_sha256": "e9f86ab32a078161e5fde88d32f391be293eae1cba4f12627b773961a5dc6664"
+    }
+  ],
+  "finding": "Idle and slow-edit phases added no playback faults; isolated reload-only phase added one SC_PF_LATE and froze complete128-row trace.",
+  "failed_frame": {
+    "sequence_in_new_session": 107,
+    "source_interval_frames": 2048,
+    "host_generated_interval_frames": 7080,
+    "usb_requested_interval_frames": 7077,
+    "fifo_frames_at_receipt": 94,
+    "queued_playout_events": 0,
+    "late_frames": 4988,
+    "late_ms_at48khz": 103.91666666666667
+  },
+  "interpretation": [
+    "Failure occurred in a fresh session established after reload, not an uncleared old playout session.",
+    "At failure the host generated/requested clock interval exceeded the source interval by about105ms; FIFO was populated.",
+    "This narrows the symptom to a control-timeline/delivery discontinuity, not evidence of host render FIFO starvation at that instant."
+  ],
+  "limits": [
+    "No root-cause claim: host trace alone cannot distinguish native clock pause from delayed control delivery.",
+    "Observer overhead is not excluded; only compact status polling ran during measurement and no trace dump.",
+    "Trace printing occurred after measurement; between-capture counter increases are outside the scored intervals.",
+    "Idle/slow-edit ring traces retain only the final128 snapshots; complete action history is not guaranteed.",
+    "No dense-LFO, unmuted listening, long soak, note/velocity or complete Gate B/C qualification."
+  ],
+  "status": "reproduced failure; not fixed",
+  "hardware_test": true,
+  "qualification_pass": false,
+  "analyzer_sha256": "f8a879dc441e0290f6871456b5d079259f30700ca88c035e8e4d91565317eb7c"
+}

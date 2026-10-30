@@ -1,0 +1,29 @@
+{
+  "scope": "actual playout/engine replay of hardware-derived timing metadata; ASan/UBSan desktop; no live hardware",
+  "command": "python3 scripts/test_v01_timing_replay.py",
+  "observed": {
+    "rejected_sequence": 107,
+    "accepted": 106,
+    "code": 3,
+    "clock": 222204,
+    "due": 217216,
+    "delta_blocks": 64
+  },
+  "reproduced_hardware_late_fault": true,
+  "source_sha256": {
+    "tools/v01_replay_timing.c": "d1f58e806d630e64df78a6d87d03e2e06dc0e39b68a4eddb5574ff8c430a5936",
+    "audio/playout.c": "91419d01ed0015ad8b288cb87754cbe6f74513cab840045a7f2de0a43a5abd4b",
+    "audio/trx_voice.c": "92c9cc5fd3ff91f184e1c45ab88574d90750a590d986ca9d35030b4f39d2c31a",
+    "audio/src_44148.c": "17e34f1a05ab474336837fe85b1c75d6a56859de9780b2bb0f0bb15d592070b7",
+    "deps/mdkit/src/trx/b2/mdkit_trx_b2.c": "f8dd0be639ed263926c97ab83a36bc28d76100a89ab4f358b8ce78468f55dc54",
+    "scripts/test_v01_timing_replay.py": "211fa40aee584702a2700dbe28cbd9516c08c52ee4ae9b142b94d5dd8a853ac3",
+    "evidence/v01/reload-clock-replay.txt": "ce2006054fe4fb9641cc7eed75b1bbcf6e8c8e7e44737473b4661073f670e308"
+  },
+  "limits": [
+    "Controls/note/velocity replaced by safe defaults; only sequence/block/install-clock timing retained.",
+    "Confirms the playback deadline guard reacts to this timing pattern; not a fix.",
+    "Does not distinguish native clock pause from delayed control delivery."
+  ],
+  "replay_pass": true,
+  "qualification_pass": false
+}

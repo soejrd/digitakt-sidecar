@@ -13,14 +13,21 @@ it was **not** this hang. The RX/ACK interrupt path is the remaining suspect.
 
 ## Current next work — offline only, no flash
 
-1. Bound the deferral this session introduced. [Candidate V01K](../evidence/v01/fix-k-package.json)
-   made a refused send a deferral, which removed the fail-closed retire: a stalled
-   native queue now retries indefinitely. Add a retry/age limit that retires.
-   Worker elapsed also rose to 74% of elapsed at ~410 sends/s (was ~25% at
-   ~816 sends/s); explain that before trusting any timing from this image.
-2. Make the RX/ACK interrupt path append-only. The Pi ACKs every snapshot, so
-   `native_rx` runs at the send rate and currently parses frames and wakes in
-   interrupt context.
+1. The no-progress TX deferral is now bounded **in source only**, independently
+   of valid old keepalives. Old/fixed actual-worker replays, clock wrap,
+   ASan/UBSan and fresh-session recovery pass
+   ([proof](../evidence/v01/stalled-tx-bound.json)). Emulator-only **V0DE** boots
+   and passes native USB/audio component preflight
+   ([proof](../evidence/v01/bounded-worker-emulator.json)); Gate A is NOT SCORED.
+   Nothing is installed. The physical freeze and prior74% worker cost remain
+   unexplained; this timeout requires a running render clock.
+2. Audit the native RX/RTOS/wakeup chain, without assuming our callback parses
+   protocol in an IRQ. Source review of V01K/current code shows
+   `native_rx → dt1_rx_trampoline → dt1_rx_bytes` already appends raw bytes;
+   task-side `dt1_rx_service` parses frames. The native component model observes
+   callbacks at IPL0. That refutes the old description of our own callback,
+   not the broader physical RX/RTOS/bus hypothesis. Do not add a second queue
+   or claim the freeze fixed on that basis.
 3. Reproduce or refute the remaining RX hypothesis in the emulator, then one
    short muted candidate. Do not flash on "the last hypothesis was wrong".
 4. Still open from before the freeze: does render preemption explain the
@@ -124,7 +131,7 @@ Status as of the V01K freeze (2026-10-29). None of A–C has passed.
 
 | Gate | Status | What is actually missing |
 | --- | --- | --- |
-| A | **Parked** by owner to unblock B/C and X01 | No cause found, so no causal fix to demonstrate; the only shipped fix was falsified. Resume when the RX/ACK hypothesis is reproduced or refuted in the emulator and the deferral regression is bounded. |
+| A | **Parked** by owner to unblock B/C and X01 | No cause found, so no causal fix to demonstrate; the only shipped fix was falsified. The deferral regression is now bounded in source/emulator only; the RX/RTOS/bus hypothesis remains unproven and physical dense trials remain parked. |
 | B | **In progress; no complete case passed** | No V01 evidence yet for save/reload, copy-paste, undo, mutes, sound locks, switches during play or USB1-to-another-track. I04 acceptance covers SRC controls, locks and local filter/amp on one voice only; it is not persistence. Runs on I04R. |
 | C | **Ready, partially satisfied at prototype scope** | Coarse USB pull/replug and Pi reboot recovery passed under I04R acceptance and the model-level I03 exchange. Missing: three-cycle counters for pull/replug, Pi reboot and Digitakt restart separately; the10-minute combined soak; a frozen numeric profile; and UI thresholds measured on hardware. Boot→active FIFO0→11 remains unresolved. |
 
@@ -274,3 +281,49 @@ needs separately marked reconnect/reload/edit actions and an existing bounded
 action/capture, then print/read the frozen trace afterward; never print it during
 the timing-sensitive interval. Host clock deltas may narrow the failure pattern
 but alone cannot establish native clock pause versus packet/worker delay.
+
+## Separated timing capture and offline progress — 2026-10-30
+
+[Separated hardware trials](../evidence/v01/i04r-separated-timing.json) now remove
+the earlier reload/edit ambiguity: untouched muted97.6s and only a slow PTCH
+edit180.6s added no faults or within-measurement counter growth. A separately
+marked single reload, confirmed by the user with no later inputs, added a
+SC_PF_LATE and froze the complete128-record trace. All dumping was post-trial.
+
+A fresh session was established after reload. At its sequence107, the source
+interval was2048 frames while Pi generated/requested intervals were7080/7077;
+the frame was4988 frames (~103.9ms at48kHz) late, FIFO94 and scheduler queue0.
+This narrows the symptom to a control-clock/delivery discontinuity, rather than
+empty render FIFO at that instant. It does not distinguish a paused native
+clock from delayed delivery or exclude measurement overhead. The current
+playout deadline guard correctly rejects that input; weakening the guard or
+fitting a larger delay would not establish a fix.
+
+A public107-row timing-only fixture removes the session ID, note, velocity and
+SRC payload. Actual playout/real-engine replay reproduces the exact fault:
+
+```sh
+python3 scripts/test_v01_timing_replay.py
+python3 scripts/test_v01_stalled_tx.py
+python3 tests/test_v01_timing_capture.py
+```
+
+[Timing replay](../evidence/v01/reload-timing-replay.json) is a reproducer, not
+qualification. [TX regression](../evidence/v01/stalled-tx-bound.json) is the
+separate no-progress source fix, not the104ms timing fix. Event-worker cadence,
+dense integer source changes,64 STARTs, ACK-loss recovery and starvation tests
+also pass; ColdFire worker object has no allocator/wait/libc imports.
+
+`tools/v01_timing_capture.py` keeps the existing installed image muted,
+baselines cumulative faults, and freezes/dumps only after measurement. Use a
+new private directory, mark each action in action.json, and do exactly one
+requested action. It writes a standalone trace.txt so prior dumps retained in
+logs cannot contaminate analysis. Four local HTTP-substitute tests validate
+historical-fault handling, new-fault stop, mute cleanup, old-dump separation and
+truncation rejection. No native control payload is exported in public timing
+summaries. The Pi remains muted with trace off and only track1 USB1.
+
+Next: establish whether the missing native control-time interval is captured
+before enqueue or introduced in delivery, starting in the emulator. Dense
+physical Gate A, remaining B audio/note/velocity/dirty flags and Gate C recovery/
+soak remain unqualified. No new hardware candidate or flash is ready.

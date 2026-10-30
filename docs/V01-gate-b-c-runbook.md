@@ -31,14 +31,17 @@ already accepted ("slow/shallow PTCH LFO plus brief PTCH/DEC edits").
 
 ## Gate B — persistence and edit semantics
 
-**Emulator status (2026-10-29):** B is mechanism-testable — SRC values are sound
-slots 46-52 saved in a version-4 160-byte record — but no round-trip is proven
-yet, so no case below has an emulator pass.
+**Emulator status (corrected2026-10-30):** The eight TRX controls use native sound
+slots17-24; diagnostic/unused extras are slots46-52. Custom version-4 records
+are160 bytes. A V01-specific full project round trip is not yet established
+in the emulator. The physical displayed-state results are in TASKBOARD/report.
 [Feasibility and failed attempts](../evidence/v01/gate-b-emulator-feasibility.json).
 Resume by porting the call pattern from
 `deps/elekloader/tests/probe_digitakt_src.py` (unpatched machine, `MAP_INIT` and
 `SOUND_INIT` first, native `SOUND_SAVE=0x4007A5A0`, `SOUND_LOAD=0x4007A236`).
-B2/B4/B5/B6/B7/B8/B9/B10 have no emulator hook; plan those on hardware.
+Physical qualification still requires hardware. Later X01 emulator probes cover
+SRC-page copy and seeded RAM sound-lock selection/restoration, but do not
+constitute complete V01-B cases or saved-project persistence.
 
 For each case record: tiden values before, the action, the value after, the
 restored state, output (muted or audible), and any unintended dirty flag.
@@ -84,3 +87,20 @@ One compact JSON per gate under `evidence/v01/`, with the image hash, the
 numbered profile, per-case before/action/after and the human's listening/UI
 opinion. Raw captures stay private. Update [the report](V01-persistence-stress.md)
 and the board when a gate closes; do not leave trial narratives in either.
+
+## Current muted timing workflow
+
+Use `tools/v01_timing_capture.py` with a new private output directory and the
+existing I04R/Pi pairing; it never enables audio or changes firmware. Establish
+an untouched baseline, mark one action in the directory's action.json, then
+perform only that action. Historical fault counts are baselined; a new fault
+ends capture. A stop file ends a clean observation. The complete bounded dump
+is collected only after capture is off, into standalone trace.txt. Analyze it
+with `tools/i04_analyze_trace.py --delay 128`; never combine earlier dumps from
+raw-log.txt. Run `python3 tests/test_v01_timing_capture.py` before tool changes.
+
+Latest separated trials reproduce reload-only SC_PF_LATE; idle and slow PTCH-only
+trials do not. [Evidence](../evidence/v01/i04r-separated-timing.json). Hardware
+remains muted; this is diagnosis, not a Gate B/C pass or authorization for dense
+V01-A trials. The pending TX-timeout source change is not installed and does
+not explain the104ms control timing gap.

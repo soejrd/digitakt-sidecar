@@ -1,162 +1,70 @@
 # Progress handoff
 
-Status/ownership: [TASKBOARD.md](TASKBOARD.md). Read AGENTS.md and PLAN.md.
+Read AGENTS.md, TASKBOARD.md and PLAN.md. No complete V01 gate has passed.
 
-I04's one-voice prototype is accepted; dense-modulation qualification is V01
-([report](docs/V01-persistence-stress.md)).
+**Installed hardware:** user restored I04R on2026-10-30. Pi still runs the
+Oct29 12:31:45 kernel. Current project is disposable; only track1 is USB1,
+LFO destinations NONE. USB reconnected. Pi voice muted and timing trace off.
+No new firmware/kernel installed. Recovery hashes: V01 report.
 
-**V01 IN PROGRESS; no fix for the freeze.** The trigger is our per-snapshot
-traffic, not the LFO or the USB attach: destination NONE at maximum LFO speed is
-fully responsive, while snapshot traffic freezes the device and it stays frozen
-after the cable is pulled. Every device counter stops together, so it is a stop,
-not saturation. The RX/ACK interrupt path is the remaining suspect.
+**V01-B displayed-state checks:** user confirms project save/change/reload,
+cold boot, Sound save/load, Pi-disconnected reload and complete Sound copy
+restore displayed USB1/eight-SRC state. Full Sound copy is TRK+RECORD /
+TRK+STOP; GRID FUNC copy is sequencer data, not complete Sound. Project was
+restored to one USB1 track after copying. Evidence index in TASKBOARD/report.
+No audio/note/velocity/dirty-flag or full B/C qualification from these checks.
 
-**The masked-send race was real but is falsified as the cause.** Candidate V01K
-shipped an authoritative in-mask preflight; it still froze at ~256/512
-([freeze](evidence/v01/v01k-freeze.json),
-[capture](evidence/v01/v01k-freeze-live-2026-10-29.txt)). The fix is kept with
-its regression, but it introduced a defect: a refused send is now a deferral,
-so a stalled queue retries without bound and never fails closed. Worker elapsed
-rose to74% of elapsed at~410 sends/s (was~25% at~816 sends/s).
+**Timing failure now isolated to reload-only:** untouched muted baseline
+97.6s and slow PTCH-only180.6s added no faults or counter growth during capture.
+A separately marked single reload (user confirms no edits afterward) added
+SC_PF_LATE and froze all128 trace rows. A fresh session started normally; its
+sequence107 arrived4988 frames (~103.9ms) late. Source interval2048 frames,
+Pi generated7080/requested7077, FIFO94 and scheduler queue0. This narrows the
+failure to a source-clock/control-delivery discontinuity, not empty host FIFO
+at that instant. Native clock pause vs delivery delay remains unresolved.
+[Hardware](evidence/v01/i04r-separated-timing.json),
+[timing-only replay](evidence/v01/reload-timing-replay.json).
 
-**Plan change (owner):** the dense-modulation work is **parked** as V01-A and
-does not block the rest. B and C need a stable device, which I04R is within its
-accepted scope, so run them there with slow/shallow LFOs
-([runbook](docs/V01-gate-b-c-runbook.md)). X01a capacity study is desk work and
-also unblocked. Resume V01-A when the RX/ACK hypothesis is settled in the
-emulator and the deferral is bounded; no flash before that.
+The HTTP capture tool preserves historical fault baselines, stays muted,
+automatically ends on a new fault, and dumps a complete bounded trace only
+after measurement. Four local-server tests pass. Old dumps in logs must not
+be mixed: use each capture's standalone trace.txt. Public replay data omits
+all actual note/velocity/SRC payloads. No live trace printing.
 
-**Gate B emulator status:** SRC values are sound slots 46-52 in a version-4
-160-byte record, so B is part-automatable, but the save->change->load round-trip
-is **not yet proven** — three call attempts returned 0. Known-good pattern to
-port is `deps/elekloader/tests/probe_digitakt_src.py`.
-[Findings](evidence/v01/gate-b-emulator-feasibility.json). Emulator-only
-candidate `private/gateb-emu` (`B01E`) exists for this; it is not a hardware
-candidate. Awaiting the owner's decision between porting the harness and running
-B on I04R by hand.
+Underflows counts empty requested frames, including intentional FIFO flushes
+on epoch changes; counter growth alone is not producer starvation. Post-trial
+printing can perturb counters, so compare only within marked capture windows.
+[Proof](evidence/v01/output-counter-semantics.json). Earlier mixed load/edit
+trial stays inconclusive; the new reload-only capture supersedes that trigger
+uncertainty, not the unresolved root cause.
 
-Still unresolved: DTIM2 external rate, physical memory costs, core clock, and
-boot→active FIFO0→11. Prior support detail: diagnostic clock reads are fixed by a
-replayable patch (28 dependency/23 V01 tests), corrected200MHz dense panel
-maximum is8.657ms, and the native-span observer matches firmware totals
-([comparison](evidence/v01/clock-cost-comparison.json)).
+**V01-A remains unqualified; dense hardware work parked.** The physical freeze
+was per-snapshot/ACK traffic, not LFO destination NONE or USB attach. Masked
+preflight race existed but V01K still froze. New offline source fix bounds
+no-progress TX to USB_TRACK_LEASE, independently of valid old keepalives.
+Old worker remains active after878 blocks; fixed worker retires after782 and
+recovers, including uint32 clock wrap. ASan/UBSan, event-worker regressions,
+ColdFire imports and emulator native-component preflight pass.
+[Red/green](evidence/v01/stalled-tx-bound.json),
+[emulator](evidence/v01/bounded-worker-emulator.json). Private V0DE fixture is
+emulator-only, not a hardware candidate. This is not a freeze or B timing fix.
 
-**X01 remains IN PROGRESS; default production is one voice.**
-[Report/commands](docs/X01-multivoice-offline.md). Opt-in v5/v4 two-track native
-capture/worker, portable peer, Circle glue and independent Output lanes pass
-host/ASan/UBSan/ColdFire checks. The booted OS1.54 exchange preserves other
-sources through 17,811 render boundaries, simultaneous hits, panel edits,
-ACK loss, reconnect and stalled TX ([evidence](evidence/x01/integrated-154.json)).
-Session regressions cover single-lane mapping, timestamp/lease wrap and stalled
-ACKs despite valid keepalives. Earlier 1/2/8-engine host benchmark remains valid
-within its scope; eight independent Digitakt returns are not established.
+RX source audit: native_rx calls dt1_rx_trampoline→dt1_rx_bytes, which appends
+raw bytes; protocol parsing is in task-side dt1_rx_service. This was already
+true in V01K. Current native USB/audio component model observes RX at IPL0;
+it does not reproduce/refute the physical RX/RTOS/bus freeze. Do not add a
+second speculative queue based on the old claim that our IRQ parses frames.
+DTIM2 external rate, physical memory costs/core clock and native timing
+attribution remain open. No speculative flash or fitted emulator delays.
 
-Native seeded LFO and distinct stored-lock restoration pass. New offline
-coverage: all eight SRC controls edited through native UI copy from track2 to
-track1 via held SRC+RECORD / SRC+STOP; exact engine values transfer, neighboring
-sound slots and target non-SRC slots stay intact. Two RAM pool sounds on step3
-(no p-locks) produce60→72→60 and60→84→60 at matching native/host STARTs.
-Both keep the same active session with zero host fault.
-[Page copy](evidence/x01/copy-src-154.json),
-[sound locks](evidence/x01/sound-lock-154.json). Panel gestures service replies
-throughout and wait for native smoothing. These do not pass V01-B, saved-project
-persistence or full track/pattern copy. USB/host timing remains modelled.
+Persistence correction: eight TRX controls are slots17-24; slots46-52 are
+extras, used for V01 diagnostic readouts. Old extra-slot attempts are not
+proof of eight-TRX-control persistence. Keep their failed-call history.
 
-Docker now runs and the isolated Pi4 ARM build passes after correcting the
-adapter's target headers; the actual Circle host regression passes.
-[Build evidence](evidence/x01/pi-build.json): image2,482,984 bytes,
-ELF BSS1,530,433 bytes, peer static68,032 bytes. Cached libraries reused;
-runtime heap/stack peaks, CPU margin and physical timing remain unmeasured.
-Native machine/route changes now pass9 phases, including a shifted pair,
-unsupported third track, empty route and recovery. Exact selected-source PCM
-matches negotiated lanes; unselected sources stay intact and closed gates
-remain silent ([routes](evidence/x01/routes-154.json)). A new regression
-reproduced worker sleep after route retirement with UI fallback wakes disabled.
-The X01 renderer now posts its existing bounded semaphore on route edges;
-third/empty recovery passes without another panel input
-([before/after](evidence/x01/route-wakeup-regression.json)). No USB/allocation/wait
-was added to render; normal one-voice and V01 paths remain unchanged. This does
-not fix V01-A. Current rebuilt emulator-only fixture: `private/x01-routes`,
-label X01E; old `private/x01-control` belongs to the previous source hashes.
-Next offline: full track/pattern copy.
-Hardware expansion still needs V01-A, measured X01a margin and reviewed recovery.
-Private X01E remains emulator-only. No installed firmware/kernel changed.
-
-**Hardware preflight (2026-10-30):** user reports I04R restored, Pi restarted,
-disposable project with USB1 on track1 and LFO destinations NONE. Pi build
-remains Oct29 12:31:45. Native control arrives: 7 STARTs/7 consumed, TRX faults0.
-Underruns rose from1 (uptime24/48s) to15 by uptime1886s; cause/timing unproven.
-Muted samples at1903/1913/1923s stayed15, USB gaps/errors0, no power throttling.
-Voice enabled with existing fade-in: arm1 accepted, faults0, underruns still15
-at1963/1966/1969s. User confirms quiet drum, PTCH change and responsive UI.
-At2062s, all33 STARTs consumed, TRX faults0, underruns still15; no new power
-faults. Voice muted again for project save/load testing; trace remains off.
-This is a preflight, not a clean-boot stability result or any Gate B/C pass.
-No X01 hardware candidate is ready; V01-A remains unresolved. Recovery hashes
-remain in the V01 report.
-
-**Gate B physical B1 trial:** user confirms all eight prescribed SRC values and
-USB1 restored after project save/change/load on I04R. This is not a full pass:
-afterward (uptime2236s) Pi faults rose0→1, code3 SC_PF_LATE (due217216,
-clock222180; 4964 frames late), underruns15→44. User reports normal reload, no visible freeze/unusual pause. Exact timing/cause
-within the sequence is unproven. Voice remains muted; audio cases stopped. Raw log private.
-[Evidence](evidence/v01/gate-b-i04r-project-reload.json). Note/velocity, dirty
-flags, post-reload sound, cold boot and Pi-disconnected persistence unverified.
-
-B9 displayed-state portion confirmed by user: with Pi USB disconnected,
-PTCH/DEC changed90/10 then project reloaded; all eight prescribed SRC values
-and USB1 selection restored. This excludes host caching for displayed state.
-[Evidence](evidence/v01/gate-b-i04r-without-pi.json). USB remains disconnected;
-cold-boot check subsequently confirmed (below). No audio/note/velocity/dirty-flag qualification. B1's
-late-playback fault and underrun growth remain open; Gate B not complete.
-
-B2 displayed-state portion confirmed: Digitakt powered off30s, rebooted,
-loaded saved test project with USB still disconnected; USB1 and all eight
-SRC values restored. [Evidence](evidence/v01/gate-b-i04r-cold-boot.json).
-B3 Sound save/change/load subsequently confirmed too: USB1 and all eight
-SRC values restore with Pi disconnected
-([evidence](evidence/v01/gate-b-i04r-sound-load.json)). No audio/note/velocity
-qualification. Next: reconnect/restart Pi for a fresh muted baseline and
-isolate project-reload timing; B1 fault and underrun growth remain unresolved.
-
-Muted reload isolation after fresh Pi restart: initial under8/faults0, then
-177.6s of sampled stability. At reload-associated sample (uptime304s), under
-jumped8→30 and applied/frame reset; faults were still0. Monitor stopped there.
-Later uptime363/368/373s under53 stable, faults2 with code3 SC_PF_LATE
-(now154548, due149632). User reports normal UI. User clarified: exactly one reload followed by control edits; action timing
-relative to counters was not marked, so this was not reload-only. Voice stays muted, no further trials or firmware changes.
-[Isolation](evidence/v01/gate-b-i04r-reload-isolation.json). Root cause unknown;
-next feedback loop must retain the delayed-fault window after the first under.
-
-Clarification: user regards UI behavior as fine, but post-reload control edits
-confound the attempted isolation. Do not attribute the observed late faults or
-underrun growth to project reload alone. State-restoration observations remain
-valid; playback timing is unqualified. Do not require another reload repeat
-without a sharper action-marked feedback loop. Pi last left muted.
-
-Copy procedure correction: GRID FUNC+RECORD / FUNC+STOP did not transfer USB1
-or SRC to track2. This was sequencer-track copy, not complete Sound copy; no
-custom-machine defect inferred and trigs/locks not checked. Official manual
-section9.5 uses TRK+RECORD / TRK+STOP for full Sound copy. USB remains unplugged;
-corrected test now confirmed: track2 receives USB1 and matching SRC values. [Observation](evidence/v01/gate-b-i04r-copy-procedure.json).
-
-B10 complete Sound copy via TRK+RECORD / TRK+STOP passes displayed USB1/eight-SRC
-scope by human report; no cross-track audio or sequencer-copy qualification.
-Both tracks now hold USB1 while USB is disconnected. Before reconnecting,
-restore the saved disposable project and verify only track1 remains USB1;
-installed I04R is still one voice. Pi remains muted. Timing fault unresolved.
-
-User confirms saved project restored after Sound-copy check: only track1 has
-USB1 again; USB remains disconnected, Pi muted. No new hardware action needed.
-
-Offline counter clarification: pinned default Circle Output/root patches,
-ASan/UBSan, demonstrate a prefilled FIFO is intentionally drained on control
-epoch changes and the following empty requested frames increment Underflows.
-Close/reopen/close each counted32; steady prefilled playback counted0.
-[Reproducer](scripts/test_v01_output_counter.py),
-[evidence](evidence/v01/output-counter-semantics.json). This disproves treating
-all counter growth as producer starvation; it does not attribute the physical
-8→30→53 counts or explain/fix the separate SC_PF_LATE faults. Counter units are
-requested frames, not incident count. Next needed: bounded pre-fault timing
-capture with separately marked reconnect, reload and control-edit actions;
-no live trace printing. No firmware/kernel/host behavior changed.
+**X01:** opt-in two-track native/host/Output,1/2/8 host engines, seeded LFO,
+locks, sound locks, SRC-page copy, native route changes and isolated Pi build
+pass within their documented offline scope. Route-edge wake fix is in source.
+[Report](docs/X01-multivoice-offline.md). Private x01-routes/X01E remains
+emulator-only; hardware expansion waits for V01-A, measured X01a margin and
+reviewed recovery. Full track/pattern copy, runtime stack/CPU margin and
+physical two-return timing remain open. Eight independent returns unproven.

@@ -6,6 +6,7 @@
 #include "../../control/device_link.h"
 static struct sc_device_link device;
 static uint32_t epoch, voice, keepalive_at;
+static uint32_t tx_progress,tx_since;
 static uint8_t initialized, first;
 static volatile uint8_t running;
 #ifdef USB_TRACK_DIAGNOSTIC
@@ -66,7 +67,13 @@ void usb_track_tick(void *ctrl)
     usbmidi_device_open(); /* retry if the native RX slot was not ready yet */
     usbmidi_tick(ctrl);
     now=usb_track_clock; /* receive callbacks may have advanced ACK time */
-    if (usbmidi_device_failed()) {
+    const uint32_t submitted=usbmidi_device_diag(1),pending=usbmidi_device_diag(4);
+    if (submitted!=tx_progress || !pending) {
+        tx_progress=submitted; tx_since=now;
+    }
+    /* Valid old keepalives prove RX liveness, not forward progress of a
+     * refused native TX submission. Bound its age independently of RX. */
+    if (usbmidi_device_failed() || (pending && now-tx_since>=USB_TRACK_LEASE)) {
         retire(SC_REASON_TRANSPORT);
         usbmidi_device_close(); usbmidi_device_init(receive,0); usbmidi_device_open();
         return;

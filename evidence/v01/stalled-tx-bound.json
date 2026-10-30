@@ -1,0 +1,45 @@
+{
+  "scope": "actual one-voice render/worker/native adapter and portable host; modelled USB/RTOS; ASan/UBSan; no hardware",
+  "command": "python3 scripts/test_v01_stalled_tx.py",
+  "before_revision": "a8e63fa",
+  "before_results": [
+    "FAIL: stalled TX still active after 878 blocks despite 28 valid keepalives; gate=1 queued=28",
+    "FAIL: stalled TX still active after 878 blocks despite 28 valid keepalives; gate=1 queued=28"
+  ],
+  "after_results": [
+    "V01 stalled TX: retired after 782 blocks despite 25 valid keepalives; fresh-session recovery: PASS",
+    "V01 stalled TX: retired after 782 blocks despite 25 valid keepalives; fresh-session recovery: PASS"
+  ],
+  "modes": [
+    "ordinary render clock",
+    "render clock wraps uint32"
+  ],
+  "checks": [
+    "valid old keepalives cannot renew a stalled TX queue indefinitely",
+    "no native TX submission while native queue refuses sends",
+    "gate closes within lease plus bounded worker-service cadence",
+    "fresh-session recovery after native progress resumes"
+  ],
+  "source_sha256": {
+    "tests/v01_stalled_tx.c": "41059598fdbb5430a21aae048fb15094596b32a314a5f1b5e4fad9ef07b9bff8",
+    "mods/usb-track/src_queue.c": "2de5d0209e05151065d6f9a4af09967b904b95c6b13e9ab7427eb90f5d7a79ab",
+    "control/link.c": "a77605f80a299c502c7a39d36db2287682f133210bf924ab3567b64933294f43",
+    "control/device_link.c": "f095e882273183bddc5f369b309bdd3a3f42cb951ca73e178b0543c222997b49",
+    "control/host_link.c": "fb8a514a37e64d8f7861677cdbccb7dcbab0030ddac70e9790569369e56453fd",
+    "control/circle_link_adapter.c": "e5824308214ed1731c81b0bd5d1ff126266846cc0523e55d7d84d983c4cb7025",
+    "control/usbmidi.c": "1e8d69223b593ca5c6293e5931d617aa2c46806b0a2ff1fcb0b10fb03fbdd93b",
+    "control/sysex_split.c": "edfcffa64dea00fd50be0f909f27ce8d1a843eceb1888b2fe98a712751b425d4",
+    "control/dt1_transport.c": "7660dd4f8bea7580029e297c0bb31f0f533526e76857586e8829ee5cab6fb6e2",
+    "mods/usb-track/worker.c": "798889265719bd38b853a01f7ce4650af8dc0961dce25c9f6742070ee26753bd",
+    "mods/usb-midi/usb_midi.c": "d2779f21c9e70edbdacdc0aaff18549bed940214f62566eee30a9a692e01c84f",
+    "tests/i03_integrated.c": "9df507d8b9900c9a8a985997bcc23db18306823e5470b0385e837903e9deede0",
+    "tests/dt1_native_io.h": "63f0695adf4ffde474f7105d69e64783e53a51ff0f39f985f343fac2ad12d7e0",
+    "scripts/test_v01_stalled_tx.py": "4a84d3477518e6dbe9c195be4527ccdc625ff5c73bf385447a38de41ee33af41"
+  },
+  "limits": [
+    "Render-clock age bound requires a running render clock.",
+    "Not a physical freeze fix or timing/CPU qualification.",
+    "Source fix is not installed on the Digitakt."
+  ],
+  "pass": true
+}

@@ -1,0 +1,108 @@
+{
+  "scope": "bounded one-voice TX worker emulator-only build/native component preflight; no hardware",
+  "candidate_label": "V0DE",
+  "candidate_sha256": "abbe7bd300d04c148aeba6861e989728f6c6f0abf40ef673c3c74bb244be848e",
+  "emulator_only": true,
+  "compiler_defines": [
+    "USB_TRACK_DIAGNOSTIC",
+    "V01_NO_SELF_WAKE",
+    "V01_REMOTE_DIAGNOSTIC",
+    "V01_COMPACT_SNAPSHOTS"
+  ],
+  "source_hashes": {
+    "control/device_link.c": "f095e882273183bddc5f369b309bdd3a3f42cb951ca73e178b0543c222997b49",
+    "control/device_link.h": "d52b6a79c6b6b822f2fecdcc58668ef62e5bbc3529944ba5c10c6727a6a84216",
+    "control/dt1_transport.c": "7660dd4f8bea7580029e297c0bb31f0f533526e76857586e8829ee5cab6fb6e2",
+    "control/dt1_transport.h": "c2e42ea943c3ba06a94f44dad5b3111838dab69839022694a63c03f5355532ab",
+    "control/link.c": "a77605f80a299c502c7a39d36db2287682f133210bf924ab3567b64933294f43",
+    "control/link.h": "cc551384d65e30b2d7799a623ff163c31a3aa76958ed499f18ab6167ad5e2d08",
+    "control/sc_memory.h": "f45d7f79fe37f563581f751f9330709b35d912d9ddc68a42a7453dbbb2ed5ca1",
+    "control/sysex_split.c": "edfcffa64dea00fd50be0f909f27ce8d1a843eceb1888b2fe98a712751b425d4",
+    "control/sysex_split.h": "bdc3f393187f792419b955514e56c6704811ea4e0e64332dab4916276f09580d",
+    "control/usbmidi.c": "1e8d69223b593ca5c6293e5931d617aa2c46806b0a2ff1fcb0b10fb03fbdd93b",
+    "control/usbmidi.h": "1d7479908f0bf4ac186fc37978a758bebf18bc5f16e4296d017ed1973830e82d",
+    "control/v01_diag.h": "56b196d7683d4f1697a38f949d8c9055c369194aa861697fd52a54411c6bea6d",
+    "mods/usb-midi/mod.json": "42237ba9db973bb9de4aafcb426b0effd881800a39e611c13a0a8ab6a835ea1c",
+    "mods/usb-midi/usb_midi.c": "d2779f21c9e70edbdacdc0aaff18549bed940214f62566eee30a9a692e01c84f",
+    "mods/usb-midi/usb_midi.h": "12db1c576ba6802319589615bae93c4a2a1ef473938cef30e118bc7187709e8f",
+    "mods/usb-track/core_candidate_clock.h": "98b51b1ac481a58b00985efb10575707475d742954ba76e8a9e72139bc023fe4",
+    "mods/usb-track/core_candidate_rtos.h": "60714763f69eb908aa63b360729182176a0f96c3a9b0cc087f19026ccb27a7bd",
+    "mods/usb-track/core_candidate_rtos.s": "a85a8ed629996aa4ef674ef7ac278d5fcd8fc2e0dace20d3f5e9bc6e590c9e65",
+    "mods/usb-track/mod.json": "c3674d72e22e18c74ab6f5b33fa218145e3c87f8e9fb6cc2740cf555e3044f6e",
+    "mods/usb-track/return_lanes.c": "af154add6212cd76f9cfc0d2ea189beabbcbe24ffdb0f9d7c23428c649abf25d",
+    "mods/usb-track/return_lanes.h": "c214e6a7333ca0643d1ece9da1ee443a1bcfa3a35ddd784e532c77897c994115",
+    "mods/usb-track/src_queue.c": "2de5d0209e05151065d6f9a4af09967b904b95c6b13e9ab7427eb90f5d7a79ab",
+    "mods/usb-track/src_queue.h": "577dbad5a473c637234ce3874b57669e3005b654a353c78ddc64481303e007cf",
+    "mods/usb-track/task_worker.c": "3dc91a68c8615b69489240cfa3e074df06978bd2aecc9b032dc02572792eb6f7",
+    "mods/usb-track/usb_track.c": "ee2d997e7aeffffbe9f91d5ecadac4e88dab1604b302a73d820e8ff7f8d90791",
+    "mods/usb-track/usb_track.h": "2f42d53a93197f86878b5b97fbc586316483e1aa7e2e4a5cbfe60e0dd55c5e8a",
+    "mods/usb-track/worker.c": "798889265719bd38b853a01f7ce4650af8dc0961dce25c9f6742070ee26753bd",
+    "mods/usb-track/x01_render.c": "169fa6c3e85de93e0aef6c20d5abb5abb2f0b70ba8171dd4ee2c3ef9ba824db0",
+    "mods/usb-track/x01_track.h": "605b4cdc12704f129784a2cafab16bd69cbf81c44a70b84fd02226a24e222eac",
+    "mods/usb-track/x01_worker.c": "623acdd39e2b8a644883e286a8deec93bc4f6141bd62b33f3319023fb4fa0746"
+  },
+  "command": "tools/v01_contention_probe.py --candidate private/v01-defer-emu --fsys 200000000 --duration-ms 500 --usb-device --usb-peer --usb-periodic --usb-audio --profile-execution",
+  "status": "emulator-gap",
+  "gate_a_verdict": "NOT SCORED",
+  "component_verdict": "within-panel-limit",
+  "private_report_sha256": "402cb15dddd1b07ae0d3b24bc1bc85e31447d910c91a0ec8c92b01e8dd243cca",
+  "profiles": [
+    {
+      "profile": {
+        "speed": 32,
+        "depth": 32,
+        "scope": "native LFO/panel + native USB MIDI and silent audio component"
+      },
+      "halted": null,
+      "native_worker_wait_faked": 0,
+      "counters": {
+        "render_blocks": 750,
+        "effective_changes": 126,
+        "native_usb_submit_calls": 131,
+        "native_rx_bridge_calls": 119,
+        "native_rx_interrupt_levels": {
+          "0": 119
+        },
+        "sampled_source_queue_peak": 1,
+        "activate_service_age_blocks_max": 12
+      },
+      "max_panel_completion_ms": 7.913635,
+      "worker_batches": 138
+    },
+    {
+      "profile": {
+        "speed": 64,
+        "depth": 48,
+        "scope": "native LFO/panel + native USB MIDI and silent audio component"
+      },
+      "halted": null,
+      "native_worker_wait_faked": 0,
+      "counters": {
+        "render_blocks": 750,
+        "effective_changes": 373,
+        "native_usb_submit_calls": 369,
+        "native_rx_bridge_calls": 353,
+        "native_rx_interrupt_levels": {
+          "0": 353
+        },
+        "sampled_source_queue_peak": 2,
+        "activate_service_age_blocks_max": 4
+      },
+      "max_panel_completion_ms": 8.625325,
+      "worker_batches": 372
+    }
+  ],
+  "limits": [
+    "Experimental native audio DMA with silent credit-based returns; external DTIM2 clock is absent and audio validity must pass before latency attribution.",
+    "USB-device setup calls native MIDI configuration outside measurement and seeds configured RUN/UI-IRQ/queue-base and synchronized Overbridge preconditions once; enumeration is not modelled.",
+    "Source queue peak is sampled at render/worker entries; it is a lower bound, not an exact watermark.",
+    "No complete-machine UI runnable/wait attribution or physical Gate A regression verdict is possible here.",
+    "Cycle estimates assume zero-wait memory, omit DDR/bus contention and misalignment.",
+    "Core frequency is an assumption; 132MHz DTIM0 calibration is not CPU frequency.",
+    "Native sound slot seeds do not establish the complete physical LFO/pattern profile.",
+    "Main-loop return measures dispatch-pass completion, not visible screen latency.",
+    "CycleClock precharges whole blocks; hook timestamps are block-granular estimates.",
+    "Asynchronous exception-entry costs advance CycleClock outside the timer step; clocks differ slightly.",
+    "Snapshot was created with emulator shortcuts; native replay does not validate its history."
+  ]
+}

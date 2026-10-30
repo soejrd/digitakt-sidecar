@@ -10,14 +10,19 @@
     "path": "private/gateb-emu",
     "sha256": "5812716bb537b7ee32f422d0033223041b7f5c1d802cc412b86be316f1b5730f",
     "usb_track_version": "0.5",
-    "compiler_defines": ["USB_TRACK_DIAGNOSTIC", "V01_NO_SELF_WAKE", "V01_REMOTE_DIAGNOSTIC", "V01_COMPACT_SNAPSHOTS"],
+    "compiler_defines": [
+      "USB_TRACK_DIAGNOSTIC",
+      "V01_NO_SELF_WAKE",
+      "V01_REMOTE_DIAGNOSTIC",
+      "V01_COMPACT_SNAPSHOTS"
+    ],
     "why_rebuilt": "The I04R fixture (private/i04-event-worker-final) predates this session's source edits and refuses to load (source_hashes mismatch in 11 files). A current-tree, emulator-only candidate was built instead. It is not a hardware candidate."
   },
   "established": [
-    "SRC values live in sound slots 46-52, parameter ids 164-170 (deps/elekloader/mods/machine-pages/src.h, mod.json resources soundslot:46..52).",
+    "TRX-B2 knobs0-7 use native sound slots17-24. Extra parameters8-14 use slots46-52 and ids164-170; those extra slots must not be confused with the eight TRX controls.",
     "A sound is saved as version 4 of the 160-byte record, and only machine-pages reads that version (machine-pages README).",
     "mp_sound_save packs the stock slots 1-45, then the 7 extras, then slot 0; mp_sound_load restores them (mods/machine-pages/src.c, mp_sound_save/mp_sound_load).",
-    "In the booted emulator the values are readable and writable at kit + KIT_SOUND + 162*track + 20 + 2*slot; the eight controls round-trip in RAM.",
+    "In the booted emulator the values are readable and writable at kit + KIT_SOUND + 162*track + 20 + 2*slot; This is RAM access, not proof of native eight-TRX-control persistence.",
     "The emulator's SD card is file-backed and flushed (emu/esdhc.py Card.flush), so card persistence is emulatable in principle."
   ],
   "not_established": [
@@ -46,7 +51,7 @@
     "file": "deps/elekloader/tests/probe_digitakt_src.py",
     "what_it_does": "Builds an UNPATCHED Machine from the stock image, calls MAP_INIT, SLOT_ID, PARAM_SLOT, SOUND_INIT, then SOUND_SAVE=0x4007A5A0 / SOUND_LOAD=0x4007A236 with stacked args and a 0xDEADBEE0 sentinel, and asserts a real round-trip plus that a stock saver does NOT preserve candidate slots.",
     "why_it_works": "Unpatched routine bodies, correct native entries, and MAP_INIT/SOUND_INIT run first.",
-    "next_step": "Port that call pattern into tools/gateb_probe.py over the B01E image: assert extras round-trip and that the record reports version 4 and machine 121."
+    "next_step": "For an eight-control TRX persistence harness, exercise slots17-24 at native save/load entries. Generic extra-slot coverage is separate. Later physical displayed-state restoration checks are linked from TASKBOARD.md."
   },
   "plan_consequence": [
     "B1/B3 (sound save/load) look automatable once the harness above exists; it also gives a reusable regression for future candidates.",
@@ -58,5 +63,6 @@
     "B01E carries the V01 diagnostic defines, so it is a test image, not a shippable build.",
     "The emulator models the card, not a real Digitakt's storage timing or battery-backed state.",
     "Panel gestures in this file are observations of this firmware, not a documented manual."
-  ]
+  ],
+  "correction_2026_10_30": "The first eight TRX-B2 controls are base knobs0-7, native sound slots17-24. Slots46-52 are extra slots; in the V01 diagnostic build they display SECS/UI/WORK/WGAP/BATCH/UGAP/FAULT, not TRX controls. Earlier extra-slot experiments do not prove the eight TRX controls round-trip."
 }
