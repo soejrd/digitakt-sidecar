@@ -2,6 +2,12 @@
 
 Read AGENTS.md, TASKBOARD.md and PLAN.md. No complete V01 gate has passed.
 
+**Next work / highest priority: U01 (P0).** User prioritizes the Sidecar v0.3.0
+migration ahead of further V01/X01 work. Follow the
+[migration plan](docs/UPGRADE-v0.3.0.md): stage the new base, port the patches,
+then run host checks and the Pi4 cross-build before preparing a hardware
+candidate. Existing qualification gates and installed hardware state remain.
+
 **Installed hardware:** user restored I04R on2026-10-30. Pi still runs the
 Oct29 12:31:45 kernel. Current project is disposable; only track1 is USB1,
 LFO destinations NONE. USB reconnected. Pi voice muted and timing trace off.
