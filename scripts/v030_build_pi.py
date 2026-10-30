@@ -83,6 +83,29 @@ def build(output, evidence):
     subprocess.run(['git', '-C', str(output), 'reset', '-q', '--mixed', 'FETCH_HEAD'], check=True)
     for relative in ('pi/circle/build', 'teensy/libraries'):
         shutil.copytree(cache / relative, output / relative, dirs_exist_ok=True)
+    # The cached Circle trees already contain local patches.  Recreate only the
+    # engine tree from the pinned Circle commit so v0.3.0's patch order sees
+    # the context it was written against.
+    staged_circle = output / 'pi/circle/build/circle'
+    if not (staged_circle / '.git').exists():
+        raise SystemExit('staged Circle checkout is not a git tree')
+    staged_engine = output / 'pi/circle/build/circle-engine'
+    if staged_engine.exists():
+        shutil.rmtree(staged_engine)
+    subprocess.run(['git', '-C', str(staged_circle), 'archive', CIRCLE_BASE],
+                   stdout=(output / 'circle-base.tar').open('wb'), check=True)
+    staged_engine.mkdir(parents=True)
+    subprocess.run(['tar', '-xf', str(output / 'circle-base.tar'), '-C', str(staged_engine)], check=True)
+    # v0.3.0's circle-touch.patch still has the pre-DTSC factory comment in
+    # one context line.  Normalize that copied patch only; the dependency
+    # checkout stays untouched.
+    touch_patch = output / 'pi/circle/circle-touch.patch'
+    touch = touch_patch.read_text()
+    old_context = ' // rytm-pi hook: the application may define this to claim the Analog Rytm MKII (1935:0b48)\n'
+    new_context = ' // rytm-pi hook: the application may define this to claim an Elektron Overbridge device\n'
+    if old_context not in touch:
+        raise SystemExit('circle-touch patch context changed; review the patch order')
+    touch_patch.write_text(touch.replace(old_context, new_context, 1))
     # Upstream build.sh hardcodes the tag.  Let this isolated build use the
     # resolved name or ID without editing deps/.
     build_script = output / 'pi/engine/build.sh'
