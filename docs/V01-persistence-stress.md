@@ -241,3 +241,11 @@ under53 and two late-playback faults. The user reported normal UI. The user subs
 edits. Their timing was not marked, so this is not an isolated reload-only
 result; neither the later faults' trigger nor their root cause is established. Voice remains muted, no further hardware
 change ([evidence](../evidence/v01/gate-b-i04r-reload-isolation.json)).
+
+Cross-track Sound copy: the initial GRID/FUNC sequencer-copy test did not
+transfer USB1/SRC; that was not the complete-Sound procedure. The corrected
+TRK+RECORD / TRK+STOP test transferred USB1 and matching SRC values to track2
+with Pi USB disconnected
+([evidence](../evidence/v01/gate-b-i04r-copy-procedure.json)). This is displayed
+state only, not two-voice audio or sequencer trig/lock copying. Restore the saved
+one-USB1-track test project before reconnecting to the one-voice I04R host.

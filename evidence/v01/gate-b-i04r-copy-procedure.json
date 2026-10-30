@@ -1,0 +1,21 @@
+{
+  "scope": "physical I04R attempted sequencer-track copy with Pi USB disconnected; human UI report",
+  "date": "2026-10-30",
+  "case": "B4/B10 procedure check",
+  "action_given": "GRID RECORDING, track1 FUNC+RECORD, track2 FUNC+STOP.",
+  "human_result": "Track2 did not receive USB1 or matching SRC values.",
+  "interpretation": "This used sequencer-track copy rather than complete Sound copy. Do not classify this observation as a custom-machine persistence defect. Trig/lock transfer was not checked.",
+  "correct_next_action": "Copy complete Sound with TRK+RECORD from track1; select track2; paste with TRK+STOP.",
+  "official_reference": "https://www.elektron.se/wp-content/uploads/2025/07/Digitakt-User-Manual_ENG_OS1.52A_250708.pdf#page=29",
+  "limits": [
+    "Official reference OS1.52A; actual test target I04R/OS1.54 (human-reported).",
+    "No cross-track audio, note/velocity, non-SRC parameters or sequencer trig/lock copy qualification.",
+    "No full Gate B or two-voice hardware pass."
+  ],
+  "corrected_test": {
+    "action": "With USB disconnected, select track1, TRK+RECORD, select track2, TRK+STOP.",
+    "human_result": "Track2 now shows USB1 and matching SRC values.",
+    "result": "pass at displayed machine/eight-SRC-value scope",
+    "source_values": "Current track1 values; numeric values were not separately transcribed in this case."
+  }
+}

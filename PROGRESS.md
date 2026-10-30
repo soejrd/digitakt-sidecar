@@ -133,3 +133,15 @@ confound the attempted isolation. Do not attribute the observed late faults or
 underrun growth to project reload alone. State-restoration observations remain
 valid; playback timing is unqualified. Do not require another reload repeat
 without a sharper action-marked feedback loop. Pi last left muted.
+
+Copy procedure correction: GRID FUNC+RECORD / FUNC+STOP did not transfer USB1
+or SRC to track2. This was sequencer-track copy, not complete Sound copy; no
+custom-machine defect inferred and trigs/locks not checked. Official manual
+section9.5 uses TRK+RECORD / TRK+STOP for full Sound copy. USB remains unplugged;
+corrected test now confirmed: track2 receives USB1 and matching SRC values. [Observation](evidence/v01/gate-b-i04r-copy-procedure.json).
+
+B10 complete Sound copy via TRK+RECORD / TRK+STOP passes displayed USB1/eight-SRC
+scope by human report; no cross-track audio or sequencer-copy qualification.
+Both tracks now hold USB1 while USB is disconnected. Before reconnecting,
+restore the saved disposable project and verify only track1 remains USB1;
+installed I04R is still one voice. Pi remains muted. Timing fault unresolved.
