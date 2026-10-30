@@ -98,7 +98,19 @@ remain in the V01 report.
 **Gate B physical B1 trial:** user confirms all eight prescribed SRC values and
 USB1 restored after project save/change/load on I04R. This is not a full pass:
 afterward (uptime2236s) Pi faults rose0→1, code3 SC_PF_LATE (due217216,
-clock222180; 4964 frames late), underruns15→44. Exact timing/cause within the
-sequence is unproven. Voice remains muted; audio cases stopped. Raw log private.
+clock222180; 4964 frames late), underruns15→44. User reports normal reload, no visible freeze/unusual pause. Exact timing/cause
+within the sequence is unproven. Voice remains muted; audio cases stopped. Raw log private.
 [Evidence](evidence/v01/gate-b-i04r-project-reload.json). Note/velocity, dirty
 flags, post-reload sound, cold boot and Pi-disconnected persistence unverified.
+
+B9 displayed-state portion confirmed by user: with Pi USB disconnected,
+PTCH/DEC changed90/10 then project reloaded; all eight prescribed SRC values
+and USB1 selection restored. This excludes host caching for displayed state.
+[Evidence](evidence/v01/gate-b-i04r-without-pi.json). USB remains disconnected;
+cold-boot check subsequently confirmed (below). No audio/note/velocity/dirty-flag qualification. B1's
+late-playback fault and underrun growth remain open; Gate B not complete.
+
+B2 displayed-state portion confirmed: Digitakt powered off30s, rebooted,
+loaded saved test project with USB still disconnected; USB1 and all eight
+SRC values restored. [Evidence](evidence/v01/gate-b-i04r-cold-boot.json).
+Next: native Sound save/change/load. No Gate B audio pass or timing-fault fix.

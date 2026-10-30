@@ -215,3 +215,14 @@ restoration is confirmed at human-report scope, but B1 is not a complete pass.
 Exact failure timing/cause within the sequence is unproven. Audio cases stopped;
 Pi remains muted. [Trial evidence](../evidence/v01/gate-b-i04r-project-reload.json).
 Note/velocity, dirty flags and post-reload output remain unverified.
+
+B9 displayed-state check: with Pi USB disconnected, the user changed PTCH/DEC
+and reloaded the same saved project. All eight prescribed SRC values and USB1
+restored ([evidence](../evidence/v01/gate-b-i04r-without-pi.json)). Thus the Pi
+is not supplying the restored displayed state. This does not qualify audio,
+note/velocity, dirty flags or resolve the B1 late-playback fault.
+
+B2 displayed-state check: after a30-second power-off and cold restart, the user
+loaded the saved disposable project with USB still disconnected. USB1 and all
+eight SRC values restored ([evidence](../evidence/v01/gate-b-i04r-cold-boot.json)).
+No audio/note/velocity or quantitative boot/UI timing result is claimed.

@@ -58,5 +58,6 @@
     "No note/velocity restoration, dirty flags or post-reload sound qualification.",
     "No cold-boot or Pi-disconnected persistence test yet."
   ],
-  "next": "Stop audio cases; preserve logs and establish timing/cause before repeating. Pi remains muted."
+  "next": "Stop audio cases; preserve logs and establish timing/cause before repeating. Pi remains muted.",
+  "human_ui_result": "User reports reload completed normally, with no visible freeze or unusual pause; no quantitative timing measurement."
 }

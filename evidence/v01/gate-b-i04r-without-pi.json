@@ -1,0 +1,37 @@
+{
+  "scope": "physical I04R displayed project-state restoration without Pi; human-reported; no audio",
+  "date": "2026-10-30",
+  "case": "B9",
+  "firmware": "I04R (human-reported)",
+  "setup": {
+    "project": "same saved disposable project as B1",
+    "track": 1,
+    "pi_usb": "disconnected throughout test",
+    "pi_power": "left on",
+    "digitakt_power": "left on",
+    "playback": "stopped"
+  },
+  "action": "With Pi USB disconnected, change PTCH to90 and DEC to10, then reload saved project.",
+  "expected_src": {
+    "PTCH": 60,
+    "DEC": 33,
+    "RAMP": 41,
+    "HOLD": 52,
+    "TICK": 20,
+    "NOIS": 10,
+    "DIRT": 12,
+    "DIST": 8
+  },
+  "human_result": "Confirmed all eight displayed SRC values returned and USB1 remained selected; USB left disconnected.",
+  "result": {
+    "displayed_src_and_machine_without_pi": "pass",
+    "host_cache_excluded_for_displayed_state": true,
+    "whole_gate_b_pass": false
+  },
+  "limits": [
+    "Human UI verification only; no note/velocity or dirty-flag checks.",
+    "No audio while Pi disconnected.",
+    "B1 playback fault/underrun growth remains unresolved.",
+    "Cold boot not tested in this case."
+  ]
+}

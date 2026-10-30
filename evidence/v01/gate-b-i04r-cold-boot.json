@@ -1,0 +1,29 @@
+{
+  "scope": "physical I04R cold-boot project-state restoration without Pi; human UI report; no audio",
+  "date": "2026-10-30",
+  "case": "B2",
+  "firmware": "I04R (user-reported restored)",
+  "action": "Leave Pi USB disconnected; power Digitakt off, wait30seconds, power on and load same saved disposable project.",
+  "track": 1,
+  "expected_machine": "USB1",
+  "expected_src": {
+    "PTCH": 60,
+    "DEC": 33,
+    "RAMP": 41,
+    "HOLD": 52,
+    "TICK": 20,
+    "NOIS": 10,
+    "DIRT": 12,
+    "DIST": 8
+  },
+  "human_result": "Confirmed USB1 and all eight SRC values returned after the cold restart.",
+  "result": {
+    "displayed_src_and_machine_after_cold_boot": "pass",
+    "whole_gate_b_pass": false
+  },
+  "limits": [
+    "Human-reported UI check, no measured boot/UI timing.",
+    "No note/velocity, dirty flags or audio verification.",
+    "B1 playback fault and underrun growth remain unresolved."
+  ]
+}
