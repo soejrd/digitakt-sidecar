@@ -125,7 +125,7 @@ Status as of the V01K freeze (2026-10-29). None of A–C has passed.
 | Gate | Status | What is actually missing |
 | --- | --- | --- |
 | A | **Parked** by owner to unblock B/C and X01 | No cause found, so no causal fix to demonstrate; the only shipped fix was falsified. Resume when the RX/ACK hypothesis is reproduced or refuted in the emulator and the deferral regression is bounded. |
-| B | **Ready, not started** | No V01 evidence yet for save/reload, copy-paste, undo, mutes, sound locks, switches during play or USB1-to-another-track. I04 acceptance covers SRC controls, locks and local filter/amp on one voice only; it is not persistence. Runs on I04R. |
+| B | **In progress; no complete case passed** | No V01 evidence yet for save/reload, copy-paste, undo, mutes, sound locks, switches during play or USB1-to-another-track. I04 acceptance covers SRC controls, locks and local filter/amp on one voice only; it is not persistence. Runs on I04R. |
 | C | **Ready, partially satisfied at prototype scope** | Coarse USB pull/replug and Pi reboot recovery passed under I04R acceptance and the model-level I03 exchange. Missing: three-cycle counters for pull/replug, Pi reboot and Digitakt restart separately; the10-minute combined soak; a frozen numeric profile; and UI thresholds measured on hardware. Boot→active FIFO0→11 remains unresolved. |
 
 B and C do **not** need dense modulation: they need a stable device, which I04R
@@ -179,8 +179,12 @@ explicit listening acceptance, reproducible patches and verified rollback.
 
 ## Installed hardware and recovery
 
-- **V01K is installed and has frozen; restore I04R before normal use.** Fixes
-  live in `private/` and are not deliverables until replayed as patches.
+- **I04R restored by the user on2026-10-30; Pi restarted.** Quiet manual drum,
+  PTCH change and UI responsiveness confirmed on track1. At Pi uptime2062s,
+  33/33 STARTs consumed, TRX faults0; underruns stayed15 through the listening
+  check (earlier increase1→15 is unqualified). Voice muted for Gate B setup.
+  V01K previously froze; its fixes live in `private/` and are not deliverables
+  until replayed as patches. No Gate B/C case is yet passed.
 - Last pre-V01K capture state: muted, trace off, voice fault0/FIFO11
   ([G boot verified](../evidence/v01/compact-boot.json)). USB
   unplug/recovery confirmation and boot→active FIFO0→11 remain unresolved. Both
@@ -200,3 +204,14 @@ explicit listening acceptance, reproducible patches and verified rollback.
   normal use. Human handles Transfer/SD insertion.
 - Follow `AGENTS.md` for lowered speakers, backups and hardware boundaries.
   Firmware, projects and raw captures stay private. No new flash is ready.
+
+## Physical B1 trial — 2026-10-30
+
+On user-restored I04R, the user confirmed all eight prescribed SRC values and
+USB1 selection returned after project save, PTCH/DEC changes, and project load.
+The Pi voice was muted. The post-check found a new SC_PF_LATE fault (code3,
+4964 frames / about103.4ms late) and underruns grew15→44. Thus displayed-state
+restoration is confirmed at human-report scope, but B1 is not a complete pass.
+Exact failure timing/cause within the sequence is unproven. Audio cases stopped;
+Pi remains muted. [Trial evidence](../evidence/v01/gate-b-i04r-project-reload.json).
+Note/velocity, dirty flags and post-reload output remain unverified.

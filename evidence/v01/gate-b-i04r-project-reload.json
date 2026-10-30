@@ -1,0 +1,62 @@
+{
+  "scope": "physical I04R project-save/change/reload trial; human UI report plus Pi counters; one attempt",
+  "date": "2026-10-30",
+  "firmware": "I04R (user-reported restored from hash-verified recovery)",
+  "pi_build": "Oct 29 2026 12:31:45",
+  "case": "B1",
+  "setup": {
+    "project": "disposable (human-reported)",
+    "track": 1,
+    "machine": "USB1",
+    "lfo_destinations": "NONE",
+    "pi_voice": "muted during save/load",
+    "trace": "off"
+  },
+  "action": "Set eight SRC values, save project, change PTCH to90 and DEC to10, load saved project through Project menu.",
+  "expected_src": {
+    "PTCH": 60,
+    "DEC": 33,
+    "RAMP": 41,
+    "HOLD": 52,
+    "TICK": 20,
+    "NOIS": 10,
+    "DIRT": 12,
+    "DIST": 8
+  },
+  "human_result": "Confirmed all eight displayed values restored and USB1 remained selected.",
+  "before": {
+    "uptime_s": 2062,
+    "underruns": 15,
+    "trx_faults": 0,
+    "starts": 33,
+    "consumed_starts": 33
+  },
+  "after": {
+    "uptime_s": 2236,
+    "streaming": true,
+    "underruns": 44,
+    "trx_faults": 1,
+    "armed": false,
+    "fault": {
+      "code": 3,
+      "name": "SC_PF_LATE",
+      "block": 3339361,
+      "flags": 0,
+      "delta_blocks": 64,
+      "clock_frames": 222180,
+      "due_frames": 217216,
+      "late_frames": 4964
+    }
+  },
+  "result": {
+    "displayed_values_and_machine_restore": "pass (human report)",
+    "complete_case": "not passed; new playback fault and underrun growth",
+    "qualification_pass": false
+  },
+  "limits": [
+    "Single attempt; exact fault/underrun timing within save/change/load sequence not instrumented.",
+    "No note/velocity restoration, dirty flags or post-reload sound qualification.",
+    "No cold-boot or Pi-disconnected persistence test yet."
+  ],
+  "next": "Stop audio cases; preserve logs and establish timing/cause before repeating. Pi remains muted."
+}

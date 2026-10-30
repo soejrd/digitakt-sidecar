@@ -82,6 +82,23 @@ Next offline: full track/pattern copy.
 Hardware expansion still needs V01-A, measured X01a margin and reviewed recovery.
 Private X01E remains emulator-only. No installed firmware/kernel changed.
 
-**Installed:** V01K (frozen); restore I04R before normal use. Pi kernel
-unchanged by V01K. Packages/recovery hashes are in the V01 report. No new
-hardware candidate is ready.
+**Hardware preflight (2026-10-30):** user reports I04R restored, Pi restarted,
+disposable project with USB1 on track1 and LFO destinations NONE. Pi build
+remains Oct29 12:31:45. Native control arrives: 7 STARTs/7 consumed, TRX faults0.
+Underruns rose from1 (uptime24/48s) to15 by uptime1886s; cause/timing unproven.
+Muted samples at1903/1913/1923s stayed15, USB gaps/errors0, no power throttling.
+Voice enabled with existing fade-in: arm1 accepted, faults0, underruns still15
+at1963/1966/1969s. User confirms quiet drum, PTCH change and responsive UI.
+At2062s, all33 STARTs consumed, TRX faults0, underruns still15; no new power
+faults. Voice muted again for project save/load testing; trace remains off.
+This is a preflight, not a clean-boot stability result or any Gate B/C pass.
+No X01 hardware candidate is ready; V01-A remains unresolved. Recovery hashes
+remain in the V01 report.
+
+**Gate B physical B1 trial:** user confirms all eight prescribed SRC values and
+USB1 restored after project save/change/load on I04R. This is not a full pass:
+afterward (uptime2236s) Pi faults rose0→1, code3 SC_PF_LATE (due217216,
+clock222180; 4964 frames late), underruns15→44. Exact timing/cause within the
+sequence is unproven. Voice remains muted; audio cases stopped. Raw log private.
+[Evidence](evidence/v01/gate-b-i04r-project-reload.json). Note/velocity, dirty
+flags, post-reload sound, cold boot and Pi-disconnected persistence unverified.
