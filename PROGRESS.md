@@ -113,4 +113,8 @@ late-playback fault and underrun growth remain open; Gate B not complete.
 B2 displayed-state portion confirmed: Digitakt powered off30s, rebooted,
 loaded saved test project with USB still disconnected; USB1 and all eight
 SRC values restored. [Evidence](evidence/v01/gate-b-i04r-cold-boot.json).
-Next: native Sound save/change/load. No Gate B audio pass or timing-fault fix.
+B3 Sound save/change/load subsequently confirmed too: USB1 and all eight
+SRC values restore with Pi disconnected
+([evidence](evidence/v01/gate-b-i04r-sound-load.json)). No audio/note/velocity
+qualification. Next: reconnect/restart Pi for a fresh muted baseline and
+isolate project-reload timing; B1 fault and underrun growth remain unresolved.

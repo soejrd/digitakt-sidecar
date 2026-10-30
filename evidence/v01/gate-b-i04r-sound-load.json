@@ -1,0 +1,33 @@
+{
+  "scope": "physical I04R native Sound save/load with Pi USB disconnected; human-reported displayed state; no audio",
+  "date": "2026-10-30",
+  "case": "B3",
+  "firmware": "I04R (user-reported)",
+  "setup": {
+    "track": 1,
+    "pi_usb": "disconnected",
+    "sound": "new disposable test Sound; requested label V01-TEST"
+  },
+  "action": "Save track1 as new Sound, change PTCH to90 and DEC to10, then load saved Sound back onto track1.",
+  "expected_machine": "USB1",
+  "expected_src": {
+    "PTCH": 60,
+    "DEC": 33,
+    "RAMP": 41,
+    "HOLD": 52,
+    "TICK": 20,
+    "NOIS": 10,
+    "DIRT": 12,
+    "DIST": 8
+  },
+  "human_result": "Confirmed USB1 and all eight prescribed SRC values restored.",
+  "result": {
+    "displayed_src_and_machine_sound_round_trip": "pass",
+    "whole_gate_b_pass": false
+  },
+  "limits": [
+    "Human UI report only; actual saved Sound name not independently read.",
+    "No note/velocity, dirty flags or post-load audio qualification.",
+    "B1 playback timing fault and underrun growth remain unresolved."
+  ]
+}

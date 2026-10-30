@@ -226,3 +226,10 @@ B2 displayed-state check: after a30-second power-off and cold restart, the user
 loaded the saved disposable project with USB still disconnected. USB1 and all
 eight SRC values restored ([evidence](../evidence/v01/gate-b-i04r-cold-boot.json)).
 No audio/note/velocity or quantitative boot/UI timing result is claimed.
+
+B3 displayed-state check: the user saved a new disposable Sound, changed
+PTCH/DEC and loaded the Sound back onto track1 with USB disconnected. USB1
+and all eight SRC values restored
+([evidence](../evidence/v01/gate-b-i04r-sound-load.json)). Native displayed-state
+persistence now has project, Pi-independent, cold-boot and Sound observations;
+post-load audio and the B1 timing failure remain unqualified.
