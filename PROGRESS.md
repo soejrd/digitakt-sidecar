@@ -4,9 +4,11 @@ Read AGENTS.md, TASKBOARD.md and PLAN.md. No complete V01 gate has passed.
 
 **Next work / highest priority: U01 (P0).** Desktop source migration is ported
 to the v0.3.0 base in [patches/sidecar-firmware-v0.3.0](patches/sidecar-firmware-v0.3.0/README.md).
-Clean replay, Output tests and X01 host tests pass; the Pi4 cross-build could
-not run because Docker was unavailable. Next: run the cross-build and inspect
-memory/stack, then prepare a reviewed recovery and repeat physical baseline/V01.
+Clean replay, Output tests and X01 host tests pass. The Pi4 build and
+candidate staging helpers are ready (`scripts/v030_build_pi.py`,
+`scripts/v030_prepare_candidate.py`); the cross-build still needs Docker access
+outside this sandbox. Next: run it, inspect ELF/BSS and kernel headroom, review
+the private candidate/rollback, then repeat physical baseline/V01.
 The active v0.2 pin and installed hardware state remain unchanged.
 
 **Installed hardware:** user restored I04R on2026-10-30. Pi still runs the
