@@ -96,6 +96,18 @@ def build(output, evidence):
                    stdout=(output / 'circle-base.tar').open('wb'), check=True)
     staged_engine.mkdir(parents=True)
     subprocess.run(['tar', '-xf', str(output / 'circle-base.tar'), '-C', str(staged_engine)], check=True)
+    # The Docker container has no git credentials.  Carry the cached hostap
+    # submodule and LVGL sources into the clean tree; the libraries built from
+    # them are rebuilt in the container.
+    cached_engine = circle / 'circle-engine'
+    hostap = cached_engine / 'addon/wlan/hostap'
+    if not (hostap / 'wpa_supplicant/Makefile.circle').is_file():
+        raise SystemExit('cached hostap submodule is missing')
+    shutil.copytree(hostap, staged_engine / 'addon/wlan/hostap', dirs_exist_ok=True)
+    lvgl = cached_engine / 'addon/lvgl/lvgl'
+    if not lvgl.is_dir():
+        raise SystemExit('cached LVGL sources are missing')
+    shutil.copytree(lvgl, staged_engine / 'addon/lvgl/lvgl', dirs_exist_ok=True)
     # v0.3.0's circle-touch.patch still has the pre-DTSC factory comment in
     # one context line.  Normalize that copied patch only; the dependency
     # checkout stays untouched.
