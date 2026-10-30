@@ -145,3 +145,18 @@ scope by human report; no cross-track audio or sequencer-copy qualification.
 Both tracks now hold USB1 while USB is disconnected. Before reconnecting,
 restore the saved disposable project and verify only track1 remains USB1;
 installed I04R is still one voice. Pi remains muted. Timing fault unresolved.
+
+User confirms saved project restored after Sound-copy check: only track1 has
+USB1 again; USB remains disconnected, Pi muted. No new hardware action needed.
+
+Offline counter clarification: pinned default Circle Output/root patches,
+ASan/UBSan, demonstrate a prefilled FIFO is intentionally drained on control
+epoch changes and the following empty requested frames increment Underflows.
+Close/reopen/close each counted32; steady prefilled playback counted0.
+[Reproducer](scripts/test_v01_output_counter.py),
+[evidence](evidence/v01/output-counter-semantics.json). This disproves treating
+all counter growth as producer starvation; it does not attribute the physical
+8→30→53 counts or explain/fix the separate SC_PF_LATE faults. Counter units are
+requested frames, not incident count. Next needed: bounded pre-fault timing
+capture with separately marked reconnect, reload and control-edit actions;
+no live trace printing. No firmware/kernel/host behavior changed.

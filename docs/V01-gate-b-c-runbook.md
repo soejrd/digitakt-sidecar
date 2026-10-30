@@ -19,6 +19,15 @@ already accepted ("slow/shallow PTCH LFO plus brief PTCH/DEC edits").
   `c=trx=off`, `trxtrace=off`, `trxstatus`, `v01status`.
 - Stop a case at the first freeze, new Pi fault or FIFO underrun growth.
 - Reboot the Pi before a timing-sensitive set so counters start clean.
+- Counter interpretation: `Underflows` counts empty requested output frames,
+  including intentional FIFO flushes on control-epoch changes. Stop/review new
+  growth as above, but do not equate it with CPU starvation or independent USB
+  failures. [Offline proof](../evidence/v01/output-counter-semantics.json).
+- For a targeted muted timing diagnosis, the existing128-record `trxtrace=on`
+  capture freezes on the first playback fault. Keep actions separately marked;
+  stop capture with `trxtrace=off` before requesting the `trxtrace` dump.
+  Dumping is post-trial only and its counter effects are outside the trial.
+  This is not permission to resume the parked V01-A dense workload.
 
 ## Gate B — persistence and edit semantics
 

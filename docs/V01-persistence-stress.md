@@ -249,3 +249,28 @@ with Pi USB disconnected
 ([evidence](../evidence/v01/gate-b-i04r-copy-procedure.json)). This is displayed
 state only, not two-voice audio or sequencer trig/lock copying. Restore the saved
 one-USB1-track test project before reconnecting to the one-voice I04R host.
+
+## Output counter semantics — offline clarification
+
+`python3 scripts/test_v01_output_counter.py` replays the pinned host base and
+root patch set in a disposable tree and executes actual default Circle Output
+under ASan/UBSan. It fills the FIFO before each close/reopen/close transition;
+epoch changes intentionally flush that FIFO, emit silence and increment the
+Underflows counter32 frames per32-frame pull. Steady prefilled pulls add0.
+The diagnostic mode rejects the interpretation that counter growth always
+requires producer starvation
+([source-hashed evidence](../evidence/v01/output-counter-semantics.json)).
+
+Thus the hardware counter is requested empty frames, not a count of independent
+USB failures. The observation does not attribute the physical8→30→53 growth to
+this mechanism and does not explain or fix the SC_PF_LATE faults. Gate
+qualification remains open; stop/review counter growth as before, without
+inferring CPU saturation from the counter alone. No runtime behavior changed.
+
+User subsequently confirmed restoring the saved project to one USB1 track
+(track1); USB is disconnected and Pi voice remains muted. Next timing trial
+needs separately marked reconnect/reload/edit actions and an existing bounded
+128-record trace frozen at the first fault. Enable capture while muted, end the
+action/capture, then print/read the frozen trace afterward; never print it during
+the timing-sensitive interval. Host clock deltas may narrow the failure pattern
+but alone cannot establish native clock pause versus packet/worker delay.

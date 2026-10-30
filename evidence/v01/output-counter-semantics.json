@@ -1,0 +1,43 @@
+{
+  "scope": "default Circle Output replayed from pinned host base/root patches, ASan/UBSan desktop; no hardware",
+  "command": "python3 scripts/test_v01_output_counter.py",
+  "dependency_base": "6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457",
+  "checks": {
+    "fifo_prefilled_before_each_transition": true,
+    "closed_epoch_outputs_silence": true,
+    "reopened_epoch_discards_old_fifo": true,
+    "counter_also_counts_intentional_flush_silence": true,
+    "steady_prefilled_output_does_not_add_underflows": true
+  },
+  "measured_counter_deltas_frames": {
+    "close_flush_count": 32,
+    "reopen_flush_count": 32,
+    "second_close_flush_count": 32,
+    "steady_prefilled_count": 0,
+    "pass": true
+  },
+  "negative_check": "The claim that every counter increase requires producer starvation is false: a prefilled FIFO is flushed on epoch changes.",
+  "source_sha256": {
+    "scripts/test_v01_output_counter.py": "82632f1330fea982c7626c6e8bd6cd2c00fa3bae24e9fac08cd62ddf1eddb0ae",
+    "tests/v01_output_counter.cpp": "37540e5c9dd0d7e4757b09589e8c2168fbe962429f0d36b1b018f755c146ed98",
+    "patches/sidecar-firmware/0001-directional-overbridge-layout.patch": "87fecfb46737ddf85bed736cf245caf0976c4d3b671478e26297ef5ff352be39",
+    "patches/sidecar-firmware/0002-static-capture-marker.patch": "455b1c1d08189f2ec5e21e8173176508da46569fe6cd1758a0f5aa9286c97e5e",
+    "patches/sidecar-firmware/0003-dtsc-control-link.patch": "fb6e8de487359ee515f4e6b849674c1982203e3801e557f239fac35cdb6db85c",
+    "patches/sidecar-firmware/0004-h02-gated-test-tone.patch": "42f3c9df1a41d0ec42d9005324924b780c48f4e87583c747a40b688d145f936c",
+    "patches/sidecar-firmware/0005-monotonic-control-clock.patch": "fb478754766b1975f14b57a43d1aaf709e07360bfe186e7f791089bf14236afc",
+    "patches/sidecar-firmware/0006-i04-trx-voice.patch": "b9c12b1190e3f154e64184c89685744a383e0e7fd903383900b4fc9c732fcaa2",
+    "patches/sidecar-firmware/0007-i04-scheduled-playout.patch": "e998f473d360e3beb8eed6f04aa13aea55858245f7be971622cf69f700569a1b",
+    "patches/sidecar-firmware/0008-i04-playout-fault-reason.patch": "f86f9d316705a097c485a5e2c31372a3ef70f5a544d66ba06fe8b842c30969ae",
+    "patches/sidecar-firmware/0009-i04-bounded-timing-trace.patch": "99477a884adbff823b2282099636e1f762e58445aead92263cf24b99bead8a4b",
+    "patches/sidecar-firmware/0010-i04-event-worker-playout.patch": "97481205bc8a479d4cf4f9e26ad78636c36633b8bf1d128074153748d7983869",
+    "patches/sidecar-firmware/0011-v01-remote-diagnostics.patch": "cb8e2cb3925b7c2618e7ad2b42c6227b382fa051f41bb377cf75a80ceb21cd60",
+    "patches/sidecar-firmware/0012-v01-duty-counters.patch": "840e8ffaa7bee8255b223041bdc8581dae8ca89c36f42b17204dcf2dff7c8830"
+  },
+  "replayed_output_sha256": "42c30779e7aa4205ba62b8633bbb74b3297df4c79ee119f7cb6a559c935d3de4",
+  "limits": [
+    "Does not attribute any physical counter increase to this mechanism.",
+    "Does not explain or fix SC_PF_LATE.",
+    "No host/device code or installed kernel changed."
+  ],
+  "pass": true
+}
