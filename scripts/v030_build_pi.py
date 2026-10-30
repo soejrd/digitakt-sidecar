@@ -44,12 +44,27 @@ def build(output, evidence):
         raise SystemExit(f'{output}: output directory is not empty')
 
     try:
-        image = docker('image', 'inspect', 'rytm-circle', '--format', '{{.Id}}')
+        image_ref = 'rytm-circle:latest'
+        image = docker('image', 'inspect', image_ref, '--format', '{{.Id}}')
     except (subprocess.CalledProcessError, FileNotFoundError) as error:
-        raise SystemExit(
-            'Docker/rytm-circle is unavailable. Start Docker, build/import the '
-            'rytm-circle image, and run this command outside a Docker-denying '
-            'sandbox. Original error: ' + str(error))
+        # Docker Desktop occasionally lists an image and runs it by ID while
+        # refusing the same tag in `docker image inspect`.  Resolve the ID from
+        # the image list and use that exact reference for the build.
+        try:
+            ids = docker('image', 'ls', '--no-trunc', '--format', '{{.ID}}',
+                         'rytm-circle:latest').splitlines()
+            ids = [item.strip() for item in ids if item.strip()]
+            if len(ids) != 1:
+                raise RuntimeError(f'expected one rytm-circle image, found {ids}')
+            image_ref = ids[0]
+            image = docker('image', 'inspect', image_ref, '--format', '{{.Id}}')
+            print(f'rytm-circle tag lookup failed; using image ID {image_ref}')
+        except (subprocess.CalledProcessError, FileNotFoundError, RuntimeError) as fallback:
+            raise SystemExit(
+                'Docker/rytm-circle is unavailable. Start Docker, build/import the '
+                'rytm-circle image, and run this command outside a Docker-denying '
+                'sandbox. Original error: ' + str(error) +
+                '; ID fallback: ' + str(fallback))
 
     cache = ROOT / 'deps/sidecar-firmware'
     circle = cache / 'pi/circle/build'
@@ -68,9 +83,18 @@ def build(output, evidence):
     subprocess.run(['git', '-C', str(output), 'reset', '-q', '--mixed', 'FETCH_HEAD'], check=True)
     for relative in ('pi/circle/build', 'teensy/libraries'):
         shutil.copytree(cache / relative, output / relative, dirs_exist_ok=True)
+    # Upstream build.sh hardcodes the tag.  Let this isolated build use the
+    # resolved name or ID without editing deps/.
+    build_script = output / 'pi/engine/build.sh'
+    script = build_script.read_text()
+    script = script.replace(
+        'docker image inspect rytm-circle >/dev/null 2>&1 || docker build -t rytm-circle',
+        'docker image inspect "$RYTM_CIRCLE_IMAGE" >/dev/null 2>&1 || docker build -t "$RYTM_CIRCLE_IMAGE"', 1)
+    script = script.replace(' rytm-circle bash ', ' "$RYTM_CIRCLE_IMAGE" bash ', 1)
+    build_script.write_text(script)
 
     log = output / 'v030-build.log'
-    env = dict(os.environ, RASPPI='4')
+    env = dict(os.environ, RASPPI='4', RYTM_CIRCLE_IMAGE=image_ref)
     with log.open('w') as stream:
         result = subprocess.run(['./pi/engine/build.sh', 'kernel'], cwd=output, env=env,
                                 stdout=stream, stderr=subprocess.STDOUT)
@@ -86,12 +110,12 @@ def build(output, evidence):
         if not path.is_file():
             raise SystemExit(f'build did not produce {path}')
 
-    size = capture(['docker', 'run', '--rm', '-v', f'{output}:/repo:ro', 'rytm-circle',
+    size = capture(['docker', 'run', '--rm', '-v', f'{output}:/repo:ro', image_ref,
                     'aarch64-none-elf-size', '/repo/pi/engine/kernel8-rpi4.elf']).splitlines()[-1]
     text, data, bss = (int(value) for value in size.split()[:3])
     compiler = docker('run', '--rm', '-v', f'{output}:/repo:ro', 'rytm-circle',
                        'aarch64-none-elf-g++', '--version').splitlines()[0]
-    symbols = capture(['docker', 'run', '--rm', '-v', f'{output}:/repo:ro', 'rytm-circle',
+    symbols = capture(['docker', 'run', '--rm', '-v', f'{output}:/repo:ro', image_ref,
                        'aarch64-none-elf-nm', '-S', '--size-sort', '--radix=d',
                        '/repo/pi/engine/kernel8-rpi4.elf'])
     end_line = [line for line in symbols.splitlines() if line.endswith(' _end')]
@@ -128,6 +152,7 @@ def build(output, evidence):
         'circle_base': revision,
         'circle_engine_revision': capture(['git', '-C', str(output / 'pi/circle/build/circle-engine'), 'rev-parse', 'HEAD']),
         'docker_image': image,
+        'docker_image_ref': image_ref,
         'compiler': compiler,
         'kernel_file': 'kernel8-rpi4.img',
         'kernel_sha256': sha256(image_path),
