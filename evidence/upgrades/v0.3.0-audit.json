@@ -1,0 +1,41 @@
+{
+  "scope": "offline fetched-tag compatibility audit, not a completed upgrade or hardware validation",
+  "command": "python3 scripts/audit_upstream_upgrade.py",
+  "targets": {
+    "sidecar-firmware": {
+      "tag": "v0.3.0",
+      "revision": "047873e630cade798f6b605ca0a46b5f86df5fb3",
+      "current_pin": "6cff67b9c6db93f8c8c64c8d9108a0cbad9a0457",
+      "upstream": "https://github.com/trigcondition/sidecar-firmware.git",
+      "change_summary": "863 files changed, 197962 insertions(+), 6239 deletions(-)"
+    },
+    "sidecar-mods": {
+      "tag": "v0.3.0",
+      "revision": "71efeae5c091ce43659602c0919832e74c7f44e2",
+      "current_pin": "c5a80c7fbf12caadfe1ab17b7db202a0f0674490",
+      "upstream": "https://github.com/trigcondition/sidecar-mods.git",
+      "change_summary": "46 files changed, 25253 insertions(+), 4372 deletions(-)"
+    }
+  },
+  "root_patch_count": 12,
+  "sequential_patch_checks": [
+    {
+      "patch": "0001-directional-overbridge-layout.patch",
+      "sha256": "87fecfb46737ddf85bed736cf245caf0976c4d3b671478e26297ef5ff352be39",
+      "applies_after_prior_patches": false,
+      "errors": [
+        "error: patch failed: pi/engine/ob_usb.cpp:407",
+        "error: pi/engine/ob_usb.cpp: patch does not apply"
+      ]
+    }
+  ],
+  "remaining_patches_not_attempted": 11,
+  "upstream_has_restart_vs_playback_underflow_buckets": true,
+  "status": "port-required",
+  "limits": [
+    "Pins and dependency working trees unchanged; only remote refs fetched.",
+    "X01 experimental patch, overlay compilation and Pi cross-build not qualified on v0.3.0.",
+    "sidecar-mods release targets Rytm MKII OS1.73, not Digitakt mk1 OS1.54.",
+    "No firmware/kernel/SD changes and no claim of fixing V01."
+  ]
+}

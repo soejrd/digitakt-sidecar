@@ -68,3 +68,11 @@ pass within their documented offline scope. Route-edge wake fix is in source.
 emulator-only; hardware expansion waits for V01-A, measured X01a margin and
 reviewed recovery. Full track/pattern copy, runtime stack/CPU margin and
 physical two-return timing remain open. Eight independent returns unproven.
+
+**Upstream upgrade requested:** v0.3.0 tags fetched/verified for sidecar-firmware
+(047873e) and sidecar-mods(71efeae). First routing patch fails on new ob_usb.cpp;
+Output/mixer/interfaces changed substantially. Active pins, dirty dependency
+checkouts and hardware unchanged. U01 is an audited migration, not complete.
+[Plan](docs/UPGRADE-v0.3.0.md), [audit](evidence/upgrades/v0.3.0-audit.json).
+Upstream restart/playback counter split is useful but does not fix V01 by proof.
+Do not install the Rytm release module on the Digitakt.
